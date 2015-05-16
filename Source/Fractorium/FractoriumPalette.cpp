@@ -327,6 +327,7 @@ void Fractorium::ResetPaletteControls()
 /// Set the index of the palette file combo box.
 /// This is for display purposes only so the user can see which file, if any,
 /// the current palette came from.
+/// For embedded palettes with no filename, this will have no effect.
 /// </summary>
 /// <param name="filename">The string to set the index to</param>
 void Fractorium::SetPaletteFileComboIndex(const string& filename)
