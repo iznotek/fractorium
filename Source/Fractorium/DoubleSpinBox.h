@@ -29,7 +29,8 @@ public:
 	QLineEdit* lineEdit();
 
 public slots:
-	void onSpinBoxValueChanged(double d);
+	void OnSpinBoxValueChanged(double d);
+	void OnTimeout();
 
 protected:
 	virtual bool eventFilter(QObject* o, QEvent* e) override;
@@ -39,12 +40,18 @@ protected:
 	virtual void leaveEvent(QEvent* e);
 
 private:
+	void StartTimer();
+	void StopTimer();
+
 	bool m_Select;
 	bool m_DoubleClick;
 	double m_DoubleClickNonZero;
 	double m_DoubleClickZero;
 	double m_Step;
 	double m_SmallStep;
+	QPoint m_MouseDownPoint;
+	QPoint m_MouseMovePoint;
+	static QTimer m_Timer;
 };
 
 /// <summary>

@@ -231,6 +231,10 @@ public:
 		if (ember.UseFinalXform())
 			os << ToString(*ember.NonConstFinalXform(), ember.XformCount(), true, false);//Final, don't do motion.
 
+		//Note that only embedded palettes are saved. The old style of specifying a palette index to look up in a default palette file
+		//is no longer supported, as it makes no sense when using multiple palette files. The only way it could work is if the index was
+		//always meant to refer to the default file, or if the filename was embedded as well. It's easier, more straightforward and
+		//less error prone to just embed the palette.
 		if (hexPalette)
 		{
 			os << "   <palette count=\"256\" format=\"RGB\">\n";

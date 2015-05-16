@@ -27,6 +27,7 @@ public:
 
 public slots:
 	void onSpinBoxValueChanged(int i);
+	void OnTimeout();
 
 protected:
 	bool eventFilter(QObject* o, QEvent* e);
@@ -36,10 +37,16 @@ protected:
 	virtual void leaveEvent(QEvent* e);
 
 private:
+	void StartTimer();
+	void StopTimer();
+
 	bool m_Select;
 	bool m_DoubleClick;
 	int m_DoubleClickNonZero;
 	int m_DoubleClickZero;
 	int m_Step;
 	int m_SmallStep;
+	QPoint m_MouseDownPoint;
+	QPoint m_MouseMovePoint;
+	static QTimer m_Timer;
 };

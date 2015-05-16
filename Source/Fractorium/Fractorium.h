@@ -194,6 +194,11 @@ public slots:
 	void OnXformNameChanged(int row, int col);
 
 	//Xforms Affine.
+	void OnPreAffineRowDoubleClicked(int logicalIndex);
+	void OnPreAffineColDoubleClicked(int logicalIndex);
+	void OnPostAffineRowDoubleClicked(int logicalIndex);
+	void OnPostAffineColDoubleClicked(int logicalIndex);
+
 	void OnX1Changed(double d);
 	void OnX2Changed(double d);
 	void OnY1Changed(double d);
@@ -299,6 +304,9 @@ private:
 	void InitLibraryUI();
 	void SetTabOrders();
 
+	void ToggleTableRow(TableWidget* table, int logicalIndex);
+	void ToggleTableCol(TableWidget* table, int logicalIndex);
+
 	//Embers.
 	bool HaveFinal();
 
@@ -324,6 +332,7 @@ private:
 	
 	//Palette.
 	void ResetPaletteControls();
+	void SetPaletteFileComboIndex(const string& filename);
 
 	//Info.
 	void UpdateHistogramBounds();

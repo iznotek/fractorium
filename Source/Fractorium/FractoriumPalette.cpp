@@ -83,55 +83,56 @@ int FractoriumEmberController<T>::InitPaletteList(const string& s)
 template <typename T>
 bool FractoriumEmberController<T>::FillPaletteTable(const string& s)
 {
-	QTableWidget* paletteTable = m_Fractorium->ui.PaletteListTable;
-	QTableWidget* palettePreviewTable = m_Fractorium->ui.PalettePreviewTable;
-
-	m_CurrentPaletteFilePath = m_Fractorium->ui.PaletteFilenameCombo->property("path").toString().toStdString() + s;
-	size_t paletteSize = m_PaletteList.Size(m_CurrentPaletteFilePath);
-	
-	if (paletteSize)
+	if (!s.empty())//This occasionally seems to get called with an empty string for reasons unknown.
 	{
-		paletteTable->clear();
-		paletteTable->blockSignals(true);
-		paletteTable->setRowCount(paletteSize);
-		
-		//Headers get removed when clearing, so must re-create here.
-		QTableWidgetItem* nameHeader = new QTableWidgetItem("Name");
-		QTableWidgetItem* paletteHeader = new QTableWidgetItem("Palette");
+		QTableWidget* paletteTable = m_Fractorium->ui.PaletteListTable;
+		QTableWidget* palettePreviewTable = m_Fractorium->ui.PalettePreviewTable;
 
-		nameHeader->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-		paletteHeader->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+		m_CurrentPaletteFilePath = m_Fractorium->ui.PaletteFilenameCombo->property("path").toString().toStdString() + s;
 
-		paletteTable->setHorizontalHeaderItem(0, nameHeader);
-		paletteTable->setHorizontalHeaderItem(1, paletteHeader);
-
-		//Palette list table.
-		for (size_t i = 0; i < paletteSize; i++)
+		if (size_t paletteSize = m_PaletteList.Size(m_CurrentPaletteFilePath))
 		{
-			Palette<T>* p = m_PaletteList.GetPalette(m_CurrentPaletteFilePath, i);
-			vector<byte> v = p->MakeRgbPaletteBlock(PALETTE_CELL_HEIGHT);
-			QTableWidgetItem* nameCol = new QTableWidgetItem(p->m_Name.c_str());
+			paletteTable->clear();
+			paletteTable->blockSignals(true);
+			paletteTable->setRowCount(paletteSize);
 
-			nameCol->setToolTip(p->m_Name.c_str());
-			paletteTable->setItem(i, 0, nameCol);
+			//Headers get removed when clearing, so must re-create here.
+			QTableWidgetItem* nameHeader = new QTableWidgetItem("Name");
+			QTableWidgetItem* paletteHeader = new QTableWidgetItem("Palette");
 
-			QImage image(v.data(), p->Size(), PALETTE_CELL_HEIGHT, QImage::Format_RGB888);
-			QTableWidgetItem* paletteItem = new QTableWidgetItem();
+			nameHeader->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+			paletteHeader->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 
-			paletteItem->setData(Qt::DecorationRole, QPixmap::fromImage(image));
-			paletteTable->setItem(i, 1, paletteItem);
+			paletteTable->setHorizontalHeaderItem(0, nameHeader);
+			paletteTable->setHorizontalHeaderItem(1, paletteHeader);
+
+			//Palette list table.
+			for (size_t i = 0; i < paletteSize; i++)
+			{
+				Palette<T>* p = m_PaletteList.GetPalette(m_CurrentPaletteFilePath, i);
+				vector<byte> v = p->MakeRgbPaletteBlock(PALETTE_CELL_HEIGHT);
+				QTableWidgetItem* nameCol = new QTableWidgetItem(p->m_Name.c_str());
+
+				nameCol->setToolTip(p->m_Name.c_str());
+				paletteTable->setItem(i, 0, nameCol);
+
+				QImage image(v.data(), p->Size(), PALETTE_CELL_HEIGHT, QImage::Format_RGB888);
+				QTableWidgetItem* paletteItem = new QTableWidgetItem();
+
+				paletteItem->setData(Qt::DecorationRole, QPixmap::fromImage(image));
+				paletteTable->setItem(i, 1, paletteItem);
+			}
+
+			paletteTable->blockSignals(false);
+			return true;
 		}
+		else
+		{
+			vector<string> errors = m_PaletteList.ErrorReport();
 
-		paletteTable->blockSignals(false);
-		m_Fractorium->OnPaletteRandomSelectButtonClicked(true);
-		return true;
-	}
-	else
-	{
-		vector<string> errors = m_PaletteList.ErrorReport();
-
-		m_Fractorium->ErrorReportToQTextEdit(errors, m_Fractorium->ui.InfoFileOpeningTextEdit);
-		m_Fractorium->ShowCritical("Palette Read Error", "Could not load palette file, all images will be black. See info tab for details.");
+			m_Fractorium->ErrorReportToQTextEdit(errors, m_Fractorium->ui.InfoFileOpeningTextEdit);
+			m_Fractorium->ShowCritical("Palette Read Error", "Could not load palette file, all images will be black. See info tab for details.");
+		}
 	}
 
 	return false;
@@ -226,7 +227,6 @@ template <typename T>
 void FractoriumEmberController<T>::PaletteCellClicked(int row, int col)
 {
 	Palette<T>* palette = m_PaletteList.GetPalette(m_CurrentPaletteFilePath, row);
-	QTableWidgetItem* nameItem = m_Fractorium->ui.PaletteListTable->item(row, 0);
 
 	if (palette)
 	{
@@ -266,7 +266,7 @@ void Fractorium::OnPaletteCellDoubleClicked(int row, int col)
 /// Called when the Random Palette button is clicked.
 /// Resets the rendering process.
 /// </summary>
-/// <param name="checked">True to clear the current adjustments, else leave current adjustments.</param>
+/// <param name="checked">True to clear the current adjustments, else leave current adjustments and apply them to the newly selected palette.</param>
 void Fractorium::OnPaletteRandomSelectButtonClicked(bool checked)
 {
 	uint i = 0;
@@ -321,6 +321,18 @@ void Fractorium::ResetPaletteControls()
 	m_PaletteContrastSpin->SetValueStealth(0);
 	m_PaletteBlurSpin->SetValueStealth(0);
 	m_PaletteFrequencySpin->SetValueStealth(1);
+}
+
+/// <summary>
+/// Set the index of the palette file combo box.
+/// This is for display purposes only so the user can see which file, if any,
+/// the current palette came from.
+/// </summary>
+/// <param name="filename">The string to set the index to</param>
+void Fractorium::SetPaletteFileComboIndex(const string& filename)
+{
+	if (!filename.empty())
+		ui.PaletteFilenameCombo->setCurrentText(QFileInfo(QString::fromStdString(filename)).fileName());
 }
 
 template class FractoriumEmberController<float>;

@@ -1,6 +1,8 @@
 #include "FractoriumPch.h"
 #include "DoubleSpinBox.h"
 
+QTimer DoubleSpinBox::m_Timer;
+
 /// <summary>
 /// Constructor that passes parent to the base and sets up height and step.
 /// Specific focus policy is used to allow the user to hover over the control
@@ -21,14 +23,15 @@ DoubleSpinBox::DoubleSpinBox(QWidget* p, int h, double step)
 	m_SmallStep = step / 10.0;
 	setSingleStep(step);
 	setFrame(false);
+	//setAttribute(Qt::WA_PaintOnScreen);
 	setButtonSymbols(QAbstractSpinBox::NoButtons);
 	setFocusPolicy(Qt::StrongFocus);
 	setMinimumHeight(h);//setGeometry() has no effect, so must set both of these instead.
 	setMaximumHeight(h);
+	setContextMenuPolicy(Qt::PreventContextMenu);
 	lineEdit()->installEventFilter(this);
 	lineEdit()->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-	connect(this, SIGNAL(valueChanged(double)), this, SLOT(onSpinBoxValueChanged(double)), Qt::QueuedConnection);
-
+	connect(this, SIGNAL(valueChanged(double)), this, SLOT(OnSpinBoxValueChanged(double)), Qt::QueuedConnection);
 }
 
 /// <summary>
@@ -118,9 +121,42 @@ QLineEdit* DoubleSpinBox::lineEdit()
 /// <summary>
 /// Another workaround for the persistent text selection bug in Qt.
 /// </summary>
-void DoubleSpinBox::onSpinBoxValueChanged(double d)
+void DoubleSpinBox::OnSpinBoxValueChanged(double d)
 {
 	lineEdit()->deselect();//Gets rid of nasty "feature" that always has text selected.
+}
+
+/// <summary>
+/// Called while the timer is activated due to the right mouse button being held down.
+/// </summary>
+void DoubleSpinBox::OnTimeout()
+{
+	int xdistance = m_MouseMovePoint.x() - m_MouseDownPoint.x();
+	int ydistance = m_MouseMovePoint.y() - m_MouseDownPoint.y();
+	int distance = abs(xdistance) > abs(ydistance) ? xdistance : ydistance;
+	double scale, val;
+	double d = value();
+	bool shift = QGuiApplication::keyboardModifiers().testFlag(Qt::ShiftModifier);
+	//bool ctrl = QGuiApplication::keyboardModifiers().testFlag(Qt::ControlModifier);
+	double amount = (m_SmallStep + m_Step) * 0.5;
+
+	if (shift)
+	{
+		//qDebug() << "Shift pressed";
+		scale = 0.0001;
+	}
+	/*else if (ctrl)
+	{
+		qDebug() << "Control pressed";
+		scale = 0.01;
+	}*/
+	else
+		scale = 0.001;
+
+	val = d + (distance * amount * scale);
+	setValue(val);
+
+	//qDebug() << "Timer on, orig val: " << d << ", new val: " << val << ", distance " << distance;
 }
 
 /// <summary>
@@ -131,8 +167,16 @@ void DoubleSpinBox::onSpinBoxValueChanged(double d)
 /// <returns>false</returns>
 bool DoubleSpinBox::eventFilter(QObject* o, QEvent* e)
 {
-	if (e->type() == QMouseEvent::MouseButtonPress && isEnabled())
+	QMouseEvent* me = dynamic_cast<QMouseEvent*>(e);
+
+	if (isEnabled() &&
+		me &&
+		me->type() == QMouseEvent::MouseButtonPress &&
+		me->button() == Qt::RightButton)
 	{
+		m_MouseDownPoint = m_MouseMovePoint = me->pos();
+		StartTimer();
+		//qDebug() << "Right mouse down";
 	//	QPoint pt;
 	//
 	//	if (QMouseEvent* me = (QMouseEvent*)e)
@@ -153,6 +197,23 @@ bool DoubleSpinBox::eventFilter(QObject* o, QEvent* e)
 	//		m_Select = false;
 	//		return true;
 	//	}
+	}
+	else if (isEnabled() &&
+		me &&
+		me->type() == QMouseEvent::MouseButtonRelease &&
+		me->button() == Qt::RightButton)
+	{
+		StopTimer();
+		m_MouseDownPoint = m_MouseMovePoint = me->pos();
+		//qDebug() << "Right mouse up";
+	}
+	else if (isEnabled() &&
+		me &&
+		me->type() == QMouseEvent::MouseMove &&
+		QGuiApplication::mouseButtons() & Qt::RightButton)
+	{
+		m_MouseMovePoint = me->pos();
+		qDebug() << "Mouse move while right down. Pt = " << me->pos() << ", global: " << mapToGlobal(me->pos());
 	}
 	else if (m_DoubleClick && e->type() == QMouseEvent::MouseButtonDblClick && isEnabled())
 	{
@@ -189,6 +250,7 @@ bool DoubleSpinBox::eventFilter(QObject* o, QEvent* e)
 void DoubleSpinBox::focusInEvent(QFocusEvent* e)
 {
 	//lineEdit()->setReadOnly(false);
+	StopTimer();
 	QDoubleSpinBox::focusInEvent(e);
 }
 
@@ -203,7 +265,8 @@ void DoubleSpinBox::focusOutEvent(QFocusEvent* e)
 {
 	 //lineEdit()->deselect();//Clear selection when leaving.
 	 //lineEdit()->setReadOnly(true);//Clever hack to clear the cursor when leaving.
-	 QDoubleSpinBox::focusOutEvent(e);
+	StopTimer();
+	QDoubleSpinBox::focusOutEvent(e);
 }
 
 /// <summary>
@@ -215,6 +278,7 @@ void DoubleSpinBox::enterEvent(QEvent* e)
 {
 	//m_Select = true;
 	//setFocus();
+	StopTimer();
 	QDoubleSpinBox::enterEvent(e);
 }
 
@@ -226,6 +290,26 @@ void DoubleSpinBox::enterEvent(QEvent* e)
 void DoubleSpinBox::leaveEvent(QEvent* e)
 {
 	//m_Select = false;
-	//clearFocus();
+	//clearFocus();.
+	StopTimer();
 	QDoubleSpinBox::leaveEvent(e);
+}
+
+/// <summary>
+/// Start the timer in response to the right mouse button being pressed.
+/// </summary>
+void DoubleSpinBox::StartTimer()
+{
+	m_Timer.stop();
+	connect(&m_Timer, SIGNAL(timeout()), this, SLOT(OnTimeout()));
+	m_Timer.start(300);
+}
+
+/// <summary>
+/// Stop the timer in response to the left mouse button being pressed.
+/// </summary>
+void DoubleSpinBox::StopTimer()
+{
+	m_Timer.stop();
+	disconnect(&m_Timer, SIGNAL(timeout()), this, SLOT(OnTimeout()));
 }

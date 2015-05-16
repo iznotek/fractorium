@@ -55,7 +55,7 @@ public:
 
 					palettes.clear();
 					palettes.reserve(buf.size() / 2048);//Roughly what it takes per palette.
-					ParsePalettes(rootNode, palettes);
+					ParsePalettes(rootNode, filename, palettes);
 					xmlFreeDoc(doc);
 					added = true;
 				}
@@ -81,6 +81,7 @@ public:
 		auto p = m_Palettes.begin();
 		int i = 0, paletteFileIndex = QTIsaac<ISAAC_SIZE, ISAAC_INT>::GlobalRand->Rand() % Size();
 		
+		//Move p forward i elements.
 		while (i < paletteFileIndex && p != m_Palettes.end())
 		{
 			++i;
@@ -218,13 +219,14 @@ public:
 
 private:
 	/// <summary>
-	/// Parses an Xml node for all palettes present and store in the passed in palette vector.
+	/// Parses an Xml node for all palettes present and stores them in the passed in palette vector.
 	/// Note that although the Xml color values are expected to be 0-255, they are converted and
 	/// stored as normalized colors, with values from 0-1.
 	/// </summary>
 	/// <param name="node">The parent note of all palettes in the Xml file.</param>
+	/// <param name="filename">The name of the Xml file.</param>
 	/// <param name="palettes">The vector to store the paresed palettes associated with this file in.</param>
-	void ParsePalettes(xmlNode* node, vector<Palette<T>>& palettes)
+	void ParsePalettes(xmlNode* node, const string& filename, vector<Palette<T>>& palettes)
 	{
 		bool hexError = false;
 		char* val;
@@ -287,12 +289,13 @@ private:
 
 				if (!hexError)
 				{
+					palette.m_Filename = filename;
 					palettes.push_back(palette);
 				}
 			}
 			else
 			{
-				ParsePalettes(node->children, palettes);
+				ParsePalettes(node->children, filename, palettes);
 			}
 
 			node = node->next;

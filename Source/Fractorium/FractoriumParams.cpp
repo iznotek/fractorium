@@ -512,6 +512,7 @@ void FractoriumEmberController<T>::SetCenter(double x, double y)
 
 /// <summary>
 /// Fill the parameter tables and palette widgets with values from the current ember.
+/// This takes ~1-2ms.
 /// </summary>
 template <typename T>
 void FractoriumEmberController<T>::FillParamTablesAndPalette()
@@ -551,26 +552,18 @@ void FractoriumEmberController<T>::FillParamTablesAndPalette()
 	m_Fractorium->m_AffineInterpTypeCombo->SetCurrentIndexStealth(m_Ember.m_AffineInterp);
 	m_Fractorium->m_InterpTypeCombo->SetCurrentIndexStealth(m_Ember.m_Interp);
 
+	//Xaos.
+	FillXaos();
+
 	//Palette.
 	m_Fractorium->ResetPaletteControls();
 	m_Fractorium->m_PaletteHueSpin->SetValueStealth(NormalizeDeg180<double>(m_Ember.m_Hue * 360.0));//Convert -0.5 to 0.5 range to -180 - 180.
 
-	//Use -1 as a placeholder to mean either generate a random palette from the list or
-	//to just use the values "as-is" without looking them up in the list.
-	if (m_Ember.m_Palette.m_Index >= 0)
-	{
-		m_Fractorium->OnPaletteCellClicked(Clamp<int>(m_Ember.m_Palette.m_Index, 0, m_Fractorium->ui.PaletteListTable->rowCount() - 1), 1);
-	}
-	else
-	{
-		//An ember with an embedded palette was loaded, rather than one from the list, so assign it directly to the controls without applying adjustments.
-		//Normally, temp palette is assigned whenever the user clicks on a palette cell. But since that is skipped here just make a copy of the ember's palette.
-		m_TempPalette = m_Ember.m_Palette;
-		UpdateAdjustedPaletteGUI(m_Ember.m_Palette);//Will clear name string since embedded palettes have no name. This will trigger a full render.
-	}
-
-	//Xaos.
-	FillXaos();
+	//Use the ember's embedded palette, rather than one from the list, so assign it directly to the controls without applying adjustments.
+	//Normally, the temp palette is assigned whenever the user clicks on a palette cell. But since that is skipped here, must do it manually.
+	m_TempPalette = m_Ember.m_Palette;
+	m_Fractorium->SetPaletteFileComboIndex(m_Ember.m_Palette.m_Filename);
+	UpdateAdjustedPaletteGUI(m_Ember.m_Palette);//Setting the palette will trigger a full render.
 }
 
 /// <summary>

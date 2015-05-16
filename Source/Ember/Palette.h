@@ -145,6 +145,7 @@ public:
 	{
 		m_Index = palette.m_Index;
 		m_Name = palette.m_Name;
+		m_Filename = palette.m_Filename;
 		CopyVec(m_Entries, palette.m_Entries);
 
 		return *this;
@@ -204,6 +205,7 @@ public:
 	{
 		palette.m_Index = m_Index;
 		palette.m_Name = m_Name;
+		palette.m_Filename = m_Filename;
 		palette.m_Entries.resize(Size());
 
 		for (uint i = 0; i < Size(); i++)
@@ -263,6 +265,7 @@ public:
 			}
 
 			palette.m_Name = m_Name;
+			palette.m_Filename = m_Filename;
 		}
 		else
 		{
@@ -340,6 +343,7 @@ public:
 	{
 		palette.m_Index = m_Index;
 		palette.m_Name = m_Name;
+		palette.m_Filename = m_Filename;
 
 		if (palette.Size() != Size())
 			palette.m_Entries.resize(Size());
@@ -574,6 +578,7 @@ public:
 
 	int m_Index;//Index in the xml palette file of this palette, use -1 for random.
 	string m_Name;//Name of this palette.
+	string m_Filename;//Name of the parent file this palette came from, can be empty.
 	vector<v4T> m_Entries;//Storage for the color values.
 };
 }

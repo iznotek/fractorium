@@ -724,6 +724,78 @@ void Fractorium::SetTabOrders()
 }
 
 /// <summary>
+/// Toggle all table spinner values in one row.
+/// The logic is:
+///		If any cell in the row is non zero, set all cells to zero, else 1.
+///		If shift is held down, reverse the logic.
+/// Resets the rendering process.
+/// </summary>
+/// <param name="logicalIndex">The index of the row that was double clicked</param>
+void Fractorium::ToggleTableRow(TableWidget* table, int logicalIndex)
+{
+	bool allZero = true;
+	int cols = table->columnCount();
+	bool shift = QGuiApplication::keyboardModifiers().testFlag(Qt::ShiftModifier);
+
+	for (int i = 0; i < cols; i++)
+	{
+		if (auto* spinBox = dynamic_cast<DoubleSpinBox*>(table->cellWidget(logicalIndex, i)))
+		{
+			if (!IsNearZero(spinBox->value()))
+			{
+				allZero = false;
+				break;
+			}
+		}
+	}
+
+	if (shift)
+		allZero = !allZero;
+
+	double val = allZero ? 1.0 : 0.0;
+
+	for (int i = 0; i < cols; i++)
+		if (auto* spinBox = dynamic_cast<DoubleSpinBox*>(table->cellWidget(logicalIndex, i)))
+			spinBox->setValue(val);
+}
+
+/// <summary>
+/// Toggle all table spinner values in one column.
+/// The logic is:
+///		If any cell in the column is non zero, set all cells to zero, else 1.
+///		If shift is held down, reverse the logic.
+/// Resets the rendering process.
+/// </summary>
+/// <param name="logicalIndex">The index of the column that was double clicked</param>
+void Fractorium::ToggleTableCol(TableWidget* table, int logicalIndex)
+{
+	bool allZero = true;
+	int rows = table->rowCount();
+	bool shift = QGuiApplication::keyboardModifiers().testFlag(Qt::ShiftModifier);
+
+	for (int i = 0; i < rows; i++)
+	{
+		if (auto* spinBox = dynamic_cast<DoubleSpinBox*>(table->cellWidget(i, logicalIndex)))
+		{
+			if (!IsNearZero(spinBox->value()))
+			{
+				allZero = false;
+				break;
+			}
+		}
+	}
+
+	if (shift)
+		allZero = !allZero;
+
+	double val = allZero ? 1.0 : 0.0;
+
+	for (int i = 0; i < rows; i++)
+		if (auto* spinBox = dynamic_cast<DoubleSpinBox*>(table->cellWidget(i, logicalIndex)))
+			spinBox->setValue(val);
+}
+
+/// <summary>
 /// This is no longer needed and was used to compensate for a different bug
 /// however the code is interesting, so keep it around for possible future use.
 /// This was used to correct a rotation bug where matrix rotation comes out in the wrong direction

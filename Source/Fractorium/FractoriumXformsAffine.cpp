@@ -10,9 +10,16 @@ void Fractorium::InitXformsAffineUI()
 	double affineStep = 0.01, affineMin = std::numeric_limits<double>::lowest(), affineMax = std::numeric_limits<double>::max();
 	QTableWidget* table = ui.PreAffineTable;
 
-	SetFixedTableHeader(table->horizontalHeader(), QHeaderView::Stretch);//The designer continually clobbers these values, so must manually set them here.
-	SetFixedTableHeader(table->verticalHeader());
-	
+	table->verticalHeader()->setVisible(true);//The designer continually clobbers these values, so must manually set them here.
+	table->horizontalHeader()->setVisible(true);
+	table->verticalHeader()->setSectionsClickable(true);
+	table->horizontalHeader()->setSectionsClickable(true);
+	table->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+	table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+
+	connect(table->verticalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(OnPreAffineRowDoubleClicked(int)), Qt::QueuedConnection);
+	connect(table->horizontalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(OnPreAffineColDoubleClicked(int)), Qt::QueuedConnection);
+
 	//Pre affine spinners.
 	SetupAffineSpinner(table, this, 0, 0, m_PreX1Spin, spinHeight, affineMin, affineMax, affineStep, affinePrec, SIGNAL(valueChanged(double)), SLOT(OnX1Changed(double)));
 	SetupAffineSpinner(table, this, 0, 1, m_PreX2Spin, spinHeight, affineMin, affineMax, affineStep, affinePrec, SIGNAL(valueChanged(double)), SLOT(OnX2Changed(double)));
@@ -22,9 +29,16 @@ void Fractorium::InitXformsAffineUI()
 	SetupAffineSpinner(table, this, 2, 1, m_PreO2Spin, spinHeight, affineMin, affineMax, affineStep, affinePrec, SIGNAL(valueChanged(double)), SLOT(OnO2Changed(double)));
 
 	table = ui.PostAffineTable;
-	SetFixedTableHeader(table->horizontalHeader(), QHeaderView::Stretch);//The designer continually clobbers these values, so must manually set them here.
-	SetFixedTableHeader(table->verticalHeader());
-	
+	table->verticalHeader()->setVisible(true);//The designer continually clobbers these values, so must manually set them here.
+	table->horizontalHeader()->setVisible(true);
+	table->verticalHeader()->setSectionsClickable(true);
+	table->horizontalHeader()->setSectionsClickable(true);
+	table->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+	table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+
+	connect(table->verticalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(OnPostAffineRowDoubleClicked(int)), Qt::QueuedConnection);
+	connect(table->horizontalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(OnPostAffineColDoubleClicked(int)), Qt::QueuedConnection);
+
 	//Post affine spinners.
 	SetupAffineSpinner(table, this, 0, 0, m_PostX1Spin, spinHeight, affineMin, affineMax, affineStep, affinePrec, SIGNAL(valueChanged(double)), SLOT(OnX1Changed(double)));
 	SetupAffineSpinner(table, this, 0, 1, m_PostX2Spin, spinHeight, affineMin, affineMax, affineStep, affinePrec, SIGNAL(valueChanged(double)), SLOT(OnX2Changed(double)));
@@ -157,6 +171,46 @@ void Fractorium::InitXformsAffineUI()
 
 	ui.PostAffineGroupBox->setChecked(true);//Flip it once to force the disabling of the group box.
 	ui.PostAffineGroupBox->setChecked(false);
+}
+
+/// <summary>
+/// Toggle all pre affine values in one row for the selected xforms.
+/// Resets the rendering process.
+/// </summary>
+/// <param name="logicalIndex">The index of the row that was double clicked</param>
+void Fractorium::OnPreAffineRowDoubleClicked(int logicalIndex)
+{
+	ToggleTableRow(ui.PreAffineTable, logicalIndex);
+}
+
+/// <summary>
+/// Toggle all pre affine values in one column for the selected xforms.
+/// Resets the rendering process.
+/// </summary>
+/// <param name="logicalIndex">The index of the row that was double clicked</param>
+void Fractorium::OnPreAffineColDoubleClicked(int logicalIndex)
+{
+	ToggleTableCol(ui.PreAffineTable, logicalIndex);
+}
+
+/// <summary>
+/// Toggle all post affine values in one row for the selected xforms.
+/// Resets the rendering process.
+/// </summary>
+/// <param name="logicalIndex">The index of the row that was double clicked</param>
+void Fractorium::OnPostAffineRowDoubleClicked(int logicalIndex)
+{
+	ToggleTableRow(ui.PostAffineTable, logicalIndex);
+}
+
+/// <summary>
+/// Toggle all post affine values in one column for the selected xforms.
+/// Resets the rendering process.
+/// </summary>
+/// <param name="logicalIndex">The index of the row that was double clicked</param>
+void Fractorium::OnPostAffineColDoubleClicked(int logicalIndex)
+{
+	ToggleTableCol(ui.PostAffineTable, logicalIndex);
 }
 
 /// <summary>

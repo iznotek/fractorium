@@ -188,74 +188,22 @@ void Fractorium::OnRandomXaosButtonClicked(bool checked) { m_Controller->RandomX
 
 /// <summary>
 /// Toggle all xaos values in one row.
-/// The logic is:
-///		If any cell in the row is non zero, set all cells to zero, else 1.
-///		If shift is held down, reverse the logic.
 /// Resets the rendering process.
 /// </summary>
 /// <param name="logicalIndex">The index of the row that was double clicked</param>
 void Fractorium::OnXaosRowDoubleClicked(int logicalIndex)
 {
-	bool allZero = true;
-	int cols = ui.XaosTable->columnCount();
-	bool shift = QGuiApplication::keyboardModifiers().testFlag(Qt::ShiftModifier);
-
-	for (int i = 0; i < cols; i++)
-	{
-		if (auto* spinBox = dynamic_cast<DoubleSpinBox*>(ui.XaosTable->cellWidget(logicalIndex, i)))
-		{
-			if (!IsNearZero(spinBox->value()))
-			{
-				allZero = false;
-				break;
-			}
-		}
-	}
-
-	if (shift)
-		allZero = !allZero;
-
-	double val = allZero ? 1.0 : 0.0;
-
-	for (int i = 0; i < cols; i++)
-		if (auto* spinBox = dynamic_cast<DoubleSpinBox*>(ui.XaosTable->cellWidget(logicalIndex, i)))
-			spinBox->setValue(val);
+	ToggleTableRow(ui.XaosTable, logicalIndex);
 }
 
 /// <summary>
 /// Toggle all xaos values in one column.
-/// The logic is:
-///		If any cell in the column is non zero, set all cells to zero, else 1.
-///		If shift is held down, reverse the logic.
 /// Resets the rendering process.
 /// </summary>
 /// <param name="logicalIndex">The index of the column that was double clicked</param>
 void Fractorium::OnXaosColDoubleClicked(int logicalIndex)
 {
-	bool allZero = true;
-	int rows = ui.XaosTable->rowCount();
-	bool shift = QGuiApplication::keyboardModifiers().testFlag(Qt::ShiftModifier);
-
-	for (int i = 0; i < rows; i++)
-	{
-		if (auto* spinBox = dynamic_cast<DoubleSpinBox*>(ui.XaosTable->cellWidget(i, logicalIndex)))
-		{
-			if (!IsNearZero(spinBox->value()))
-			{
-				allZero = false;
-				break;
-			}
-		}
-	}
-
-	if (shift)
-		allZero = !allZero;
-
-	double val = allZero ? 1.0 : 0.0;
-
-	for (int i = 0; i < rows; i++)
-		if (auto* spinBox = dynamic_cast<DoubleSpinBox*>(ui.XaosTable->cellWidget(i, logicalIndex)))
-			spinBox->setValue(val);
+	ToggleTableCol(ui.XaosTable, logicalIndex);
 }
 
 template class FractoriumEmberController<float>;

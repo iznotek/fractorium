@@ -365,6 +365,9 @@
         <attribute name="title">
          <string>Library</string>
         </attribute>
+        <attribute name="toolTip">
+         <string>All flames in the currently opened file or randomly generated flock</string>
+        </attribute>
         <layout class="QGridLayout" name="gridLayout_10">
          <property name="leftMargin">
           <number>5</number>
@@ -471,6 +474,9 @@
         </property>
         <attribute name="title">
          <string>Flame</string>
+        </attribute>
+        <attribute name="toolTip">
+         <string>General flame parameters</string>
         </attribute>
         <layout class="QVBoxLayout" name="verticalLayout_3">
          <property name="spacing">
@@ -1884,6 +1890,9 @@
         <attribute name="title">
          <string>Xforms</string>
         </attribute>
+        <attribute name="toolTip">
+         <string>Xforms in the current flame</string>
+        </attribute>
         <layout class="QGridLayout" name="gridLayout_13">
          <property name="leftMargin">
           <number>5</number>
@@ -1962,10 +1971,13 @@ SpinBox
              </sizepolicy>
             </property>
             <property name="toolTip">
-             <string>Color palette index for the current xform, and curve adjustment.</string>
+             <string/>
             </property>
             <attribute name="title">
              <string>Color</string>
+            </attribute>
+            <attribute name="toolTip">
+             <string>Color palette index for the current xform, and curve adjustment</string>
             </attribute>
             <layout class="QFormLayout" name="formLayout_3">
              <property name="fieldGrowthPolicy">
@@ -2583,13 +2595,16 @@ SpinBox
              </sizepolicy>
             </property>
             <property name="toolTip">
-             <string>Affine transforms for the current xform.</string>
+             <string/>
             </property>
             <property name="autoFillBackground">
              <bool>true</bool>
             </property>
             <attribute name="title">
              <string>Affine</string>
+            </attribute>
+            <attribute name="toolTip">
+             <string>Affine transforms for the current xform</string>
             </attribute>
             <layout class="QVBoxLayout" name="verticalLayout_12">
              <property name="spacing">
@@ -3944,10 +3959,13 @@ SpinBox
            </widget>
            <widget class="QWidget" name="XformVariationsTab">
             <property name="toolTip">
-             <string>Full list of available variations and their weights for the currently selected xform.</string>
+             <string/>
             </property>
             <attribute name="title">
              <string>Variations</string>
+            </attribute>
+            <attribute name="toolTip">
+             <string>Full list of available variations and their weights for the currently selected xform</string>
             </attribute>
             <layout class="QVBoxLayout" name="verticalLayout_15">
              <property name="leftMargin">
@@ -4175,13 +4193,16 @@ SpinBox
            </widget>
            <widget class="QWidget" name="XformSelectTab">
             <property name="toolTip">
-             <string>Select multiple xforms to apply operations to.</string>
+             <string/>
             </property>
             <property name="autoFillBackground">
              <bool>true</bool>
             </property>
             <attribute name="title">
              <string>Select</string>
+            </attribute>
+            <attribute name="toolTip">
+             <string>Select multiple xforms to apply operations to</string>
             </attribute>
             <layout class="QVBoxLayout" name="verticalLayout_4">
              <property name="spacing">
@@ -4673,6 +4694,9 @@ SpinBox
         <attribute name="title">
          <string>Xaos</string>
         </attribute>
+        <attribute name="toolTip">
+         <string>Xaos weights between xforms</string>
+        </attribute>
         <layout class="QVBoxLayout" name="verticalLayout_2">
          <property name="spacing">
           <number>4</number>
@@ -4885,6 +4909,9 @@ SpinBox
         </property>
         <attribute name="title">
          <string>Palette</string>
+        </attribute>
+        <attribute name="toolTip">
+         <string>List of available palette files and their palettes</string>
         </attribute>
         <layout class="QGridLayout" name="gridLayout_16" rowstretch="0,0,0,0,0" columnstretch="0">
          <property name="sizeConstraint">
@@ -5271,6 +5298,9 @@ SpinBox
         </property>
         <attribute name="title">
          <string>Info</string>
+        </attribute>
+        <attribute name="toolTip">
+         <string>Diagnostic information of engineering interest</string>
         </attribute>
         <layout class="QVBoxLayout" name="verticalLayout_17" stretch="0">
          <property name="spacing">

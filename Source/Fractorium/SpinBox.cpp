@@ -1,6 +1,8 @@
 #include "FractoriumPch.h"
 #include "SpinBox.h"
 
+QTimer SpinBox::m_Timer;
+
 /// <summary>
 /// Constructor that passes parent to the base and sets up height and step.
 /// Specific focus policy is used to allow the user to hover over the control
@@ -98,6 +100,39 @@ void SpinBox::onSpinBoxValueChanged(int i)
 }
 
 /// <summary>
+/// Called while the timer is activated due to the right mouse button being held down.
+/// </summary>
+void SpinBox::OnTimeout()
+{
+	int xdistance = m_MouseMovePoint.x() - m_MouseDownPoint.x();
+	int ydistance = m_MouseMovePoint.y() - m_MouseDownPoint.y();
+	int distance = abs(xdistance) > abs(ydistance) ? xdistance : ydistance;
+	double scale, val;
+	int d = value();
+	bool shift = QGuiApplication::keyboardModifiers().testFlag(Qt::ShiftModifier);
+	//bool ctrl = QGuiApplication::keyboardModifiers().testFlag(Qt::ControlModifier);
+	double amount = (m_SmallStep + m_Step) * 0.5;
+
+	if (shift)
+	{
+		//qDebug() << "Shift pressed";
+		scale = 0.001;
+	}
+	/*else if (ctrl)
+	{
+	qDebug() << "Control pressed";
+	scale = 0.01;
+	}*/
+	else
+		scale = 0.01;
+
+	val = d + (distance * amount * scale);
+	setValue(int(val));
+
+	//qDebug() << "Timer on, orig val: " << d << ", new val: " << val << ", distance " << distance;
+}
+
+/// <summary>
 /// Event filter for taking special action on double click events.
 /// </summary>
 /// <param name="o">The object</param>
@@ -105,28 +140,53 @@ void SpinBox::onSpinBoxValueChanged(int i)
 /// <returns>false</returns>
 bool SpinBox::eventFilter(QObject* o, QEvent* e)
 {
-	if (e->type() == QMouseEvent::MouseButtonPress && isEnabled())
+	QMouseEvent* me = dynamic_cast<QMouseEvent*>(e);
+
+	if (isEnabled() &&
+		me &&
+		me->type() == QMouseEvent::MouseButtonPress &&
+		me->button() == Qt::RightButton)
 	{
-		//QPoint pt;
+		m_MouseDownPoint = m_MouseMovePoint = me->pos();
+		StartTimer();
+		//qDebug() << "Right mouse down";
+		//	QPoint pt;
 		//
-		//if (QMouseEvent* me = (QMouseEvent*)e)
-		//	pt = me->localPos().toPoint();
+		//	if (QMouseEvent* me = (QMouseEvent*)e)
+		//		pt = me->localPos().toPoint();
 		//
-		//int pos = lineEdit()->cursorPositionAt(pt);
+		//	int pos = lineEdit()->cursorPositionAt(pt);
 		//
-		//if (lineEdit()->selectedText() != "")
-		//{
-		//	lineEdit()->deselect();
-		//	lineEdit()->setCursorPosition(pos);
-		//	return true;
-		//}
-		//else if (m_Select)
-		//{
-		//	lineEdit()->setCursorPosition(pos);
-		//	selectAll();
-		//	m_Select = false;
-		//	return true;
-		//}
+		//	if (lineEdit()->selectedText() != "")
+		//	{
+		//		lineEdit()->deselect();
+		//		lineEdit()->setCursorPosition(pos);
+		//		return true;
+		//	}
+		//	else if (m_Select)
+		//	{
+		//		lineEdit()->setCursorPosition(pos);
+		//		selectAll();
+		//		m_Select = false;
+		//		return true;
+		//	}
+	}
+	else if (isEnabled() &&
+		me &&
+		me->type() == QMouseEvent::MouseButtonRelease &&
+		me->button() == Qt::RightButton)
+	{
+		StopTimer();
+		m_MouseDownPoint = m_MouseMovePoint = me->pos();
+		//qDebug() << "Right mouse up";
+	}
+	else if (isEnabled() &&
+		me &&
+		me->type() == QMouseEvent::MouseMove &&
+		QGuiApplication::mouseButtons() & Qt::RightButton)
+	{
+		m_MouseMovePoint = me->pos();
+		qDebug() << "Mouse move while right down. Pt = " << me->pos() << ", global: " << mapToGlobal(me->pos());
 	}
 	else if (m_DoubleClick && e->type() == QMouseEvent::MouseButtonDblClick && isEnabled())
 	{
@@ -163,6 +223,7 @@ bool SpinBox::eventFilter(QObject* o, QEvent* e)
 void SpinBox::focusInEvent(QFocusEvent* e)
 {
 	//lineEdit()->setReadOnly(false);
+	StopTimer();
 	QSpinBox::focusInEvent(e);
 }
 
@@ -177,7 +238,8 @@ void SpinBox::focusOutEvent(QFocusEvent* e)
 {
 	 //lineEdit()->deselect();//Clear selection when leaving.
 	 //lineEdit()->setReadOnly(true);//Clever hack to clear the cursor when leaving.
-	 QSpinBox::focusOutEvent(e);
+	StopTimer();
+	QSpinBox::focusOutEvent(e);
 }
 
 /// <summary>
@@ -189,6 +251,7 @@ void SpinBox::enterEvent(QEvent* e)
 {
 	//m_Select = true;
 	//setFocus();
+	StopTimer();
 	QSpinBox::enterEvent(e);
 }
 
@@ -201,5 +264,25 @@ void SpinBox::leaveEvent(QEvent* e)
 {
 	//m_Select = false;
 	//clearFocus();
+	StopTimer();
 	QSpinBox::leaveEvent(e);
+}
+
+/// <summary>
+/// Start the timer in response to the right mouse button being pressed.
+/// </summary>
+void SpinBox::StartTimer()
+{
+	m_Timer.stop();
+	connect(&m_Timer, SIGNAL(timeout()), this, SLOT(OnTimeout()));
+	m_Timer.start(300);
+}
+
+/// <summary>
+/// Stop the timer in response to the left mouse button being pressed.
+/// </summary>
+void SpinBox::StopTimer()
+{
+	m_Timer.stop();
+	disconnect(&m_Timer, SIGNAL(timeout()), this, SLOT(OnTimeout()));
 }
