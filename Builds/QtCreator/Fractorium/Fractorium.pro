@@ -41,6 +41,7 @@ SOURCES += \
     ../../../Source/Fractorium/FractoriumXforms.cpp \
     ../../../Source/Fractorium/FractoriumXformsAffine.cpp \
     ../../../Source/Fractorium/FractoriumXformsColor.cpp \
+    ../../../Source/Fractorium/FractoriumXformsSelect.cpp \
     ../../../Source/Fractorium/FractoriumXformsVariations.cpp \
     ../../../Source/Fractorium/GLEmberController.cpp \
     ../../../Source/Fractorium/GLWidget.cpp \
