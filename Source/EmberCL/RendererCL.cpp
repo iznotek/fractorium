@@ -1475,18 +1475,23 @@ CarToRasCL<T> RendererCL<T>::ConvertCarToRas(const CarToRas<T>& carToRas)
 
 /// <summary>
 /// Fill seeds buffer which gets passed to the iteration kernel.
+/// The range of each seed will be spaced to ensure no duplicates are added.
 /// Note, WriteBuffer() must be called after this to actually copy the
 /// data from the host to the device.
 /// </summary>
 template <typename T>
 void RendererCL<T>::FillSeeds()
 {
+	double start, delta = std::floor((double)std::numeric_limits<uint>::max() / (IterGridKernelCount() * 2));
 	m_Seeds.resize(IterGridKernelCount());
+	start = delta;
 
 	for (auto& seed : m_Seeds)
 	{
-		seed.x = m_Rand[0].Rand();
-		seed.y = m_Rand[0].Rand();
+		seed.x = (uint)m_Rand[0].Frand<double>(start, start + delta);
+		start += delta;
+		seed.y = (uint)m_Rand[0].Frand<double>(start, start + delta);
+		start += delta;
 	}
 }
 

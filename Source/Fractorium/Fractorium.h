@@ -121,6 +121,8 @@ public slots:
 	void OnActionCopyAllXml(bool checked);
 	void OnActionPasteXmlAppend(bool checked);
 	void OnActionPasteXmlOver(bool checked);
+	void OnActionCopySelectedXforms(bool checked);
+	void OnActionPasteSelectedXforms(bool checked);
 
 	void OnActionAddReflectiveSymmetry(bool checked);//Tools.
 	void OnActionAddRotationalSymmetry(bool checked);

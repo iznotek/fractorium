@@ -562,7 +562,11 @@ void FractoriumEmberController<T>::FillParamTablesAndPalette()
 	//Use the ember's embedded palette, rather than one from the list, so assign it directly to the controls without applying adjustments.
 	//Normally, the temp palette is assigned whenever the user clicks on a palette cell. But since that is skipped here, must do it manually.
 	m_TempPalette = m_Ember.m_Palette;
-	m_Fractorium->SetPaletteFileComboIndex(m_Ember.m_Palette.m_Filename);
+	auto temp = m_Ember.m_Palette.m_Filename;
+	
+	if (temp.get())
+		m_Fractorium->SetPaletteFileComboIndex(*temp.get());
+
 	UpdateAdjustedPaletteGUI(m_Ember.m_Palette);//Setting the palette will trigger a full render.
 }
 

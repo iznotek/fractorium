@@ -578,7 +578,7 @@ public:
 
 	int m_Index;//Index in the xml palette file of this palette, use -1 for random.
 	string m_Name;//Name of this palette.
-	string m_Filename;//Name of the parent file this palette came from, can be empty.
+	shared_ptr<string> m_Filename;//Name of the parent file this palette came from, can be empty.
 	vector<v4T> m_Entries;//Storage for the color values.
 };
 }

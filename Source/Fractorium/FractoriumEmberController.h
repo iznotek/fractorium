@@ -94,6 +94,8 @@ public:
 	virtual void CopyAllXml() { }
 	virtual void PasteXmlAppend() { }
 	virtual void PasteXmlOver() { }
+	virtual void CopySelectedXforms() { }
+	virtual void PasteSelectedXforms() { }
 	virtual void AddReflectiveSymmetry() { }//Tools.
 	virtual void AddRotationalSymmetry() { }
 	virtual void AddBothSymmetry() { }
@@ -323,6 +325,8 @@ public:
 	virtual void CopyAllXml() override;
 	virtual void PasteXmlAppend() override;
 	virtual void PasteXmlOver() override;
+	virtual void CopySelectedXforms() override;
+	virtual void PasteSelectedXforms() override;
 	virtual void AddReflectiveSymmetry() override;
 	virtual void AddRotationalSymmetry() override;
 	virtual void AddBothSymmetry() override;
@@ -477,6 +481,8 @@ private:
 	Ember<T> m_Ember;
 	EmberFile<T> m_EmberFile;
 	deque<Ember<T>> m_UndoList;
+	vector<Xform<T>> m_CopiedXforms;
+	Xform<T> m_CopiedFinalXform;
 	Palette<T> m_TempPalette;
 	PaletteList<T> m_PaletteList;
 	VariationList<T> m_VariationList;

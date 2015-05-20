@@ -25,6 +25,9 @@ void Fractorium::InitMenusUI()
 	connect(ui.ActionCopyAllXml,	 SIGNAL(triggered(bool)), this, SLOT(OnActionCopyAllXml(bool)),		Qt::QueuedConnection);
 	connect(ui.ActionPasteXmlAppend, SIGNAL(triggered(bool)), this, SLOT(OnActionPasteXmlAppend(bool)),	Qt::QueuedConnection);
 	connect(ui.ActionPasteXmlOver,	 SIGNAL(triggered(bool)), this, SLOT(OnActionPasteXmlOver(bool)),	Qt::QueuedConnection);
+	connect(ui.ActionCopySelectedXforms, SIGNAL(triggered(bool)), this, SLOT(OnActionCopySelectedXforms(bool)), Qt::QueuedConnection);
+	connect(ui.ActionPasteSelectedXforms, SIGNAL(triggered(bool)), this, SLOT(OnActionPasteSelectedXforms(bool)), Qt::QueuedConnection);
+	ui.ActionPasteSelectedXforms->setEnabled(false);
 
 	//Tools menu.
 	connect(ui.ActionAddReflectiveSymmetry, SIGNAL(triggered(bool)), this, SLOT(OnActionAddReflectiveSymmetry(bool)), Qt::QueuedConnection);
@@ -608,6 +611,57 @@ void FractoriumEmberController<T>::PasteXmlOver()
 }
 
 void Fractorium::OnActionPasteXmlOver(bool checked) { m_Controller->PasteXmlOver(); }
+
+/// <summary>
+/// Copy the selected xforms.
+/// Note this will also copy final if selected.
+/// If none selected, just copy current.
+/// </summary>
+template <typename T>
+void FractoriumEmberController<T>::CopySelectedXforms()
+{
+	m_CopiedXforms.clear();
+	m_CopiedFinalXform.Clear();
+
+	UpdateXform([&](Xform<T>* xform)
+	{
+		if (m_Ember.IsFinalXform(xform))
+			m_CopiedFinalXform = *xform;
+		else
+			m_CopiedXforms.push_back(*xform);
+	}, UPDATE_SELECTED, false);
+	m_Fractorium->ui.ActionPasteSelectedXforms->setEnabled(true);
+}
+
+void Fractorium::OnActionCopySelectedXforms(bool checked)
+{
+	m_Controller->CopySelectedXforms();
+}
+
+/// <summary>
+/// Paste the selected xforms.
+/// Note this will also paste/overwrite final if previously copied.
+/// Resets the rendering process.
+/// </summary>
+template <typename T>
+void FractoriumEmberController<T>::PasteSelectedXforms()
+{
+	Update([&]()
+	{
+		for (auto& it : m_CopiedXforms)
+			m_Ember.AddXform(it);
+
+		if (!m_CopiedFinalXform.Empty())
+			m_Ember.SetFinalXform(m_CopiedFinalXform);
+
+		FillXforms();
+	});
+}
+
+void Fractorium::OnActionPasteSelectedXforms(bool checked)
+{
+	m_Controller->PasteSelectedXforms();
+}
 
 /// <summary>
 /// Add reflective symmetry to the current ember.

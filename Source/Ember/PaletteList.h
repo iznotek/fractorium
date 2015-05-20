@@ -51,11 +51,12 @@ public:
 
 				if (doc != nullptr)
 				{
-					xmlNode* rootNode = xmlDocGetRootElement(doc);
+					auto rootNode = xmlDocGetRootElement(doc);
+					auto pfilename = shared_ptr<string>(new string(filename));
 
 					palettes.clear();
 					palettes.reserve(buf.size() / 2048);//Roughly what it takes per palette.
-					ParsePalettes(rootNode, filename, palettes);
+					ParsePalettes(rootNode, pfilename, palettes);
 					xmlFreeDoc(doc);
 					added = true;
 				}
@@ -226,7 +227,7 @@ private:
 	/// <param name="node">The parent note of all palettes in the Xml file.</param>
 	/// <param name="filename">The name of the Xml file.</param>
 	/// <param name="palettes">The vector to store the paresed palettes associated with this file in.</param>
-	void ParsePalettes(xmlNode* node, const string& filename, vector<Palette<T>>& palettes)
+	void ParsePalettes(xmlNode* node, const shared_ptr<string>& filename, vector<Palette<T>>& palettes)
 	{
 		bool hexError = false;
 		char* val;

@@ -170,6 +170,9 @@
     <addaction name="ActionCopyAllXml"/>
     <addaction name="ActionPasteXmlAppend"/>
     <addaction name="ActionPasteXmlOver"/>
+    <addaction name="separator"/>
+    <addaction name="ActionCopySelectedXforms"/>
+    <addaction name="ActionPasteSelectedXforms"/>
    </widget>
    <addaction name="MenuFile"/>
    <addaction name="MenuEdit"/>
@@ -6104,7 +6107,7 @@ SpinBox
      <normaloff>:/Fractorium/Icons/page_paste.png</normaloff>:/Fractorium/Icons/page_paste.png</iconset>
    </property>
    <property name="text">
-    <string>Paste Xml &amp;Append</string>
+    <string>Paste Xml A&amp;ppend</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+V</string>
@@ -6137,6 +6140,28 @@ SpinBox
   <action name="ActionFlip">
    <property name="text">
     <string>Fl&amp;ip</string>
+   </property>
+  </action>
+  <action name="ActionCopySelectedXforms">
+   <property name="text">
+    <string>Copy Selected &amp;Xforms</string>
+   </property>
+   <property name="toolTip">
+    <string>Copy selected xforms to the clipboard</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
+   </property>
+  </action>
+  <action name="ActionPasteSelectedXforms">
+   <property name="text">
+    <string>Paste Selected X&amp;forms</string>
+   </property>
+   <property name="toolTip">
+    <string>Paste copied xforms into the current flame</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+W</string>
    </property>
   </action>
  </widget>

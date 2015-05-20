@@ -87,6 +87,7 @@ public:
 	m4T ToMat4ColMajor(bool center = false) const;
 	m4T ToMat4RowMajor(bool center = false) const;
 
+	//Note that returning a copy is actually faster than a const ref&.
 	T A() const;
 	T B() const;
 	T C() const;
