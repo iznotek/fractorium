@@ -1488,9 +1488,9 @@ void RendererCL<T>::FillSeeds()
 
 	for (auto& seed : m_Seeds)
 	{
-		seed.x = (uint)m_Rand[0].Frand<double>(start, start + delta);
+		seed.x = (uint)m_Rand[0].template Frand<double>(start, start + delta);
 		start += delta;
-		seed.y = (uint)m_Rand[0].Frand<double>(start, start + delta);
+		seed.y = (uint)m_Rand[0].template Frand<double>(start, start + delta);
 		start += delta;
 	}
 }
