@@ -1,0 +1,31 @@
+language: cpp
+sudo: true
+script:
+# install standard deps (currently only libtbb is fine in 12.04)
+- sudo apt-get update
+- sudo apt-get install libtbb-dev
+# gcc from ppa, because 12.04's is too old
+- sudo apt-get install python-software-properties
+- sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+- sudo apt-get update
+- sudo apt-get install gcc-4.8 g++-4.8
+# qt 5.4 from ppa, because 12.04 only has 4.8
+# yeah, really rather unofficial ppa but it's all that exists
+- sudo apt-add-repository -y ppa:beineri/opt-qt541
+- sudo apt-get update
+- sudo apt-get install qt54-meta-full
+# glm from source, because 12.04's is too old
+- git clone https://github.com/g-truc/glm.git
+- cd glm && cmake . && make && sudo make install && cd ..
+- sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 50
+- sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 50
+# opencl from Intel's site, because 12.04's is nonexistant
+- wget http://registrationcenter.intel.com/irc_nas/2563/intel_sdk_for_ocl_applications_2012_x64.tgz
+- tar -xzvf intel_sdk_for_ocl_applications_2012_x64.tgz
+- sudo apt-get install alien
+- sudo alien -i intel_ocl_sdk_2012_x64.rpm
+- sudo ln -s /usr/lib64/libOpenCL.so /usr/lib/libOpenCL.so
+# finally, run the build
+- source /opt/qt54/bin/qt54-env.sh
+- g++ --version
+- Builds/QtCreator/build_all.sh --travis
