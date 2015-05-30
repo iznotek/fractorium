@@ -42,6 +42,7 @@
 #include <QtWidgets/QMainWindow>
 #include <QFuture>
 #include <QtConcurrentRun>
+#include <QModelIndex>
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"

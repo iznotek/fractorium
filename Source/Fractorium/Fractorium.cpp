@@ -1,6 +1,11 @@
 #include "FractoriumPch.h"
 #include "Fractorium.h"
 
+// X11 headers on Linux define this, causing build errors.
+#ifdef KeyRelease
+	#undef KeyRelease
+#endif
+
 /// <summary>
 /// Constructor that initializes the entire program.
 /// The setup process is very lengthy because it requires many custom modifications
@@ -584,16 +589,15 @@ QString Fractorium::SetupSaveFolderDialog()
 /// <summary>
 /// Thin wrapper around QMessageBox::critical() to allow it to be invoked from another thread.
 /// </summary>
+/// <param name="title">The title of the message box</param>
+/// <param name="text">The text displayed on the message box</param>
+/// <param name="invokeRequired">True if running on another thread, else false. Default: false.</param>
 void Fractorium::ShowCritical(const QString& title, const QString& text, bool invokeRequired)
 {
 	if (!invokeRequired)
-	{
 		QMessageBox::critical(this, title, text);
-	}
 	else
-	{
 		QMetaObject::invokeMethod(this, "ShowCritical", Qt::QueuedConnection, Q_ARG(const QString&, title), Q_ARG(const QString&, text), Q_ARG(bool, false));
-	}
 }
 
 /// <summary>
@@ -730,33 +734,58 @@ void Fractorium::SetTabOrders()
 ///		If shift is held down, reverse the logic.
 /// Resets the rendering process.
 /// </summary>
+/// <param name="table">The QTableWidget or QTableView whose row will be toggled</param>
 /// <param name="logicalIndex">The index of the row that was double clicked</param>
-void Fractorium::ToggleTableRow(TableWidget* table, int logicalIndex)
+void Fractorium::ToggleTableRow(QTableView* table, int logicalIndex)
 {
 	bool allZero = true;
-	int cols = table->columnCount();
+	auto model = table->model();
+	int cols = model->columnCount();
 	bool shift = QGuiApplication::keyboardModifiers().testFlag(Qt::ShiftModifier);
+	auto tableWidget = dynamic_cast<QTableWidget*>(table);
 
-	for (int i = 0; i < cols; i++)
+	if (tableWidget)
 	{
-		if (auto* spinBox = dynamic_cast<DoubleSpinBox*>(table->cellWidget(logicalIndex, i)))
+		for (int i = 0; i < cols; i++)
 		{
-			if (!IsNearZero(spinBox->value()))
+			if (auto* spinBox = dynamic_cast<DoubleSpinBox*>(tableWidget->cellWidget(logicalIndex, i)))
+			{
+				if (!IsNearZero(spinBox->value()))
+				{
+					allZero = false;
+					break;
+				}
+			}
+		}
+
+		if (shift)
+			allZero = !allZero;
+
+		double val = allZero ? 1.0 : 0.0;
+
+		for (int i = 0; i < cols; i++)
+			if (auto* spinBox = dynamic_cast<DoubleSpinBox*>(tableWidget->cellWidget(logicalIndex, i)))
+				spinBox->setValue(val);
+	}
+	else
+	{
+		for (int i = 0; i < cols; i++)
+		{
+			if (!IsNearZero(model->data(model->index(logicalIndex, i, QModelIndex())).toDouble()))
 			{
 				allZero = false;
 				break;
 			}
 		}
+
+		if (shift)
+			allZero = !allZero;
+
+		double val = allZero ? 1.0 : 0.0;
+
+		for (int i = 0; i < cols; i++)
+			model->setData(model->index(logicalIndex, i), val, Qt::EditRole);
 	}
-
-	if (shift)
-		allZero = !allZero;
-
-	double val = allZero ? 1.0 : 0.0;
-
-	for (int i = 0; i < cols; i++)
-		if (auto* spinBox = dynamic_cast<DoubleSpinBox*>(table->cellWidget(logicalIndex, i)))
-			spinBox->setValue(val);
 }
 
 /// <summary>
@@ -766,81 +795,60 @@ void Fractorium::ToggleTableRow(TableWidget* table, int logicalIndex)
 ///		If shift is held down, reverse the logic.
 /// Resets the rendering process.
 /// </summary>
+/// <param name="table">The QTableWidget or QTableView whose column will be toggled</param>
 /// <param name="logicalIndex">The index of the column that was double clicked</param>
-void Fractorium::ToggleTableCol(TableWidget* table, int logicalIndex)
+void Fractorium::ToggleTableCol(QTableView* table, int logicalIndex)
 {
 	bool allZero = true;
-	int rows = table->rowCount();
+	auto model = table->model();
+	int rows = model->rowCount();
 	bool shift = QGuiApplication::keyboardModifiers().testFlag(Qt::ShiftModifier);
+	
+	auto tableWidget = dynamic_cast<QTableWidget*>(table);
 
-	for (int i = 0; i < rows; i++)
+	if (tableWidget)
 	{
-		if (auto* spinBox = dynamic_cast<DoubleSpinBox*>(table->cellWidget(i, logicalIndex)))
+		for (int i = 0; i < rows; i++)
 		{
-			if (!IsNearZero(spinBox->value()))
+			if (auto* spinBox = dynamic_cast<DoubleSpinBox*>(tableWidget->cellWidget(i, logicalIndex)))
+			{
+				if (!IsNearZero(spinBox->value()))
+				{
+					allZero = false;
+					break;
+				}
+			}
+		}
+
+		if (shift)
+			allZero = !allZero;
+
+		double val = allZero ? 1.0 : 0.0;
+
+		for (int i = 0; i < rows; i++)
+			if (auto* spinBox = dynamic_cast<DoubleSpinBox*>(tableWidget->cellWidget(i, logicalIndex)))
+				spinBox->setValue(val);
+	}
+	else
+	{
+		for (int i = 0; i < rows; i++)
+		{
+			if (!IsNearZero(model->data(model->index(i, logicalIndex, QModelIndex())).toDouble()))
 			{
 				allZero = false;
 				break;
 			}
 		}
+
+		if (shift)
+			allZero = !allZero;
+
+		double val = allZero ? 1.0 : 0.0;
+
+		for (int i = 0; i < rows; i++)
+			model->setData(model->index(i, logicalIndex), val, Qt::EditRole);
 	}
-
-	if (shift)
-		allZero = !allZero;
-
-	double val = allZero ? 1.0 : 0.0;
-
-	for (int i = 0; i < rows; i++)
-		if (auto* spinBox = dynamic_cast<DoubleSpinBox*>(table->cellWidget(i, logicalIndex)))
-			spinBox->setValue(val);
 }
-
-/// <summary>
-/// This is no longer needed and was used to compensate for a different bug
-/// however the code is interesting, so keep it around for possible future use.
-/// This was used to correct a rotation bug where matrix rotation comes out in the wrong direction
-/// if x1, y1 (a & d) are on the left side of the line from 0,0 to 
-/// x2, y2 (b, e). In that case, the angle must be flipped. In order
-/// to determine which side of the line it's on, create a mat2
-/// and find its determinant. Values > 0 are on the left side of the line.
-/// </summary>
-/// <param name="affine">The affine.</param>
-/// <returns></returns>
-int Fractorium::FlipDet(Affine2D<float>& affine)
-{
-	float x1 = affine.A();
-	float y1 = affine.D();
-	float x2 = affine.B();
-	float y2 = affine.E();
-
-	//Just make the other end of the line be the center of the circle.
-	glm::mat2 mat( 0 - x1,  0 - y1,//Col 0.
-				  x2 - x1, y2 - y1);//Col 1.
-
-	return (glm::determinant(mat) > 0) ? -1 : 1;
-}
-
-//template<typename spinType, typename valType>//See note at the end of Fractorium.h
-//void Fractorium::SetupSpinner(QTableWidget* table, const QObject* receiver, int& row, int col, spinType*& spinBox, int height, valType min, valType max, valType step, const char* signal, const char* slot, bool incRow, valType val, valType doubleClickZero, valType doubleClickNonZero)
-//{
-//	spinBox = new spinType(table, height, step);
-//	spinBox->setRange(min, max);
-//	spinBox->setValue(val);
-//	table->setCellWidget(row, col, spinBox);
-//
-//	if (string(signal) != "" && string(slot) != "")
-//		connect(spinBox, signal, receiver, slot, connectionType);
-//
-//	if (doubleClickNonZero != -999 && doubleClickZero != -999)
-//	{
-//		spinBox->DoubleClick(true);
-//		spinBox->DoubleClickZero((valType)doubleClickZero);
-//		spinBox->DoubleClickNonZero((valType)doubleClickNonZero);
-//	}
-//
-//	if (incRow)
-//		row++;
-//}
 
 template class FractoriumEmberController<float>;
 
