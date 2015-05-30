@@ -18,6 +18,7 @@ void Fractorium::InitXformsVariationsUI()
 	//Setting dimensions in the designer with a layout is futile, so must hard code here.
 	tree->setColumnWidth(0, 160);
 	tree->setColumnWidth(1, 23);
+	//tree->setAttribute(Qt::WA_PaintOnScreen);
 }
 
 /// <summary>

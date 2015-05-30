@@ -247,6 +247,15 @@
     <ClCompile Include="..\..\..\Source\Fractorium\FractoriumXformsSelect.cpp">
       <Filter>MainWindows</Filter>
     </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_DoubleSpinBoxTableItemDelegate.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_DoubleSpinBoxTableItemDelegate.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\ReleaseNvidia\moc_DoubleSpinBoxTableItemDelegate.cpp">
+      <Filter>Generated Files\ReleaseNvidia</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GeneratedFiles\ui_Fractorium.h">
@@ -345,6 +354,9 @@
       <Filter>Widgets</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\..\Source\Fractorium\CurvesGraphicsView.h">
+      <Filter>Widgets</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\Source\Fractorium\DoubleSpinBoxTableItemDelegate.h">
       <Filter>Widgets</Filter>
     </CustomBuild>
   </ItemGroup>

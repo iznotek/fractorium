@@ -11,6 +11,7 @@
 #include "OptionsDialog.h"
 #include "AboutDialog.h"
 #include "CurvesGraphicsView.h"
+#include "DoubleSpinBoxTableItemDelegate.h"
 
 /// <summary>
 /// Fractorium class.
@@ -258,6 +259,7 @@ public slots:
 	void OnRandomXaosButtonClicked(bool checked);
 	void OnXaosRowDoubleClicked(int logicalIndex);
 	void OnXaosColDoubleClicked(int logicalIndex);
+	void OnXaosTableModelDataChanged(const QModelIndex& indexA, const QModelIndex& indexB);
 
 	//Palette.
 	void OnPaletteFilenameComboChanged(const QString& text);
@@ -282,7 +284,6 @@ public:
 	static void SetupAffineSpinner(QTableWidget* table, const QObject* receiver, int row, int col, DoubleSpinBox*& spinBox, int height, double min, double max, double step, double prec, const char* signal, const char* slot);
 	static void SetupCombo(QTableWidget* table, const QObject* receiver, int& row, int col, StealthComboBox*& comboBox, const vector<string>& vals, const char* signal, const char* slot, Qt::ConnectionType connectionType = Qt::QueuedConnection);
 	static void SetFixedTableHeader(QHeaderView* header, QHeaderView::ResizeMode mode = QHeaderView::Fixed);
-	static int FlipDet(Affine2D<float>& affine);
 
 protected:
 	virtual bool eventFilter(QObject* o, QEvent* e) override;
@@ -306,8 +307,8 @@ private:
 	void InitLibraryUI();
 	void SetTabOrders();
 
-	void ToggleTableRow(TableWidget* table, int logicalIndex);
-	void ToggleTableCol(TableWidget* table, int logicalIndex);
+	void ToggleTableRow(QTableView* table, int logicalIndex);
+	void ToggleTableCol(QTableView* table, int logicalIndex);
 
 	//Embers.
 	bool HaveFinal();
@@ -421,6 +422,11 @@ private:
 	DoubleSpinBox* m_PreSpins[6];
 	DoubleSpinBox* m_PostSpins[6];
 
+	//Xaos.
+	DoubleSpinBox* m_XaosSpinBox;
+	QStandardItemModel* m_XaosTableModel;
+	DoubleSpinBoxTableItemDelegate* m_XaosTableItemDelegate;
+
 	//Palette.
 	SpinBox* m_PaletteHueSpin;
 	SpinBox* m_PaletteSaturationSpin;
@@ -457,6 +463,3 @@ private:
 	unique_ptr<FractoriumEmberControllerBase> m_Controller;
 	Ui::FractoriumClass ui;
 };
-
-//template void Fractorium::SetupSpinner<SpinBox, int>         (QTableWidget* table, const QObject* receiver, int& row, int col, SpinBox*& spinBox, int height, int min, int max, int step, const char* signal, const char* slot, bool incRow, int val, int doubleClickZero, int doubleClickNonZero);
-//template void Fractorium::SetupSpinner<DoubleSpinBox, double>(QTableWidget* table, const QObject* receiver, int& row, int col, DoubleSpinBox*& spinBox, int height, double min, double max, double step, const char* signal, const char* slot, bool incRow, double val, double doubleClickZero, double doubleClickNonZero);

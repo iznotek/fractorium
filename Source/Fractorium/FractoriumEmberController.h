@@ -189,7 +189,7 @@ public:
 	//Xaos.
 	virtual void FillXaos() { }
 	virtual QString MakeXaosNameString(uint i) { return ""; }
-	virtual void XaosChanged(DoubleSpinBox* sender) { }
+	virtual void XaosChanged(int x, int y, double val) { }
 	virtual void ClearXaos() { }
 	virtual void RandomXaos() { }
 
@@ -422,7 +422,7 @@ public:
 	//Xforms Xaos.
 	virtual void FillXaos() override;
 	virtual QString MakeXaosNameString(uint i) override;
-	virtual void XaosChanged(DoubleSpinBox* sender) override;
+	virtual void XaosChanged(int x, int y, double val) override;
 	virtual void ClearXaos() override;
 	virtual void RandomXaos() override;
 	

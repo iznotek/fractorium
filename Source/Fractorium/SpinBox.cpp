@@ -23,6 +23,7 @@ SpinBox::SpinBox(QWidget* p, int h, int step)
 	m_SmallStep = 1;
 	setSingleStep(step);
 	setFrame(false);
+	//setAttribute(Qt::WA_PaintOnScreen);
 	setButtonSymbols(QAbstractSpinBox::NoButtons);
 	setFocusPolicy(Qt::StrongFocus);
 	setMinimumHeight(h);//setGeometry() has no effect, so set both of these instead.

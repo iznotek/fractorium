@@ -6,15 +6,25 @@
 /// </summary>
 void Fractorium::InitXaosUI()
 {
-	ui.XaosTable->verticalHeader()->setVisible(true);
-	ui.XaosTable->horizontalHeader()->setVisible(true);
-	ui.XaosTable->verticalHeader()->setSectionsClickable(true);
-	ui.XaosTable->horizontalHeader()->setSectionsClickable(true);
+	int spinHeight = 20;
 
+	ui.XaosTableView->verticalHeader()->setSectionsClickable(true);
+	ui.XaosTableView->horizontalHeader()->setSectionsClickable(true);
+
+	m_XaosSpinBox = new DoubleSpinBox(nullptr, spinHeight, 0.1);
+	m_XaosSpinBox->setFixedWidth(35);
+	m_XaosSpinBox->DoubleClick(true);
+	m_XaosSpinBox->DoubleClickZero(1);
+	m_XaosSpinBox->DoubleClickNonZero(0);
+
+	m_XaosTableModel = nullptr;
+	m_XaosTableItemDelegate = new DoubleSpinBoxTableItemDelegate(m_XaosSpinBox, this);
+
+	connect(m_XaosSpinBox, SIGNAL(valueChanged(double)), this, SLOT(OnXaosChanged(double)), Qt::QueuedConnection);
 	connect(ui.ClearXaosButton, SIGNAL(clicked(bool)), this, SLOT(OnClearXaosButtonClicked(bool)), Qt::QueuedConnection);
 	connect(ui.RandomXaosButton, SIGNAL(clicked(bool)), this, SLOT(OnRandomXaosButtonClicked(bool)), Qt::QueuedConnection);
-	connect(ui.XaosTable->verticalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(OnXaosRowDoubleClicked(int)), Qt::QueuedConnection);
-	connect(ui.XaosTable->horizontalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(OnXaosColDoubleClicked(int)), Qt::QueuedConnection);
+	connect(ui.XaosTableView->verticalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(OnXaosRowDoubleClicked(int)), Qt::QueuedConnection);
+	connect(ui.XaosTableView->horizontalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(OnXaosColDoubleClicked(int)), Qt::QueuedConnection);
 }
 
 /// <summary>
@@ -25,11 +35,14 @@ void FractoriumEmberController<T>::FillXaos()
 {
 	for (int i = 0, count = int(XformCount()); i < count; i++)
 	{
-		auto* xform = m_Ember.GetXform(i);
-
-		for (int j = 0; j < count; j++)
-			if (auto* spinBox = dynamic_cast<DoubleSpinBox*>(m_Fractorium->ui.XaosTable->cellWidget(i, j)))
-				spinBox->SetValueStealth(xform->Xaos(j));
+		if (auto xform = m_Ember.GetXform(i))
+		{
+			for (int j = 0; j < count; j++)
+			{
+				QModelIndex index = m_Fractorium->m_XaosTableModel->index(i, j, QModelIndex());
+				m_Fractorium->m_XaosTableModel->setData(index, xform->Xaos(j));
+			}
+		}
 	}
 }
 
@@ -67,22 +80,34 @@ QString FractoriumEmberController<T>::MakeXaosNameString(uint i)
 /// <summary>
 /// Set the xaos value.
 /// Called when any xaos spinner is changed.
+/// It actually gets called multiple times as the user clicks around the
+/// xaos table due to how QTableView passes events to and from its model.
+/// To filter out spurrious events, the value is checked against the existing
+/// xaos value.
 /// Resets the rendering process.
 /// </summary>
 /// <param name="sender">The DoubleSpinBox that triggered this event</param>
 template <typename T>
-void FractoriumEmberController<T>::XaosChanged(DoubleSpinBox* sender)
+void FractoriumEmberController<T>::XaosChanged(int x, int y, double val)
 {
-	auto p = sender->property("tableindex").toPoint();
-
-	if (auto* xform = m_Ember.GetXform(p.x()))
-		Update([&] { xform->SetXaos(p.y(), sender->value()); });
+	if (Xform<T>* xform = m_Ember.GetXform(x))
+		if (!IsClose<T>(val, xform->Xaos(y), 1e-10))//Ensure it actually changed.
+			Update([&] { xform->SetXaos(y, val); });
 }
 
 void Fractorium::OnXaosChanged(double d)
 {
 	if (auto* senderSpinBox = dynamic_cast<DoubleSpinBox*>(this->sender()))
-		m_Controller->XaosChanged(senderSpinBox);
+	{
+		auto p = senderSpinBox->property("tableindex").toPoint();
+
+		m_Controller->XaosChanged(p.x(), p.y(), d);
+	}
+}
+
+void Fractorium::OnXaosTableModelDataChanged(const QModelIndex& indexA, const QModelIndex& indexB)
+{
+	m_Controller->XaosChanged(indexA.row(), indexA.column(), indexA.data().toDouble());
 }
 
 /// <summary>
@@ -90,57 +115,37 @@ void Fractorium::OnXaosChanged(double d)
 /// </summary>
 void Fractorium::FillXaosTable()
 {
-	int spinHeight = 20;
 	int count = int(m_Controller->XformCount());
-	QWidget* w = nullptr;
-	QString lbl("lbl");
+	QStringList hl, vl;
+	auto oldModel = m_XaosTableModel;
 
-	ui.XaosTable->blockSignals(true);
-	ui.XaosTable->setRowCount(count);//This will grow or shrink the number of rows and call the destructor for previous DoubleSpinBoxes.
-	ui.XaosTable->setColumnCount(count);
+	hl.reserve(count);
+	vl.reserve(count);
+	m_XaosTableModel = new QStandardItemModel(count, count, this);
+	connect(m_XaosTableModel, SIGNAL(dataChanged(QModelIndex, QModelIndex)), SLOT(OnXaosTableModelDataChanged(QModelIndex, QModelIndex)));
+	ui.XaosTableView->blockSignals(true);
 
 	for (int i = 0; i < count; i++)
 	{
-		for (int j = 0; j < count; j++)
-		{
-			QPoint p(i, j);
-			DoubleSpinBox* spinBox = new DoubleSpinBox(ui.XaosTable, spinHeight, 0.1);
+		auto s = QString::number(i + 1);
 
-			spinBox->setFixedWidth(35);
-			spinBox->DoubleClick(true);
-			spinBox->DoubleClickZero(1);
-			spinBox->DoubleClickNonZero(0);
-			spinBox->setProperty("tableindex", p);
-			ui.XaosTable->setCellWidget(i, j, spinBox);
-			
-			auto wp = ui.XaosTable->item(i, j);
-
-			if (wp)
-				wp->setTextAlignment(Qt::AlignCenter);
-
-			connect(spinBox, SIGNAL(valueChanged(double)), this, SLOT(OnXaosChanged(double)), Qt::QueuedConnection);
-
-			if (i == 0 && j == 0)
-				w = spinBox;
-			else
-				w = SetTabOrder(this, w, spinBox);
-		}
+		hl.push_back("F" + s);
+		vl.push_back("T" + s);
 	}
+
+	m_XaosTableModel->setHorizontalHeaderLabels(hl);
+	m_XaosTableModel->setVerticalHeaderLabels(vl);
+
+	ui.XaosTableView->setModel(m_XaosTableModel);
+	ui.XaosTableView->setItemDelegate(m_XaosTableItemDelegate);
+	ui.XaosTableView->resizeRowsToContents();
+	ui.XaosTableView->resizeColumnsToContents();
+
+	SetTabOrder(this, ui.ClearXaosButton, ui.RandomXaosButton);
+	ui.XaosTableView->blockSignals(false);
 	
-	for (int i = 0; i < count; i++)
-	{
-		ui.XaosTable->setHorizontalHeaderItem(i, new QTableWidgetItem("F" + QString::number(i + 1)));
-		ui.XaosTable->setVerticalHeaderItem(i, new QTableWidgetItem("T" + QString::number(i + 1)));
-		ui.XaosTable->horizontalHeader()->setSectionResizeMode(i, QHeaderView::ResizeToContents);
-		ui.XaosTable->verticalHeader()->setSectionResizeMode(i, QHeaderView::ResizeToContents);
-	}
-
-	ui.XaosTable->resizeRowsToContents();
-	ui.XaosTable->resizeColumnsToContents();
-
-	w = SetTabOrder(this, w, ui.ClearXaosButton);
-	w = SetTabOrder(this, w, ui.RandomXaosButton);
-	ui.XaosTable->blockSignals(false);
+	if (oldModel)
+		delete oldModel;
 }
 
 /// <summary>
@@ -193,7 +198,7 @@ void Fractorium::OnRandomXaosButtonClicked(bool checked) { m_Controller->RandomX
 /// <param name="logicalIndex">The index of the row that was double clicked</param>
 void Fractorium::OnXaosRowDoubleClicked(int logicalIndex)
 {
-	ToggleTableRow(ui.XaosTable, logicalIndex);
+	ToggleTableRow(ui.XaosTableView, logicalIndex);
 }
 
 /// <summary>
@@ -203,7 +208,7 @@ void Fractorium::OnXaosRowDoubleClicked(int logicalIndex)
 /// <param name="logicalIndex">The index of the column that was double clicked</param>
 void Fractorium::OnXaosColDoubleClicked(int logicalIndex)
 {
-	ToggleTableCol(ui.XaosTable, logicalIndex);
+	ToggleTableCol(ui.XaosTableView, logicalIndex);
 }
 
 template class FractoriumEmberController<float>;
