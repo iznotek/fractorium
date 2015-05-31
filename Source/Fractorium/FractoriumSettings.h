@@ -34,6 +34,7 @@
 #define FINALPLATFORMINDEX   "finalrender/platformindex"
 #define FINALDEVICEINDEX     "finalrender/deviceindex"
 #define FINALTHREADCOUNT     "finalrender/threadcount"
+#define FINALTHREADPRIORITY  "finalrender/threadpriority"
 #define FINALQUALITY	     "finalrender/quality"
 #define FINALTEMPORALSAMPLES "finalrender/temporalsamples"
 #define FINALSUPERSAMPLE     "finalrender/supersample"
@@ -150,6 +151,9 @@ public:
 
 	uint FinalThreadCount();
 	void FinalThreadCount(uint b);
+
+	uint FinalThreadPriority();
+	void FinalThreadPriority(uint b);
 
 	uint FinalQuality();
 	void FinalQuality(uint i);

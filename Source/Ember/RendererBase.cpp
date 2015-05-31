@@ -28,6 +28,7 @@ RendererBase::RendererBase()
 	m_LastIter = 0;
 	m_LastIterPercent = 0;
 	m_InteractiveFilter = FILTER_LOG;
+	m_Priority = eThreadPriority::NORMAL;
 	m_ProcessState = NONE;
 	m_ProcessAction = FULL_RENDER;
 	m_InRender = false;
@@ -545,6 +546,15 @@ void RendererBase::BytesPerChannel(size_t bytesPerChannel)
 /// </summary>
 /// <returns>The number of channels per pixel in the output image</returns>
 size_t RendererBase::NumChannels() const { return m_NumChannels; }
+
+
+/// <summary>
+/// Get/set the priority used for the CPU rendering threads.
+/// This does not affect OpenCL rendering.
+/// </summary>
+/// <param name="priority">The priority to use for the CPU rendering threads</param>
+eThreadPriority RendererBase::Priority() const { return m_Priority; }
+void RendererBase::Priority(eThreadPriority priority) { m_Priority = priority; }
 
 /// <summary>
 /// Get the type of filter to use for preview renders during interactive rendering.

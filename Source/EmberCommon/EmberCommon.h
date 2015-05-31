@@ -43,7 +43,7 @@ public:
 
 			cout << "\r" << string(m_S.length() * 2, ' ');//Clear what was previously here, * 2 just to be safe because the end parts of previous strings might be longer.
 			m_SS.str("");//Begin new output.
-			m_SS << "\rStage = " << (stage ? "filtering" : "chaos");
+			m_SS << "\rStage = " << (stage ? "filtering" : "iterating");
 			m_SS << ", progress = " << int(fraction) << "%";
 			m_SS << ", eta = " << t.Format(etaMs);
 			m_S = m_SS.str();

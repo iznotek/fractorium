@@ -1,5 +1,6 @@
 #include "FractoriumPch.h"
 #include "Fractorium.h"
+#include "PaletteTableWidgetItem.h"
 
 #define PALETTE_CELL_HEIGHT 16
 
@@ -20,7 +21,7 @@ void Fractorium::InitPaletteUI()
 	//Palette adjustment table.	
 	QTableWidget* table = ui.PaletteAdjustTable;
 	table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);//Split width over all columns evenly.
-	
+
 	SetupSpinner<SpinBox, int>(table, this, row, 1, m_PaletteHueSpin,		 spinHeight, -180, 180, 1, SIGNAL(valueChanged(int)), SLOT(OnPaletteAdjust(int)), true, 0, 0, 0);
 	SetupSpinner<SpinBox, int>(table, this, row, 1, m_PaletteSaturationSpin, spinHeight, -100, 100, 1, SIGNAL(valueChanged(int)), SLOT(OnPaletteAdjust(int)), true, 0, 0, 0);
 	SetupSpinner<SpinBox, int>(table, this, row, 1, m_PaletteBrightnessSpin, spinHeight, -255, 255, 1, SIGNAL(valueChanged(int)), SLOT(OnPaletteAdjust(int)), true, 0, 0, 0);
@@ -41,8 +42,11 @@ void Fractorium::InitPaletteUI()
 	QTableWidgetItem* previewPaletteItem = new QTableWidgetItem();
 	palettePreviewTable->setItem(0, 1, previewPaletteItem);
 
+	connect(ui.PaletteFilterLineEdit,	 SIGNAL(textChanged(const QString&)), this, SLOT(OnPaletteFilterLineEditTextChanged(const QString&)));
+	connect(ui.PaletteFilterClearButton, SIGNAL(clicked(bool)),				  this, SLOT(OnPaletteFilterClearButtonClicked(bool)));
 	paletteTable->setColumnWidth(1, 260);//256 plus small margin on each side.
-	paletteTable->horizontalHeader()->setSectionsClickable(false);
+	paletteTable->horizontalHeader()->setSectionsClickable(true);
+	connect(paletteTable->horizontalHeader(), SIGNAL(sectionClicked(int)), this, SLOT(OnPaletteHeaderSectionClicked(int)), Qt::QueuedConnection);
 }
 
 /// <summary>
@@ -109,18 +113,20 @@ bool FractoriumEmberController<T>::FillPaletteTable(const string& s)
 			//Palette list table.
 			for (size_t i = 0; i < paletteSize; i++)
 			{
-				Palette<T>* p = m_PaletteList.GetPalette(m_CurrentPaletteFilePath, i);
-				vector<byte> v = p->MakeRgbPaletteBlock(PALETTE_CELL_HEIGHT);
-				QTableWidgetItem* nameCol = new QTableWidgetItem(p->m_Name.c_str());
+				if (auto p = m_PaletteList.GetPalette(m_CurrentPaletteFilePath, i))
+				{
+					auto v = p->MakeRgbPaletteBlock(PALETTE_CELL_HEIGHT);
+					auto nameCol = new QTableWidgetItem(p->m_Name.c_str());
 
-				nameCol->setToolTip(p->m_Name.c_str());
-				paletteTable->setItem(i, 0, nameCol);
+					nameCol->setToolTip(p->m_Name.c_str());
+					paletteTable->setItem(i, 0, nameCol);
 
-				QImage image(v.data(), p->Size(), PALETTE_CELL_HEIGHT, QImage::Format_RGB888);
-				QTableWidgetItem* paletteItem = new QTableWidgetItem();
+					QImage image(v.data(), p->Size(), PALETTE_CELL_HEIGHT, QImage::Format_RGB888);
+					auto paletteItem = new PaletteTableWidgetItem<T>(p);
 
-				paletteItem->setData(Qt::DecorationRole, QPixmap::fromImage(image));
-				paletteTable->setItem(i, 1, paletteItem);
+					paletteItem->setData(Qt::DecorationRole, QPixmap::fromImage(image));
+					paletteTable->setItem(i, 1, paletteItem);
+				}
 			}
 
 			paletteTable->blockSignals(false);
@@ -138,7 +144,11 @@ bool FractoriumEmberController<T>::FillPaletteTable(const string& s)
 	return false;
 }
 
-void Fractorium::OnPaletteFilenameComboChanged(const QString& text) { m_Controller->FillPaletteTable(text.toStdString()); }
+void Fractorium::OnPaletteFilenameComboChanged(const QString& text)
+{
+	m_Controller->FillPaletteTable(text.toStdString());
+	ui.PaletteListTable->sortItems(0, m_PaletteSortMode == 0 ? Qt::AscendingOrder : Qt::DescendingOrder);
+}
 
 /// <summary>
 /// Apply adjustments to the current ember's palette.
@@ -222,13 +232,11 @@ void Fractorium::OnPaletteAdjust(int d) { m_Controller->PaletteAdjust(); }
 /// Resets the rendering process.
 /// </summary>
 /// <param name="row">The table row clicked</param>
-/// <param name="col">The table col clicked</param>
+/// <param name="col">The table column clicked</param>
 template <typename T>
 void FractoriumEmberController<T>::PaletteCellClicked(int row, int col)
 {
-	Palette<T>* palette = m_PaletteList.GetPalette(m_CurrentPaletteFilePath, row);
-
-	if (palette)
+	if (auto palette = m_PaletteList.GetPalette(m_CurrentPaletteFilePath, row))
 	{
 		m_TempPalette = *palette;//Deep copy.
 		ApplyPaletteToEmber();//Copy temp palette to ember palette and apply adjustments.
@@ -236,12 +244,25 @@ void FractoriumEmberController<T>::PaletteCellClicked(int row, int col)
 	}
 }
 
+/// <summary>
+/// Map the palette in the clicked row index to the index
+/// in the palette list, then pass that index to PaletteCellClicked().
+/// This resolves the case where the sort order of the palette table
+/// is different than the internal order of the palette list.
+/// </summary>
+/// <param name="row">The table row clicked</param>
+/// <param name="col">The table column clicked, ignored</param>
 void Fractorium::OnPaletteCellClicked(int row, int col)
 {
-	if (m_PreviousPaletteRow != row)
+	if (auto item = dynamic_cast<PaletteTableWidgetItemBase*>(ui.PaletteListTable->item(row, 1)))
 	{
-		m_Controller->PaletteCellClicked(row, col);
-		m_PreviousPaletteRow = row;//Save for comparison on next click.
+		auto index = item->Index();
+
+		if (m_PreviousPaletteRow != index)
+		{
+			m_Controller->PaletteCellClicked(index, col);
+			m_PreviousPaletteRow = index;//Save for comparison on next click.
+		}
 	}
 }
 
@@ -252,7 +273,7 @@ void Fractorium::OnPaletteCellClicked(int row, int col)
 /// Resets the rendering process.
 /// </summary>
 /// <param name="row">The table row clicked</param>
-/// <param name="col">The table col clicked</param>
+/// <param name="col">The table column clicked</param>
 void Fractorium::OnPaletteCellDoubleClicked(int row, int col)
 {
 	ResetPaletteControls();
@@ -307,6 +328,54 @@ void Fractorium::OnPaletteRandomAdjustButtonClicked(bool checked)
 	}
 
 	OnPaletteAdjust(0);
+}
+
+/// <summary>
+/// Apply the text in the palette filter text box to only show palettes whose names
+/// contain the substring.
+/// Called when the user types in the palette filter text box.
+/// </summary>
+/// <param name="text">The text to filter on</param>
+void Fractorium::OnPaletteFilterLineEditTextChanged(const QString& text)
+{
+	auto table = ui.PaletteListTable;
+
+	table->setUpdatesEnabled(false);
+
+	for (uint i = 0; i < uint(table->rowCount()); i++)
+	{
+		if (auto item = table->item(i, 0))
+		{
+			if (!item->text().contains(text, Qt::CaseInsensitive))
+				table->hideRow(i);
+			else
+				table->showRow(i);
+		}
+	}
+
+	ui.PaletteListTable->sortItems(0, m_PaletteSortMode == 0 ? Qt::AscendingOrder : Qt::DescendingOrder);//Must re-sort every time the filter changes.
+	table->setUpdatesEnabled(true);
+}
+
+/// <summary>
+/// Clear the palette name filter, which will display all palettes.
+/// Called when clear palette filter button is clicked.
+/// </summary>
+/// <param name="checked">Ignored</param>
+void Fractorium::OnPaletteFilterClearButtonClicked(bool checked)
+{
+	ui.PaletteFilterLineEdit->clear();
+}
+
+/// <summary>
+/// Change the sorting to be either ascending or descending.
+/// Called when user clicks the table headers.
+/// </summary>
+/// <param name="col">Column index of the header clicked, ignored.</param>
+void Fractorium::OnPaletteHeaderSectionClicked(int col)
+{
+	m_PaletteSortMode = !m_PaletteSortMode;
+	ui.PaletteListTable->sortItems(0, m_PaletteSortMode == 0 ? Qt::AscendingOrder : Qt::DescendingOrder);
 }
 
 /// <summary>

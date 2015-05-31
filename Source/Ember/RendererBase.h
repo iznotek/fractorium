@@ -157,6 +157,8 @@ public:
 	size_t BytesPerChannel() const;
 	void BytesPerChannel(size_t bytesPerChannel);
 	size_t NumChannels() const;
+	eThreadPriority Priority() const;
+	void Priority(eThreadPriority priority);
 	eInteractiveFilter InteractiveFilter() const;
 	void InteractiveFilter(eInteractiveFilter filter);
 
@@ -216,6 +218,7 @@ protected:
 	size_t m_LastTemporalSample;
 	size_t m_LastIter;
 	double m_LastIterPercent;
+	eThreadPriority m_Priority;
 	eProcessAction m_ProcessAction;
 	eProcessState m_ProcessState;
 	eInteractiveFilter m_InteractiveFilter;

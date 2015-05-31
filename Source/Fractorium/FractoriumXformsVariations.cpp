@@ -12,7 +12,6 @@ void Fractorium::InitXformsVariationsUI()
 	tree->header()->setSectionsClickable(true);
 	connect(tree->header(),					SIGNAL(sectionClicked(int)),		 this, SLOT(OnTreeHeaderSectionClicked(int)));
 	connect(ui.VariationsFilterLineEdit,	SIGNAL(textChanged(const QString&)), this, SLOT(OnVariationsFilterLineEditTextChanged(const QString&)));
-	connect(ui.VariationsFilterLineEdit,	SIGNAL(textChanged(const QString&)), this, SLOT(OnVariationsFilterLineEditTextChanged(const QString&)));
 	connect(ui.VariationsFilterClearButton, SIGNAL(clicked(bool)),				 this, SLOT(OnVariationsFilterClearButtonClicked(bool)));
 
 	//Setting dimensions in the designer with a layout is futile, so must hard code here.
@@ -268,7 +267,7 @@ void FractoriumEmberController<T>::FillVariationTreeWithXform(Xform<T>* xform)
 
 /// <summary>
 /// Change the sorting to be either by variation ID, or by weight.
-/// If sorting by variation ID, repeated clicks will altername ascending or descending.
+/// If sorting by variation ID, repeated clicks will alternate ascending or descending.
 /// Called when user clicks the tree headers.
 /// </summary>
 /// <param name="logicalIndex">Column index of the header clicked. Sort by name if 0, sort by weight if 1.</param>
@@ -277,7 +276,7 @@ void Fractorium::OnTreeHeaderSectionClicked(int logicalIndex)
 	m_VarSortMode = logicalIndex;
 	ui.VariationsTree->sortItems(m_VarSortMode, m_VarSortMode == 0 ? Qt::AscendingOrder : Qt::DescendingOrder);
 
-	if (logicalIndex == 1)
+	if (m_VarSortMode == 1)
 		ui.VariationsTree->scrollToTop();
 }
 

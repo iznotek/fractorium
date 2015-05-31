@@ -268,6 +268,9 @@ public slots:
 	void OnPaletteCellDoubleClicked(int row, int col);
 	void OnPaletteRandomSelectButtonClicked(bool checked);
 	void OnPaletteRandomAdjustButtonClicked(bool checked);
+	void OnPaletteFilterLineEditTextChanged(const QString& text);
+	void OnPaletteFilterClearButtonClicked(bool checked);
+	void OnPaletteHeaderSectionClicked(int col);
 
 	//Rendering/progress.
 	void StartRenderTimer();
@@ -458,6 +461,7 @@ private:
 
 	int m_FontSize;
 	int m_VarSortMode;
+	int m_PaletteSortMode;
 	int m_PreviousPaletteRow;
 	OpenCLWrapper m_Wrapper;
 	unique_ptr<FractoriumEmberControllerBase> m_Controller;

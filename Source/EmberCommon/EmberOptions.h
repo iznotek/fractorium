@@ -80,6 +80,7 @@ enum eOptionIDs
 	OPT_REPEAT,
 	OPT_TRIES,
 	OPT_MAX_XFORMS,
+	OPT_PRIORITY,
 
 	OPT_SS,//Float value args.
 	OPT_QS,
@@ -341,18 +342,19 @@ public:
 																																							  "\t\t\t\t\t33:  Histogram: float, Accumulator: float.\n"//This differs from the original which used an int hist for bits 33.
 																																							  "\t\t\t\t\t64:  Histogram: double, Accumulator: double.\n"));
 
-		INITUINTOPTION(PrintEditDepth, Eou(OPT_USE_ALL,     OPT_PRINT_EDIT_DEPTH, _T("--print_edit_depth"),     0,                    SO_REQ_SEP, "\t--print_edit_depth=<val> Depth to truncate <edit> tag structure when converting a flame to xml. 0 prints all <edit> tags [default: 0].\n"));
-		INITUINTOPTION(JpegQuality,    Eou(OPT_RENDER_ANIM, OPT_JPEG,             _T("--jpeg"),                 95,                   SO_REQ_SEP, "\t--jpeg=<val>             Jpeg quality 0-100 for compression [default: 95].\n"));
-		INITUINTOPTION(FirstFrame,     Eou(OPT_USE_ANIMATE, OPT_BEGIN,            _T("--begin"),                UINT_MAX,             SO_REQ_SEP, "\t--begin=<val>            Time of first frame to render [default: first time specified in file].\n"));
-		INITUINTOPTION(LastFrame,      Eou(OPT_USE_ANIMATE, OPT_END,              _T("--end"),	                UINT_MAX,             SO_REQ_SEP, "\t--end=<val>              Time of last frame to render [default: last time specified in the input file].\n"));
-		INITUINTOPTION(Time,           Eou(OPT_ANIM_GENOME, OPT_TIME,             _T("--time"),                 0,                    SO_REQ_SEP, "\t--time=<val>             Time of first and last frame (ie do one frame).\n"));
-		INITUINTOPTION(Frame,          Eou(OPT_ANIM_GENOME, OPT_FRAME,            _T("--frame"),                0,                    SO_REQ_SEP, "\t--frame=<val>            Synonym for \"time\".\n"));
-		INITUINTOPTION(Dtime,          Eou(OPT_USE_ANIMATE, OPT_DTIME,            _T("--dtime"),                1,                    SO_REQ_SEP, "\t--dtime=<val>            Time between frames [default: 1].\n"));
-		INITUINTOPTION(Frames,         Eou(OPT_USE_GENOME,  OPT_NFRAMES,          _T("--nframes"),              20,                   SO_REQ_SEP, "\t--nframes=<val>          Number of frames for each stage of the animation [default: 20].\n"));
-		INITUINTOPTION(Loops,          Eou(OPT_USE_GENOME,  OPT_LOOPS,            _T("--loops"),                1,                    SO_REQ_SEP, "\t--loops=<val>            Number of times to rotate each control point in sequence [default: 1].\n"));
-		INITUINTOPTION(Repeat,         Eou(OPT_USE_GENOME,  OPT_REPEAT,           _T("--repeat"),               1,                    SO_REQ_SEP, "\t--repeat=<val>           Number of new flames to create. Ignored if sequence, inter or rotate were specified [default: 1].\n"));
-		INITUINTOPTION(Tries,          Eou(OPT_USE_GENOME,  OPT_TRIES,            _T("--tries"),                10,                   SO_REQ_SEP, "\t--tries=<val>            Number times to try creating a flame that meets the specified constraints. Ignored if sequence, inter or rotate were specified [default: 10].\n"));
-		INITUINTOPTION(MaxXforms,      Eou(OPT_USE_GENOME,  OPT_MAX_XFORMS,       _T("--maxxforms"),            UINT_MAX,             SO_REQ_SEP, "\t--maxxforms=<val>        The maximum number of xforms allowed in the final output.\n"));
+		INITUINTOPTION(PrintEditDepth, Eou(OPT_USE_ALL,     OPT_PRINT_EDIT_DEPTH, _T("--print_edit_depth"), 0,                       SO_REQ_SEP, "\t--print_edit_depth=<val> Depth to truncate <edit> tag structure when converting a flame to xml. 0 prints all <edit> tags [default: 0].\n"));
+		INITUINTOPTION(JpegQuality,    Eou(OPT_RENDER_ANIM, OPT_JPEG,             _T("--jpeg"),             95,                      SO_REQ_SEP, "\t--jpeg=<val>             Jpeg quality 0-100 for compression [default: 95].\n"));
+		INITUINTOPTION(FirstFrame,     Eou(OPT_USE_ANIMATE, OPT_BEGIN,            _T("--begin"),            UINT_MAX,                SO_REQ_SEP, "\t--begin=<val>            Time of first frame to render [default: first time specified in file].\n"));
+		INITUINTOPTION(LastFrame,      Eou(OPT_USE_ANIMATE, OPT_END,              _T("--end"),	            UINT_MAX,                SO_REQ_SEP, "\t--end=<val>              Time of last frame to render [default: last time specified in the input file].\n"));
+		INITUINTOPTION(Time,           Eou(OPT_ANIM_GENOME, OPT_TIME,             _T("--time"),             0,                       SO_REQ_SEP, "\t--time=<val>             Time of first and last frame (ie do one frame).\n"));
+		INITUINTOPTION(Frame,          Eou(OPT_ANIM_GENOME, OPT_FRAME,            _T("--frame"),            0,                       SO_REQ_SEP, "\t--frame=<val>            Synonym for \"time\".\n"));
+		INITUINTOPTION(Dtime,          Eou(OPT_USE_ANIMATE, OPT_DTIME,            _T("--dtime"),            1,                       SO_REQ_SEP, "\t--dtime=<val>            Time between frames [default: 1].\n"));
+		INITUINTOPTION(Frames,         Eou(OPT_USE_GENOME,  OPT_NFRAMES,          _T("--nframes"),          20,                      SO_REQ_SEP, "\t--nframes=<val>          Number of frames for each stage of the animation [default: 20].\n"));
+		INITUINTOPTION(Loops,          Eou(OPT_USE_GENOME,  OPT_LOOPS,            _T("--loops"),            1,                       SO_REQ_SEP, "\t--loops=<val>            Number of times to rotate each control point in sequence [default: 1].\n"));
+		INITUINTOPTION(Repeat,         Eou(OPT_USE_GENOME,  OPT_REPEAT,           _T("--repeat"),           1,                       SO_REQ_SEP, "\t--repeat=<val>           Number of new flames to create. Ignored if sequence, inter or rotate were specified [default: 1].\n"));
+		INITUINTOPTION(Tries,          Eou(OPT_USE_GENOME,  OPT_TRIES,            _T("--tries"),            10,                      SO_REQ_SEP, "\t--tries=<val>            Number times to try creating a flame that meets the specified constraints. Ignored if sequence, inter or rotate were specified [default: 10].\n"));
+		INITUINTOPTION(MaxXforms,      Eou(OPT_USE_GENOME,  OPT_MAX_XFORMS,       _T("--maxxforms"),        UINT_MAX,                SO_REQ_SEP, "\t--maxxforms=<val>        The maximum number of xforms allowed in the final output.\n"));
+		INITUINTOPTION(Priority,	   Eou(OPT_RENDER_ANIM, OPT_PRIORITY,		  _T("--priority"),			eThreadPriority::NORMAL, SO_REQ_SEP, "\t--priority=<val>         The priority of the CPU rendering threads from -2 - 2. This does not apply to OpenCL rendering.\n"));
 
 		//Double.
 		INITDOUBLEOPTION(SizeScale,    Eod(OPT_RENDER_ANIM, OPT_SS,               _T("--ss"),                   1,                    SO_REQ_SEP, "\t--ss=<val>               Size scale. All dimensions are scaled by this amount [default: 1.0].\n"));
@@ -482,6 +484,7 @@ public:
 					PARSEUINTOPTION(OPT_REPEAT, Repeat);
 					PARSEUINTOPTION(OPT_TRIES, Tries);
 					PARSEUINTOPTION(OPT_MAX_XFORMS, MaxXforms);
+					PARSEUINTOPTION(OPT_PRIORITY, Priority);
 
 					PARSEDOUBLEOPTION(OPT_SS, SizeScale);//Float args.
 					PARSEDOUBLEOPTION(OPT_QS, QualityScale);
@@ -697,6 +700,7 @@ public:
 	EmberOptionEntry<uint> Repeat;
 	EmberOptionEntry<uint> Tries;
 	EmberOptionEntry<uint> MaxXforms;
+	EmberOptionEntry<uint> Priority;
 
 	EmberOptionEntry<double> SizeScale;//Value double.
 	EmberOptionEntry<double> QualityScale;

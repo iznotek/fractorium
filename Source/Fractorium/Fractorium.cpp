@@ -26,6 +26,7 @@ Fractorium::Fractorium(QWidget* p)
 	
 	m_FontSize = 9;
 	m_VarSortMode = 1;//Sort by weight by default.
+	m_PaletteSortMode = 0;//Sort by palette ascending by default.
 	m_ColorDialog = new QColorDialog(this);
 	m_Settings = new FractoriumSettings(this);
 

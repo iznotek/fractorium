@@ -4866,7 +4866,7 @@ SpinBox
         <attribute name="toolTip">
          <string>List of available palette files and their palettes</string>
         </attribute>
-        <layout class="QGridLayout" name="gridLayout_16" rowstretch="0,0,0,0,0" columnstretch="0">
+        <layout class="QGridLayout" name="gridLayout_16" rowstretch="0,0,0,0,0,0" columnstretch="0">
          <property name="sizeConstraint">
           <enum>QLayout::SetDefaultConstraint</enum>
          </property>
@@ -5100,7 +5100,7 @@ SpinBox
            </item>
           </widget>
          </item>
-         <item row="4" column="0">
+         <item row="5" column="0">
           <widget class="QTableWidget" name="PaletteListTable">
            <property name="focusPolicy">
             <enum>Qt::StrongFocus</enum>
@@ -5236,6 +5236,50 @@ SpinBox
          </item>
          <item row="0" column="0">
           <widget class="QComboBox" name="PaletteFilenameCombo"/>
+         </item>
+         <item row="4" column="0">
+          <layout class="QHBoxLayout" name="PaletteTabHLayout2" stretch="0,0">
+           <property name="spacing">
+            <number>5</number>
+           </property>
+           <property name="sizeConstraint">
+            <enum>QLayout::SetDefaultConstraint</enum>
+           </property>
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QLineEdit" name="PaletteFilterLineEdit"/>
+           </item>
+           <item>
+            <widget class="QPushButton" name="PaletteFilterClearButton">
+             <property name="minimumSize">
+              <size>
+               <width>30</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>30</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>X</string>
+             </property>
+             <property name="flat">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
         </layout>
        </widget>
