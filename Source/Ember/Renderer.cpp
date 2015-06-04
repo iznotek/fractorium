@@ -1216,7 +1216,7 @@ EmberStats Renderer<T, bucketT>::Iterate(size_t iterCount, size_t temporalSample
 	{
 #endif
 #ifdef WIN32
-		//SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
+		SetThreadPriority(GetCurrentThread(), m_Priority);
 #endif
 		//Timing t;
 		IterParams<T> params;

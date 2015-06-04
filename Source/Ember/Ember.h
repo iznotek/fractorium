@@ -976,8 +976,8 @@ public:
 		//were directly written to, must manually call them here.
 		CacheXforms();
 
-		//Need to merge chaos. Original does chaos all the time, but really only need to do it if at least one xform in at least one ember uses it, else skip.
-		//Omit final xform from chaos processing.
+		//Need to merge xaos. Original does xaos all the time, but really only need to do it if at least one xform in at least one ember uses it, else skip.
+		//Omit final xform from xaos processing.
 		if (Interpolater<T>::AnyXaosPresent(embers, size))
 		{
 			for (size_t i = 0; i < XformCount(); i++)

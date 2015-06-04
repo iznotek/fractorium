@@ -38,6 +38,7 @@ struct FinalRenderGuiState
 	uint m_PlatformIndex;
 	uint m_DeviceIndex;
 	uint m_ThreadCount;
+	uint m_ThreadPriority;
 	double m_WidthScale;
 	double m_HeightScale;
 	double m_Quality;

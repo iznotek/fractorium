@@ -74,7 +74,8 @@ HEADERS  += \
     ../../../Source/EmberCommon/JpegUtils.h \
     ../../../Source/EmberCommon/EmberCommonPch.h \
     ../../../Source/Fractorium/FractoriumCommon.h \
-    ../../../Source/Fractorium/DoubleSpinBoxTableItemDelegate.h
+	../../../Source/Fractorium/DoubleSpinBoxTableItemDelegate.h \
+	../../../Source/Fractorium/PaletteTableWidgetItem.h
 
 FORMS    += \
     ../../../Source/Fractorium/AboutDialog.ui \

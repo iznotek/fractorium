@@ -8,6 +8,26 @@
 /// </summary>
 namespace EmberNs
 {
+#ifndef _WIN32
+	#define THREAD_PRIORITY_LOWEST       1
+	#define THREAD_PRIORITY_BELOW_NORMAL 25
+	#define THREAD_PRIORITY_NORMAL       50
+	#define THREAD_PRIORITY_ABOVE_NORMAL 75
+	#define THREAD_PRIORITY_HIGHEST      99
+#endif
+
+/// <summary>
+/// Enum to encapsulate and add type safety to the thread priority defines.
+/// </summary>
+enum eThreadPriority
+{
+	LOWEST       = THREAD_PRIORITY_LOWEST,//-2
+	BELOW_NORMAL = THREAD_PRIORITY_BELOW_NORMAL,//-1
+	NORMAL       = THREAD_PRIORITY_NORMAL,//0
+	ABOVE_NORMAL = THREAD_PRIORITY_ABOVE_NORMAL,//1
+	HIGHEST      = THREAD_PRIORITY_HIGHEST//2
+};
+
 /// <summary>
 /// Thin wrapper around std::find_if() to relieve the caller of having to
 /// pass the implicitly obvious .begin() and .end(), and then compare the results to .end().

@@ -68,6 +68,7 @@ public:
 	uint PlatformIndex();
 	uint DeviceIndex();
 	uint ThreadCount();
+	uint ThreadPriority();
 	double WidthScale();
 	double HeightScale();
 	double Quality();

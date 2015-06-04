@@ -109,15 +109,16 @@ FractoriumFinalRenderDialog::FractoriumFinalRenderDialog(FractoriumSettings* set
 		ui.FinalRenderOpenCLCheckBox->setEnabled(false);
 	}
 
-	ui.FinalRenderEarlyClipCheckBox->setChecked(      m_Settings->FinalEarlyClip());
-	ui.FinalRenderYAxisUpCheckBox->setChecked(        m_Settings->FinalYAxisUp());
-	ui.FinalRenderTransparencyCheckBox->setChecked(   m_Settings->FinalTransparency());
-	ui.FinalRenderDoublePrecisionCheckBox->setChecked(m_Settings->FinalDouble());
-	ui.FinalRenderSaveXmlCheckBox->setChecked(		  m_Settings->FinalSaveXml());
-	ui.FinalRenderDoAllCheckBox->setChecked(	      m_Settings->FinalDoAll());
-	ui.FinalRenderDoSequenceCheckBox->setChecked(     m_Settings->FinalDoSequence());
-	ui.FinalRenderKeepAspectCheckBox->setChecked(	  m_Settings->FinalKeepAspect());
-	ui.FinalRenderThreadCountSpin->setValue(	      m_Settings->FinalThreadCount());
+	ui.FinalRenderEarlyClipCheckBox->setChecked(		  m_Settings->FinalEarlyClip());
+	ui.FinalRenderYAxisUpCheckBox->setChecked(			  m_Settings->FinalYAxisUp());
+	ui.FinalRenderTransparencyCheckBox->setChecked(		  m_Settings->FinalTransparency());
+	ui.FinalRenderDoublePrecisionCheckBox->setChecked(	  m_Settings->FinalDouble());
+	ui.FinalRenderSaveXmlCheckBox->setChecked(			  m_Settings->FinalSaveXml());
+	ui.FinalRenderDoAllCheckBox->setChecked(			  m_Settings->FinalDoAll());
+	ui.FinalRenderDoSequenceCheckBox->setChecked(		  m_Settings->FinalDoSequence());
+	ui.FinalRenderKeepAspectCheckBox->setChecked(		  m_Settings->FinalKeepAspect());
+	ui.FinalRenderThreadCountSpin->setValue(			  m_Settings->FinalThreadCount());
+	ui.FinalRenderThreadPriorityComboBox->setCurrentIndex(m_Settings->FinalThreadPriority() + 2);
 
 	m_QualitySpin->setValue(m_Settings->FinalQuality());
 	m_TemporalSamplesSpin->setValue(m_Settings->FinalTemporalSamples());
@@ -141,7 +142,10 @@ FractoriumFinalRenderDialog::FractoriumFinalRenderDialog(FractoriumSettings* set
 
 	s.setHeight(std::min(s.height(), int(double(desktopHeight * 0.90))));
 	setGeometry(QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter, s, qApp->desktop()->availableGeometry()));
-
+	ui.FinalRenderThreadHorizontalLayout->setAlignment(Qt::AlignLeft);
+	ui.FinalRenderThreadHorizontalLayout->setAlignment(ui.FinalRenderThreadCountSpin, Qt::AlignLeft);
+	ui.FinalRenderThreadHorizontalLayout->setAlignment(ui.FinalRenderThreadPriorityLabel, Qt::AlignLeft);
+	ui.FinalRenderThreadHorizontalLayout->setAlignment(ui.FinalRenderThreadPriorityComboBox, Qt::AlignLeft);
 	QWidget* w = SetTabOrder(this, ui.FinalRenderEarlyClipCheckBox, ui.FinalRenderYAxisUpCheckBox);
 
 	//Update these with new controls.
@@ -155,6 +159,7 @@ FractoriumFinalRenderDialog::FractoriumFinalRenderDialog(FractoriumSettings* set
 	w = SetTabOrder(this, w, ui.FinalRenderPlatformCombo);
 	w = SetTabOrder(this, w, ui.FinalRenderDeviceCombo);
 	w = SetTabOrder(this, w, ui.FinalRenderThreadCountSpin);
+	w = SetTabOrder(this, w, ui.FinalRenderThreadPriorityComboBox);
 	w = SetTabOrder(this, w, ui.FinalRenderApplyToAllCheckBox);
 	w = SetTabOrder(this, w, m_WidthScaleSpin);
 	w = SetTabOrder(this, w, m_HeightScaleSpin);
@@ -201,6 +206,7 @@ uint FractoriumFinalRenderDialog::Current() { return ui.FinalRenderCurrentSpin->
 uint FractoriumFinalRenderDialog::PlatformIndex() { return ui.FinalRenderPlatformCombo->currentIndex(); }
 uint FractoriumFinalRenderDialog::DeviceIndex() { return ui.FinalRenderDeviceCombo->currentIndex(); }
 uint FractoriumFinalRenderDialog::ThreadCount() { return ui.FinalRenderThreadCountSpin->value(); }
+uint FractoriumFinalRenderDialog::ThreadPriority() { return ui.FinalRenderThreadPriorityComboBox->currentIndex() - 2; }
 double FractoriumFinalRenderDialog::WidthScale() { return m_WidthScaleSpin->value(); }
 double FractoriumFinalRenderDialog::HeightScale() { return m_HeightScaleSpin->value(); }
 double FractoriumFinalRenderDialog::Quality() { return m_QualitySpin->value(); }
@@ -234,6 +240,7 @@ FinalRenderGuiState FractoriumFinalRenderDialog::State()
 	state.m_PlatformIndex = PlatformIndex();
 	state.m_DeviceIndex = DeviceIndex();
 	state.m_ThreadCount = ThreadCount();
+	state.m_ThreadPriority = ThreadPriority();
 	state.m_WidthScale = WidthScale();
 	state.m_HeightScale = HeightScale();
 	state.m_Quality = Quality();
@@ -327,6 +334,7 @@ void FractoriumFinalRenderDialog::OnOpenCLCheckBoxStateChanged(int state)
 	ui.FinalRenderPlatformCombo->setEnabled(checked);
 	ui.FinalRenderDeviceCombo->setEnabled(checked);
 	ui.FinalRenderThreadCountSpin->setEnabled(!checked);
+	ui.FinalRenderThreadPriorityComboBox->setEnabled(!checked);
 	SetMemory();
 }
 

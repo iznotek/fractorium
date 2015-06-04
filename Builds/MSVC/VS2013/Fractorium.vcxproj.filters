@@ -297,6 +297,9 @@
     <ClInclude Include="..\..\..\Source\Fractorium\FractoriumCommon.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\Source\Fractorium\PaletteTableWidgetItem.h">
+      <Filter>Widgets</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\..\Source\Fractorium\Fractorium.qrc">

@@ -284,26 +284,84 @@
         </widget>
        </item>
        <item>
-        <widget class="QSpinBox" name="FinalRenderThreadCountSpin">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The number of threads to use with CPU rendering.&lt;/p&gt;&lt;p&gt;Decrease for a more responsive system during rendering, increase for better performance.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="prefix">
-          <string>Threads </string>
-         </property>
-         <property name="minimum">
-          <number>1</number>
-         </property>
-         <property name="maximum">
-          <number>64</number>
-         </property>
-        </widget>
+        <layout class="QHBoxLayout" name="FinalRenderThreadHorizontalLayout" stretch="0,0,0">
+         <item>
+          <widget class="QSpinBox" name="FinalRenderThreadCountSpin">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The number of threads to use with CPU rendering.&lt;/p&gt;&lt;p&gt;Decrease for a more responsive system during rendering, increase for better performance.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="prefix">
+            <string>Threads </string>
+           </property>
+           <property name="minimum">
+            <number>1</number>
+           </property>
+           <property name="maximum">
+            <number>64</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="FinalRenderThreadPriorityLabel">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Priority: </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="FinalRenderThreadPriorityComboBox">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="currentIndex">
+            <number>2</number>
+           </property>
+           <property name="maxCount">
+            <number>5</number>
+           </property>
+           <item>
+            <property name="text">
+             <string>Lowest</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Below Normal</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Normal</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Above Normal</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Highest</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
         <widget class="QCheckBox" name="FinalRenderApplyToAllCheckBox">
@@ -1063,7 +1121,6 @@
   <tabstop>FinalRenderOpenCLCheckBox</tabstop>
   <tabstop>FinalRenderPlatformCombo</tabstop>
   <tabstop>FinalRenderDeviceCombo</tabstop>
-  <tabstop>FinalRenderThreadCountSpin</tabstop>
   <tabstop>FinalRenderParamsTable</tabstop>
   <tabstop>FinalRenderTextOutput</tabstop>
   <tabstop>StartRenderButton</tabstop>

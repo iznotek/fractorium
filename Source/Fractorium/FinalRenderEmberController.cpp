@@ -170,6 +170,7 @@ FinalRenderEmberController<T>::FinalRenderEmberController(FractoriumFinalRenderD
 		m_Renderer->EarlyClip(m_GuiState.m_EarlyClip);
 		m_Renderer->YAxisUp(m_GuiState.m_YAxisUp);
 		m_Renderer->ThreadCount(m_GuiState.m_ThreadCount);
+		m_Renderer->Priority((eThreadPriority)m_GuiState.m_ThreadPriority);
 		m_Renderer->Transparency(m_GuiState.m_Transparency);
 		m_Renderer->m_ProgressParameter = reinterpret_cast<void*>(&currentStripForProgress);
 
@@ -488,8 +489,9 @@ int FinalRenderEmberController<T>::ProgressFunc(Ember<T>& ember, void* foo, doub
 	else if (stage == 2)
 		QMetaObject::invokeMethod(m_FinalRenderDialog->ui.FinalRenderAccumProgress, "setValue", Qt::QueuedConnection, Q_ARG(int, intFract));
 
+	QMetaObject::invokeMethod(m_FinalRenderDialog->ui.FinalRenderImageCountLabel, "setText", Qt::QueuedConnection, Q_ARG(const QString&, ToString(m_FinishedImageCount) + " / " + ToString(m_ImageCount) + " Eta: " + QString::fromStdString(m_RenderTimer.Format(etaMs))));
 	QMetaObject::invokeMethod(m_FinalRenderDialog->ui.FinalRenderTextOutput, "update", Qt::QueuedConnection);
-	//QApplication::processEvents();
+	
 	return m_Run ? 1 : 0;
 }
 
@@ -670,6 +672,7 @@ void FinalRenderEmberController<T>::RenderComplete(Ember<T>& ember)
 	m_Settings->FinalScale(m_GuiState.m_Scale);
 	m_Settings->FinalExt(m_GuiState.m_Ext);
 	m_Settings->FinalThreadCount(m_GuiState.m_ThreadCount);
+	m_Settings->FinalThreadPriority(m_GuiState.m_ThreadPriority);
 	m_Settings->FinalQuality(m_GuiState.m_Quality);
 	m_Settings->FinalTemporalSamples(m_GuiState.m_TemporalSamples);
 	m_Settings->FinalSupersample(m_GuiState.m_Supersample);
