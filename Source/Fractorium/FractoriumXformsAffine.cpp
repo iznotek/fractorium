@@ -150,8 +150,8 @@ void Fractorium::InitXformsAffineUI()
 	
 	//Further, the size of the dock widget won't be properly adjusted until the xforms tab is shown.
 	//So show it here and it will be switched back in Fractorium's constructor.
-	ui.ParamsTabWidget->setCurrentIndex(2);
-	ui.DockWidget->update();
+    //ui.ParamsTabWidget->setCurrentIndex(2);
+    //ui.DockWidget->update();
 #endif
 	
 	//Placing pointers to the spin boxes in arrays makes them easier to access in various places.

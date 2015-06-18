@@ -174,7 +174,7 @@ FinalRenderEmberController<T>::FinalRenderEmberController(FractoriumFinalRenderD
 		m_Renderer->Transparency(m_GuiState.m_Transparency);
 		m_Renderer->m_ProgressParameter = reinterpret_cast<void*>(&currentStripForProgress);
 
-		if (path.endsWith(".png", Qt::CaseInsensitive) || m_Renderer->RendererType() == OPENCL_RENDERER)//This is creating the wrong thing.//TODO
+		if (path.endsWith(".png", Qt::CaseInsensitive) || m_Renderer->RendererType() == OPENCL_RENDERER)
 			m_Renderer->NumChannels(4);
 		else
 			m_Renderer->NumChannels(3);

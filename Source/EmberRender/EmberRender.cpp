@@ -154,7 +154,7 @@ bool EmberRender(EmberOptions& opt)
 	renderer->Transparency(opt.Transparency());
 	renderer->NumChannels(channels);
 	renderer->BytesPerChannel(opt.BitsPerChannel() / 8);
-	renderer->Priority((eThreadPriority)Clamp<uint>((uint)eThreadPriority::LOWEST, (uint)eThreadPriority::HIGHEST, opt.Priority()));
+	renderer->Priority((eThreadPriority)Clamp<int>((int)eThreadPriority::LOWEST, (int)eThreadPriority::HIGHEST, opt.Priority()));
 	renderer->Callback(opt.DoProgress() ? progress.get() : nullptr);
 
 	for (i = 0; i < embers.size(); i++)
