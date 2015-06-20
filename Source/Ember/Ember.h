@@ -803,6 +803,9 @@ public:
 		InterpT<&Ember<T>::m_SpatialFilterRadius>(embers, coefs, size);
 		InterpX<Curves<T>, &Ember<T>::m_Curves>(embers, coefs, size);
 
+		//Normally done in assignment, must manually do here.
+		SetProjFunc();
+
 		//An extra step needed here due to the OOD that was not needed in the original.
 		//A small price to pay for the conveniences it affords us elsewhere.
 		//First clear the xforms, and find out the max number of xforms in all of the embers in the list.

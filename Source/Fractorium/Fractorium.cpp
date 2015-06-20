@@ -32,6 +32,14 @@ Fractorium::Fractorium(QWidget* p)
 	tabifyDockWidget(ui.XformsDockWidget, ui.XaosDockWidget);
 	tabifyDockWidget(ui.XaosDockWidget, ui.PaletteDockWidget);
 	tabifyDockWidget(ui.PaletteDockWidget, ui.InfoDockWidget);
+	
+	m_Docks.reserve(8);
+	m_Docks.push_back(ui.LibraryDockWidget);
+	m_Docks.push_back(ui.FlameDockWidget);
+	m_Docks.push_back(ui.XformsDockWidget);
+	m_Docks.push_back(ui.XaosDockWidget);
+	m_Docks.push_back(ui.PaletteDockWidget);
+	m_Docks.push_back(ui.InfoDockWidget);
 
 	m_FontSize = 9;
 	m_VarSortMode = 1;//Sort by weight by default.
@@ -137,15 +145,19 @@ Fractorium::Fractorium(QWidget* p)
 
 	//Setup pointer in the GL window to point back to here.
 	ui.GLDisplay->SetMainWindow(this);
-	restoreState(m_Settings->value("windowState").toByteArray());
+	bool restored = restoreState(m_Settings->value("windowState").toByteArray());
 	showMaximized();//This won't fully set things up and show them until after this constructor exits.
 
 	connect(ui.LibraryDockWidget, SIGNAL(dockLocationChanged(Qt::DockWidgetArea)), this, SLOT(dockLocationChanged(Qt::DockWidgetArea)));
 	connect(ui.LibraryDockWidget, SIGNAL(topLevelChanged(bool)),                   this, SLOT(OnDockTopLevelChanged(bool)));
 	
 	//Always ensure the library tab is selected, which will show preview renders.
-	//ui.ParamsTabWidget->setCurrentIndex(0);
-	ui.XformsTabWidget->setCurrentIndex(2);//Make variations tab the currently selected one under the Xforms tab.
+	if (!restored)
+	{
+		ui.LibraryDockWidget->raise();
+		ui.LibraryDockWidget->show();
+		ui.XformsTabWidget->setCurrentIndex(2);//Make variations tab the currently selected one under the Xforms tab.
+	}
 
 	//Setting certain values will completely throw off the GUI, doing everything
 	//from setting strange margins, to arbitrarily changing the fonts used.
@@ -686,9 +698,9 @@ void Fractorium::SetTabOrders()
 	w = SetTabOrder(this, w, ui.PreMoveCombo);
 	w = SetTabOrder(this, w, ui.PreMoveLeftButton);
 	w = SetTabOrder(this, w, ui.PreMoveRightButton);
-	w = SetTabOrder(this, w, ui.PreScaleUpButton);
-	w = SetTabOrder(this, w, ui.PreScaleCombo);
 	w = SetTabOrder(this, w, ui.PreScaleDownButton);
+	w = SetTabOrder(this, w, ui.PreScaleCombo);
+	w = SetTabOrder(this, w, ui.PreScaleUpButton);
 	w = SetTabOrder(this, w, ui.ShowPreAffineCurrentRadio);
 	w = SetTabOrder(this, w, ui.ShowPreAffineAllRadio);
 	w = SetTabOrder(this, w, ui.PostAffineGroupBox);
@@ -711,9 +723,9 @@ void Fractorium::SetTabOrders()
 	w = SetTabOrder(this, w, ui.PostMoveCombo);
 	w = SetTabOrder(this, w, ui.PostMoveLeftButton);
 	w = SetTabOrder(this, w, ui.PostMoveRightButton);
-	w = SetTabOrder(this, w, ui.PostScaleUpButton);
-	w = SetTabOrder(this, w, ui.PostScaleCombo);
 	w = SetTabOrder(this, w, ui.PostScaleDownButton);
+	w = SetTabOrder(this, w, ui.PostScaleCombo);
+	w = SetTabOrder(this, w, ui.PostScaleUpButton);
 	w = SetTabOrder(this, w, ui.ShowPostAffineCurrentRadio);
 	w = SetTabOrder(this, w, ui.ShowPostAffineAllRadio);
 	w = SetTabOrder(this, w, ui.LocalPivotRadio);

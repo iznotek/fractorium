@@ -74,7 +74,7 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>1130</width>
+      <width>1217</width>
       <height>885</height>
      </rect>
     </property>
@@ -99,11 +99,17 @@
     <widget class="QDockWidget" name="FlameDockWidget">
      <property name="geometry">
       <rect>
-       <x>0</x>
+       <x>40</x>
        <y>0</y>
-       <width>211</width>
+       <width>240</width>
        <height>881</height>
       </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>150</width>
+       <height>200</height>
+      </size>
      </property>
      <property name="floating">
       <bool>true</bool>
@@ -112,7 +118,7 @@
       <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
      </property>
      <property name="allowedAreas">
-      <set>Qt::BottomDockWidgetArea|Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
+      <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
      </property>
      <property name="windowTitle">
       <string>Flame</string>
@@ -150,7 +156,7 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>201</width>
+            <width>230</width>
             <height>850</height>
            </rect>
           </property>
@@ -1518,17 +1524,23 @@
     <widget class="QDockWidget" name="XaosDockWidget">
      <property name="geometry">
       <rect>
-       <x>485</x>
+       <x>550</x>
        <y>0</y>
-       <width>181</width>
-       <height>871</height>
+       <width>240</width>
+       <height>881</height>
       </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>240</width>
+       <height>200</height>
+      </size>
      </property>
      <property name="features">
       <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
      </property>
      <property name="allowedAreas">
-      <set>Qt::BottomDockWidgetArea|Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
+      <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
      </property>
      <property name="windowTitle">
       <string>Xaos</string>
@@ -1694,17 +1706,23 @@
     <widget class="QDockWidget" name="PaletteDockWidget">
      <property name="geometry">
       <rect>
-       <x>666</x>
+       <x>790</x>
        <y>0</y>
-       <width>205</width>
-       <height>871</height>
+       <width>240</width>
+       <height>881</height>
       </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>240</width>
+       <height>200</height>
+      </size>
      </property>
      <property name="features">
       <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
      </property>
      <property name="allowedAreas">
-      <set>Qt::BottomDockWidgetArea|Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
+      <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
      </property>
      <property name="windowTitle">
       <string>Palette</string>
@@ -2128,14 +2146,23 @@
     <widget class="QDockWidget" name="XformsDockWidget">
      <property name="geometry">
       <rect>
-       <x>211</x>
+       <x>300</x>
        <y>0</y>
-       <width>274</width>
-       <height>861</height>
+       <width>240</width>
+       <height>881</height>
       </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>240</width>
+       <height>613</height>
+      </size>
      </property>
      <property name="features">
       <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
+     </property>
+     <property name="allowedAreas">
+      <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
      </property>
      <property name="windowTitle">
       <string>Xforms</string>
@@ -3225,8 +3252,8 @@ SpinBox
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>233</width>
-                <height>618</height>
+                <width>216</width>
+                <height>745</height>
                </rect>
               </property>
               <property name="autoFillBackground">
@@ -3463,20 +3490,6 @@ SpinBox
                       </property>
                      </widget>
                     </item>
-                    <item row="3" column="1">
-                     <widget class="QPushButton" name="PreScaleUpButton">
-                      <property name="toolTip">
-                       <string>Scale xform x percent up</string>
-                      </property>
-                      <property name="text">
-                       <string/>
-                      </property>
-                      <property name="icon">
-                       <iconset resource="Fractorium.qrc">
-                        <normaloff>:/Fractorium/Icons/arrow_out.png</normaloff>:/Fractorium/Icons/arrow_out.png</iconset>
-                      </property>
-                     </widget>
-                    </item>
                     <item row="2" column="4">
                      <widget class="QPushButton" name="PreMoveRightButton">
                       <property name="toolTip">
@@ -3703,20 +3716,6 @@ SpinBox
                       </property>
                      </widget>
                     </item>
-                    <item row="3" column="3">
-                     <widget class="QPushButton" name="PreScaleDownButton">
-                      <property name="toolTip">
-                       <string>Scale xform x percent down</string>
-                      </property>
-                      <property name="text">
-                       <string/>
-                      </property>
-                      <property name="icon">
-                       <iconset resource="Fractorium.qrc">
-                        <normaloff>:/Fractorium/Icons/arrow_in.png</normaloff>:/Fractorium/Icons/arrow_in.png</iconset>
-                      </property>
-                     </widget>
-                    </item>
                     <item row="0" column="1">
                      <widget class="QPushButton" name="PreFlipVerticalButton">
                       <property name="sizePolicy">
@@ -3776,6 +3775,34 @@ SpinBox
                       <property name="icon">
                        <iconset resource="Fractorium.qrc">
                         <normaloff>:/Fractorium/Icons/shape_flip_horizontal.png</normaloff>:/Fractorium/Icons/shape_flip_horizontal.png</iconset>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="3" column="1">
+                     <widget class="QPushButton" name="PreScaleDownButton">
+                      <property name="toolTip">
+                       <string>Scale xform x percent down</string>
+                      </property>
+                      <property name="text">
+                       <string/>
+                      </property>
+                      <property name="icon">
+                       <iconset resource="Fractorium.qrc">
+                        <normaloff>:/Fractorium/Icons/arrow_in.png</normaloff>:/Fractorium/Icons/arrow_in.png</iconset>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="3" column="3">
+                     <widget class="QPushButton" name="PreScaleUpButton">
+                      <property name="toolTip">
+                       <string>Scale xform x percent up</string>
+                      </property>
+                      <property name="text">
+                       <string/>
+                      </property>
+                      <property name="icon">
+                       <iconset resource="Fractorium.qrc">
+                        <normaloff>:/Fractorium/Icons/arrow_out.png</normaloff>:/Fractorium/Icons/arrow_out.png</iconset>
                       </property>
                      </widget>
                     </item>
@@ -4064,23 +4091,6 @@ SpinBox
                       </property>
                      </widget>
                     </item>
-                    <item row="3" column="1">
-                     <widget class="QPushButton" name="PostScaleUpButton">
-                      <property name="enabled">
-                       <bool>true</bool>
-                      </property>
-                      <property name="toolTip">
-                       <string>Scale xform x percent up</string>
-                      </property>
-                      <property name="text">
-                       <string/>
-                      </property>
-                      <property name="icon">
-                       <iconset resource="Fractorium.qrc">
-                        <normaloff>:/Fractorium/Icons/arrow_out.png</normaloff>:/Fractorium/Icons/arrow_out.png</iconset>
-                      </property>
-                     </widget>
-                    </item>
                     <item row="2" column="4">
                      <widget class="QPushButton" name="PostMoveRightButton">
                       <property name="enabled">
@@ -4334,23 +4344,6 @@ SpinBox
                       </property>
                      </widget>
                     </item>
-                    <item row="3" column="3">
-                     <widget class="QPushButton" name="PostScaleDownButton">
-                      <property name="enabled">
-                       <bool>true</bool>
-                      </property>
-                      <property name="toolTip">
-                       <string>Scale xform x percent down</string>
-                      </property>
-                      <property name="text">
-                       <string/>
-                      </property>
-                      <property name="icon">
-                       <iconset resource="Fractorium.qrc">
-                        <normaloff>:/Fractorium/Icons/arrow_in.png</normaloff>:/Fractorium/Icons/arrow_in.png</iconset>
-                      </property>
-                     </widget>
-                    </item>
                     <item row="0" column="3">
                      <widget class="QPushButton" name="PostFlipHorizontalButton">
                       <property name="enabled">
@@ -4407,6 +4400,40 @@ SpinBox
                       </property>
                       <property name="text">
                        <string>Reset</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="3" column="3">
+                     <widget class="QPushButton" name="PostScaleUpButton">
+                      <property name="enabled">
+                       <bool>true</bool>
+                      </property>
+                      <property name="toolTip">
+                       <string>Scale xform x percent up</string>
+                      </property>
+                      <property name="text">
+                       <string/>
+                      </property>
+                      <property name="icon">
+                       <iconset resource="Fractorium.qrc">
+                        <normaloff>:/Fractorium/Icons/arrow_out.png</normaloff>:/Fractorium/Icons/arrow_out.png</iconset>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="3" column="1">
+                     <widget class="QPushButton" name="PostScaleDownButton">
+                      <property name="enabled">
+                       <bool>true</bool>
+                      </property>
+                      <property name="toolTip">
+                       <string>Scale xform x percent down</string>
+                      </property>
+                      <property name="text">
+                       <string/>
+                      </property>
+                      <property name="icon">
+                       <iconset resource="Fractorium.qrc">
+                        <normaloff>:/Fractorium/Icons/arrow_in.png</normaloff>:/Fractorium/Icons/arrow_in.png</iconset>
                       </property>
                      </widget>
                     </item>
@@ -4882,8 +4909,8 @@ SpinBox
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>250</width>
-                   <height>520</height>
+                   <width>216</width>
+                   <height>680</height>
                   </rect>
                  </property>
                  <property name="sizePolicy">
@@ -4939,17 +4966,23 @@ SpinBox
     <widget class="QDockWidget" name="InfoDockWidget">
      <property name="geometry">
       <rect>
-       <x>871</x>
+       <x>1030</x>
        <y>0</y>
-       <width>241</width>
+       <width>200</width>
        <height>881</height>
       </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>80</width>
+       <height>200</height>
+      </size>
      </property>
      <property name="features">
       <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
      </property>
      <property name="allowedAreas">
-      <set>Qt::BottomDockWidgetArea|Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
+      <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
      </property>
      <property name="windowTitle">
       <string>Info</string>
@@ -4990,7 +5023,7 @@ SpinBox
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>231</width>
+            <width>190</width>
             <height>851</height>
            </rect>
           </property>
@@ -5543,8 +5576,15 @@ SpinBox
     <addaction name="ActionCopySelectedXforms"/>
     <addaction name="ActionPasteSelectedXforms"/>
    </widget>
+   <widget class="QMenu" name="MenuView">
+    <property name="title">
+     <string>&amp;View</string>
+    </property>
+    <addaction name="ActionResetWorkspace"/>
+   </widget>
    <addaction name="MenuFile"/>
    <addaction name="MenuEdit"/>
+   <addaction name="MenuView"/>
    <addaction name="MenuTools"/>
    <addaction name="MenuHelp"/>
   </widget>
@@ -5562,13 +5602,13 @@ SpinBox
    </property>
    <property name="minimumSize">
     <size>
-     <width>287</width>
-     <height>636</height>
+     <width>150</width>
+     <height>200</height>
     </size>
    </property>
    <property name="maximumSize">
     <size>
-     <width>330</width>
+     <width>524287</width>
      <height>524287</height>
     </size>
    </property>
@@ -5582,7 +5622,7 @@ SpinBox
     <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
    </property>
    <property name="allowedAreas">
-    <set>Qt::AllDockWidgetAreas</set>
+    <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
    </property>
    <property name="windowTitle">
     <string>Library</string>
@@ -5714,7 +5754,7 @@ SpinBox
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>275</width>
+          <width>188</width>
           <height>824</height>
          </rect>
         </property>
@@ -6093,6 +6133,11 @@ SpinBox
    </property>
    <property name="shortcut">
     <string>Ctrl+W</string>
+   </property>
+  </action>
+  <action name="ActionResetWorkspace">
+   <property name="text">
+    <string>&amp;Reset Workspace</string>
    </property>
   </action>
  </widget>

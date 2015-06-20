@@ -29,6 +29,9 @@ void Fractorium::InitMenusUI()
 	connect(ui.ActionPasteSelectedXforms, SIGNAL(triggered(bool)), this, SLOT(OnActionPasteSelectedXforms(bool)), Qt::QueuedConnection);
 	ui.ActionPasteSelectedXforms->setEnabled(false);
 
+	//View menu.
+	connect(ui.ActionResetWorkspace, SIGNAL(triggered(bool)), this, SLOT(OnActionResetWorkspace(bool)), Qt::QueuedConnection);
+
 	//Tools menu.
 	connect(ui.ActionAddReflectiveSymmetry, SIGNAL(triggered(bool)), this, SLOT(OnActionAddReflectiveSymmetry(bool)), Qt::QueuedConnection);
 	connect(ui.ActionAddRotationalSymmetry, SIGNAL(triggered(bool)), this, SLOT(OnActionAddRotationalSymmetry(bool)), Qt::QueuedConnection);
@@ -661,6 +664,33 @@ void FractoriumEmberController<T>::PasteSelectedXforms()
 void Fractorium::OnActionPasteSelectedXforms(bool checked)
 {
 	m_Controller->PasteSelectedXforms();
+}
+
+/// <summary>
+/// Reset dock widgets and tabs to their default position.
+/// Note that there is a bug in Qt, where it will only move them all to the left side if at least
+/// one is on the left side, or they are all floating. If one or more are docked right, and none are docked
+/// left, then it will put them all on the right side. Hopefully this isn't too much of a problem.
+/// </summary>
+void Fractorium::OnActionResetWorkspace(bool checked)
+{
+	QDockWidget* firstDock = nullptr;
+
+	for (auto dock : m_Docks)
+	{
+		dock->setFloating(true);
+		dock->setGeometry(QRect(100, 100, dock->width(), dock->height()));//Doesn't seem to have an effect.
+		dock->setFloating(false);
+		dock->show();
+
+		if (firstDock)
+			tabifyDockWidget(firstDock, dock);
+
+		firstDock = dock;
+	}
+
+	ui.LibraryDockWidget->raise();
+	ui.LibraryDockWidget->show();
 }
 
 /// <summary>
