@@ -118,7 +118,18 @@ FractoriumFinalRenderDialog::FractoriumFinalRenderDialog(FractoriumSettings* set
 	ui.FinalRenderDoSequenceCheckBox->setChecked(		  m_Settings->FinalDoSequence());
 	ui.FinalRenderKeepAspectCheckBox->setChecked(		  m_Settings->FinalKeepAspect());
 	ui.FinalRenderThreadCountSpin->setValue(			  m_Settings->FinalThreadCount());
+#ifdef _WIN32
 	ui.FinalRenderThreadPriorityComboBox->setCurrentIndex(m_Settings->FinalThreadPriority() + 2);
+#else
+	auto tpc = ui.FinalRenderThreadPriorityComboBox->count() - 1;
+
+	if (m_Settings->FinalThreadPriority() == THREAD_PRIORITY_LOWEST)
+		ui.FinalRenderThreadPriorityComboBox->setCurrentIndex(0);
+	else if (m_Settings->FinalThreadPriority() == THREAD_PRIORITY_HIGHEST)
+		ui.FinalRenderThreadPriorityComboBox->setCurrentIndex(tpc);
+	else
+		ui.FinalRenderThreadPriorityComboBox->setCurrentIndex(Clamp<int>(0, tpc, m_Settings->FinalThreadPriority() / 25));
+#endif
 
 	m_QualitySpin->setValue(m_Settings->FinalQuality());
 	m_TemporalSamplesSpin->setValue(m_Settings->FinalTemporalSamples());
@@ -206,7 +217,19 @@ uint FractoriumFinalRenderDialog::Current() { return ui.FinalRenderCurrentSpin->
 uint FractoriumFinalRenderDialog::PlatformIndex() { return ui.FinalRenderPlatformCombo->currentIndex(); }
 uint FractoriumFinalRenderDialog::DeviceIndex() { return ui.FinalRenderDeviceCombo->currentIndex(); }
 uint FractoriumFinalRenderDialog::ThreadCount() { return ui.FinalRenderThreadCountSpin->value(); }
-uint FractoriumFinalRenderDialog::ThreadPriority() { return ui.FinalRenderThreadPriorityComboBox->currentIndex() - 2; }
+#ifdef _WIN32
+int FractoriumFinalRenderDialog::ThreadPriority() { return ui.FinalRenderThreadPriorityComboBox->currentIndex() - 2; }
+#else
+int FractoriumFinalRenderDialog::ThreadPriority()
+{
+	if (ui.FinalRenderThreadPriorityComboBox->currentIndex() == 0)
+		return THREAD_PRIORITY_LOWEST;
+	else if (ui.FinalRenderThreadPriorityComboBox->currentIndex() == (ui.FinalRenderThreadPriorityComboBox->count() - 1))
+		return THREAD_PRIORITY_HIGHEST;
+	else
+		return ui.FinalRenderThreadPriorityComboBox->currentIndex() * 25;
+}
+#endif
 double FractoriumFinalRenderDialog::WidthScale() { return m_WidthScaleSpin->value(); }
 double FractoriumFinalRenderDialog::HeightScale() { return m_HeightScaleSpin->value(); }
 double FractoriumFinalRenderDialog::Quality() { return m_QualitySpin->value(); }

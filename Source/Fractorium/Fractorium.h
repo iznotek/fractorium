@@ -125,6 +125,8 @@ public slots:
 	void OnActionCopySelectedXforms(bool checked);
 	void OnActionPasteSelectedXforms(bool checked);
 
+	void OnActionResetWorkspace(bool checked);//View
+
 	void OnActionAddReflectiveSymmetry(bool checked);//Tools.
 	void OnActionAddRotationalSymmetry(bool checked);
 	void OnActionAddBothSymmetry(bool checked);
@@ -458,6 +460,7 @@ private:
 	char m_CoordinateString[128];
 	QColor m_XformComboColors[XFORM_COLOR_COUNT], m_FinalXformComboColor;
 	QIcon m_XformComboIcons[XFORM_COLOR_COUNT], m_FinalXformComboIcon;
+	vector<QDockWidget*> m_Docks;
 
 	int m_FontSize;
 	int m_VarSortMode;

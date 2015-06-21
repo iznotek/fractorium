@@ -153,7 +153,7 @@ public:
 	void FinalThreadCount(uint b);
 
 	uint FinalThreadPriority();
-	void FinalThreadPriority(uint b);
+	void FinalThreadPriority(int b);
 
 	uint FinalQuality();
 	void FinalQuality(uint i);

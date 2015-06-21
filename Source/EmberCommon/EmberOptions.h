@@ -326,9 +326,16 @@ public:
 		INITBOOLOPTION(DumpKernel,	   Eob(OPT_USE_RENDER,	OPT_DUMP_KERNEL,      _T("--dump_kernel"),          false,                SO_NONE,    "\t--dump_kernel            Print the iteration kernel string when using OpenCL (ignored for CPU) [default: false].\n"));
 
 		//Int.
-		INITINTOPTION(Symmetry,        Eoi(OPT_USE_GENOME,  OPT_SYMMETRY,         _T("--symmetry"),             0,                    SO_REQ_SEP, "\t--symmetry=<val>         Set symmetry of result [default: 0].\n"));
-		INITINTOPTION(SheepGen,        Eoi(OPT_USE_GENOME,  OPT_SHEEP_GEN,        _T("--sheep_gen"),            -1,                   SO_REQ_SEP, "\t--sheep_gen=<val>        Sheep generation of this flame [default: -1].\n"));
-		INITINTOPTION(SheepId,         Eoi(OPT_USE_GENOME,  OPT_SHEEP_ID,         _T("--sheep_id"),             -1,                   SO_REQ_SEP, "\t--sheep_id=<val>         Sheep ID of this flame [default: -1].\n"));
+		INITINTOPTION(Symmetry,        Eoi(OPT_USE_GENOME,  OPT_SYMMETRY,         _T("--symmetry"),						  0, SO_REQ_SEP, "\t--symmetry=<val>         Set symmetry of result [default: 0].\n"));
+		INITINTOPTION(SheepGen,        Eoi(OPT_USE_GENOME,  OPT_SHEEP_GEN,        _T("--sheep_gen"),					 -1, SO_REQ_SEP, "\t--sheep_gen=<val>        Sheep generation of this flame [default: -1].\n"));
+		INITINTOPTION(SheepId,         Eoi(OPT_USE_GENOME,  OPT_SHEEP_ID,         _T("--sheep_id"),						 -1, SO_REQ_SEP, "\t--sheep_id=<val>         Sheep ID of this flame [default: -1].\n"));
+#ifdef _WIN32
+		INITINTOPTION(Priority,		   Eoi(OPT_RENDER_ANIM, OPT_PRIORITY,		  _T("--priority"),	eThreadPriority::NORMAL, SO_REQ_SEP, "\t--priority=<val>         The priority of the CPU rendering threads from -2 - 2. This does not apply to OpenCL rendering.\n"));
+#else
+		INITINTOPTION(Priority,		   Eoi(OPT_RENDER_ANIM, OPT_PRIORITY,		  _T("--priority"),	eThreadPriority::NORMAL, SO_REQ_SEP, "\t--priority=<val>         The priority of the CPU rendering threads, 1, 25, 50, 75, 99. This does not apply to OpenCL rendering.\n"));
+#endif
+
+		//Uint.
 		INITUINTOPTION(Platform,       Eou(OPT_USE_ALL,     OPT_OPENCL_PLATFORM,  _T("--platform"),             0,                    SO_REQ_SEP, "\t--platform               The OpenCL platform index to use [default: 0].\n"));
 		INITUINTOPTION(Device,         Eou(OPT_USE_ALL,     OPT_OPENCL_DEVICE,    _T("--device"),               0,                    SO_REQ_SEP, "\t--device                 The OpenCL device index within the specified platform to use [default: 0].\n"));
 		INITUINTOPTION(Seed,           Eou(OPT_USE_ALL,     OPT_SEED,             _T("--seed"),                 0,                    SO_REQ_SEP, "\t--seed=<val>             Integer seed to use for the random number generator [default: random].\n"));
@@ -354,7 +361,6 @@ public:
 		INITUINTOPTION(Repeat,         Eou(OPT_USE_GENOME,  OPT_REPEAT,           _T("--repeat"),           1,                       SO_REQ_SEP, "\t--repeat=<val>           Number of new flames to create. Ignored if sequence, inter or rotate were specified [default: 1].\n"));
 		INITUINTOPTION(Tries,          Eou(OPT_USE_GENOME,  OPT_TRIES,            _T("--tries"),            10,                      SO_REQ_SEP, "\t--tries=<val>            Number times to try creating a flame that meets the specified constraints. Ignored if sequence, inter or rotate were specified [default: 10].\n"));
 		INITUINTOPTION(MaxXforms,      Eou(OPT_USE_GENOME,  OPT_MAX_XFORMS,       _T("--maxxforms"),        UINT_MAX,                SO_REQ_SEP, "\t--maxxforms=<val>        The maximum number of xforms allowed in the final output.\n"));
-		INITUINTOPTION(Priority,	   Eou(OPT_RENDER_ANIM, OPT_PRIORITY,		  _T("--priority"),			eThreadPriority::NORMAL, SO_REQ_SEP, "\t--priority=<val>         The priority of the CPU rendering threads from -2 - 2. This does not apply to OpenCL rendering.\n"));
 
 		//Double.
 		INITDOUBLEOPTION(SizeScale,    Eod(OPT_RENDER_ANIM, OPT_SS,               _T("--ss"),                   1,                    SO_REQ_SEP, "\t--ss=<val>               Size scale. All dimensions are scaled by this amount [default: 1.0].\n"));
@@ -463,6 +469,7 @@ public:
 					PARSEINTOPTION(OPT_SYMMETRY, Symmetry);//Int args
 					PARSEINTOPTION(OPT_SHEEP_GEN, SheepGen);
 					PARSEINTOPTION(OPT_SHEEP_ID, SheepId);
+					PARSEINTOPTION(OPT_PRIORITY, Priority);
 					PARSEUINTOPTION(OPT_OPENCL_PLATFORM, Platform);//uint args.
 					PARSEUINTOPTION(OPT_OPENCL_DEVICE, Device);
 					PARSEUINTOPTION(OPT_SEED, Seed);
@@ -484,7 +491,6 @@ public:
 					PARSEUINTOPTION(OPT_REPEAT, Repeat);
 					PARSEUINTOPTION(OPT_TRIES, Tries);
 					PARSEUINTOPTION(OPT_MAX_XFORMS, MaxXforms);
-					PARSEUINTOPTION(OPT_PRIORITY, Priority);
 
 					PARSEDOUBLEOPTION(OPT_SS, SizeScale);//Float args.
 					PARSEDOUBLEOPTION(OPT_QS, QualityScale);
@@ -679,6 +685,7 @@ public:
 	EmberOptionEntry<int> Symmetry;//Value int.
 	EmberOptionEntry<int> SheepGen;
 	EmberOptionEntry<int> SheepId;
+	EmberOptionEntry<int> Priority;
 	EmberOptionEntry<uint> Platform;//Value uint.
 	EmberOptionEntry<uint> Device;
 	EmberOptionEntry<uint> Seed;
@@ -700,7 +707,6 @@ public:
 	EmberOptionEntry<uint> Repeat;
 	EmberOptionEntry<uint> Tries;
 	EmberOptionEntry<uint> MaxXforms;
-	EmberOptionEntry<uint> Priority;
 
 	EmberOptionEntry<double> SizeScale;//Value double.
 	EmberOptionEntry<double> QualityScale;

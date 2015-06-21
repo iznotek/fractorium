@@ -44,7 +44,7 @@ void FractoriumSettings::EnsureDefaults()
 	if (FinalThreadCount() == 0 || FinalThreadCount() > Timing::ProcessorCount())
 		FinalThreadCount(Timing::ProcessorCount());
 
-	FinalThreadPriority(Clamp<uint>((uint)eThreadPriority::LOWEST, (uint)eThreadPriority::HIGHEST, FinalThreadPriority()));
+	FinalThreadPriority(Clamp<int>((int)eThreadPriority::LOWEST, (int)eThreadPriority::HIGHEST, FinalThreadPriority()));
 	
 	if (CpuSubBatch() < 1)
 		CpuSubBatch(1);
@@ -186,8 +186,8 @@ void FractoriumSettings::FinalDeviceIndex(uint i)     { setValue(FINALDEVICEINDE
 uint FractoriumSettings::FinalThreadCount()           { return value(FINALTHREADCOUNT).toUInt();     }
 void FractoriumSettings::FinalThreadCount(uint i)     { setValue(FINALTHREADCOUNT, i);               }
 															  
-uint FractoriumSettings::FinalThreadPriority()        { return value(FINALTHREADPRIORITY).toUInt();  }
-void FractoriumSettings::FinalThreadPriority(uint i)  { setValue(FINALTHREADPRIORITY, i);			 }
+uint FractoriumSettings::FinalThreadPriority()        { return value(FINALTHREADPRIORITY).toInt();   }
+void FractoriumSettings::FinalThreadPriority(int i)   { setValue(FINALTHREADPRIORITY, i);			 }
 															  
 uint FractoriumSettings::FinalQuality()               { return value(FINALQUALITY).toUInt();         }
 void FractoriumSettings::FinalQuality(uint i)         { setValue(FINALQUALITY, i);                   }

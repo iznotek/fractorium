@@ -239,7 +239,7 @@ public:
 			m_BadVariationNames.push_back(make_pair(make_pair(string("post_dcztransl"), string("post_dc_ztransl")), badParams));
 			badParams.clear();
 
-			m_BadVariationNames.push_back(make_pair(make_pair(string("pre_blur"),    string("pre_gaussian_blur")), badParams));
+			m_BadVariationNames.push_back(make_pair(make_pair(string("pre_blur"),    string("pre_gaussian_blur")), badParams));//No other special params for these.
 			m_BadVariationNames.push_back(make_pair(make_pair(string("pre_spin_z"),  string("pre_rotate_z")),      badParams));
 			m_BadVariationNames.push_back(make_pair(make_pair(string("post_spin_z"), string("post_rotate_z")),     badParams));
 
@@ -546,6 +546,7 @@ private:
 	bool ParseEmberElement(xmlNode* emberNode, Ember<T>& currentEmber)
 	{
 		bool ret = true;
+		bool fromEmber = false;
 		uint newLinear = 0;
 		char* attStr;
 		const char* loc = __FUNCTION__;
@@ -638,6 +639,11 @@ private:
 			{
 				currentEmber.m_Name = string(attStr);
 				std::replace(currentEmber.m_Name.begin(), currentEmber.m_Name.end(), ' ', '_');
+			}
+			else if (!Compare(curAtt->name, "version"))
+			{
+				if (ToLower(string(attStr)).find_first_of("ember") != string::npos)
+					fromEmber = true;
 			}
 			else if (!Compare(curAtt->name, "size"))
 			{
@@ -931,7 +937,7 @@ private:
 				{
 					Xform<T> finalXform;
 
-					if (!ParseXform(childNode, finalXform, false))
+					if (!ParseXform(childNode, finalXform, false, fromEmber))
 					{
 						m_ErrorReport.push_back(string(loc) + " : Error parsing final xform");
 					}
@@ -951,7 +957,7 @@ private:
 				{
 					Xform<T> xform;
 
-					if (!ParseXform(childNode, xform, false))
+					if (!ParseXform(childNode, xform, false, fromEmber))
 					{
 						m_ErrorReport.push_back(string(loc) + " : Error parsing xform");
 					}
@@ -977,7 +983,7 @@ private:
 						{
 							Xform<T> xform(false);//Will only have valid values in fields parsed for motion, all others will be EMPTYFIELD.
 
-							if (!ParseXform(motionNode, xform, true))
+							if (!ParseXform(motionNode, xform, true, fromEmber))
 								m_ErrorReport.push_back(string(loc) + " : Error parsing motion xform");
 							else
 								theXform->m_Motion.push_back(xform);
@@ -1011,7 +1017,7 @@ private:
 	/// <param name="xform">The newly constructed xform based on what was parsed</param>
 	/// <param name="motion">True if this xform is a motion within a parent xform, else false</param>
 	/// <returns>True if there were no errors, else false.</returns>
-	bool ParseXform(xmlNode* childNode, Xform<T>& xform, bool motion)
+	bool ParseXform(xmlNode* childNode, Xform<T>& xform, bool motion, bool fromEmber)
 	{
 		bool success = true;
 		char* attStr;
@@ -1145,7 +1151,8 @@ private:
 			}
 			else
 			{
-				string s = GetCorrectedVariationName(m_BadVariationNames, curAtt);
+				//Only correct names if it came from an outside source. Names originating from this library are always considered correct.
+				string s = fromEmber ? string(CCX(curAtt->name)) : GetCorrectedVariationName(m_BadVariationNames, curAtt);
 
 				if (Variation<T>* var = m_VariationList.GetVariation(s))
 				{
@@ -1164,7 +1171,7 @@ private:
 		}
 
 		//Handle var1.
-		for (curAtt = attPtr; curAtt; curAtt = curAtt->next)
+		for (curAtt = attPtr; curAtt; curAtt = curAtt->next)//Legacy fields, most likely not used.
 		{
 			bool var1 = false;
 
@@ -1195,7 +1202,7 @@ private:
 		}
 
 		//Handle var.
-		for (curAtt = attPtr; curAtt; curAtt = curAtt->next)
+		for (curAtt = attPtr; curAtt; curAtt = curAtt->next)//Legacy fields, most likely not used.
 		{
 			bool var = false;
 
@@ -1226,7 +1233,8 @@ private:
 			{
 				for (curAtt = attPtr; curAtt; curAtt = curAtt->next)
 				{
-					string s = GetCorrectedParamName(m_BadParamNames, CCX(curAtt->name));
+					//Only correct names if it came from an outside source. Names originating from this library are always considered correct.
+					string s = fromEmber ? string(CCX(curAtt->name)) : GetCorrectedParamName(m_BadParamNames, CCX(curAtt->name));
 					const char* name = s.c_str();
 
 					if (parVar->ContainsParam(name))
