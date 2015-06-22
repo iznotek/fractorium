@@ -1073,6 +1073,8 @@ private:
 					xform.m_MotionFunc = MOTION_TRIANGLE;
 				else if (!_stricmp("hill", attStr))
 					xform.m_MotionFunc = MOTION_HILL;
+				else if (!_stricmp("saw", attStr))
+					xform.m_MotionFunc = MOTION_SAW;
 				else
 				{
 					xform.m_MotionFunc = MOTION_SIN;

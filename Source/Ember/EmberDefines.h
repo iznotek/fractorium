@@ -114,7 +114,7 @@ enum eInterp : uint { EMBER_INTERP_LINEAR = 0, EMBER_INTERP_SMOOTH = 1 };
 enum eAffineInterp : uint { INTERP_LINEAR = 0, INTERP_LOG = 1, INTERP_COMPAT = 2, INTERP_OLDER = 3 };
 enum ePaletteMode : uint { PALETTE_STEP = 0, PALETTE_LINEAR = 1 };
 enum ePaletteInterp : uint { INTERP_HSV = 0, INTERP_SWEEP = 1 };
-enum eMotion : uint { MOTION_SIN = 1, MOTION_TRIANGLE = 2, MOTION_HILL = 3 };
+enum eMotion : uint { MOTION_SIN = 1, MOTION_TRIANGLE = 2, MOTION_HILL = 3, MOTION_SAW = 4 };
 enum eProcessAction : uint { NOTHING = 0, ACCUM_ONLY = 1, FILTER_AND_ACCUM = 2, KEEP_ITERATING = 3, FULL_RENDER = 4 };
 enum eProcessState : uint { NONE = 0, ITER_STARTED = 1, ITER_DONE = 2, FILTER_DONE = 3, ACCUM_DONE = 4 };
 enum eInteractiveFilter : uint { FILTER_LOG = 0, FILTER_DE = 1 };

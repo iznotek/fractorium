@@ -488,6 +488,8 @@ private:
 				os << "motion_function=\"triangle\" ";
 			else if (xform.m_MotionFunc== MOTION_HILL)
 				os << "motion_function=\"hill\" ";
+			else if (xform.m_MotionFunc== MOTION_SAW)
+				os << "motion_function=\"saw\" ";
 		}
 		else
 		{
