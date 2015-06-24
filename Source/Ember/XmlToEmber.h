@@ -971,7 +971,7 @@ private:
 				if (theXform)
 				{
 					//Check for non-zero motion params.
-					if (theXform->m_MotionFreq != 0)//Original checked for motion func being non-zero, but it was set to MOTION_SIN (1) in Xform::Init(), so don't check for 0 here.
+					if (abs(theXform->m_MotionFreq) > 0.0)//Original checked for motion func being non-zero, but it was set to MOTION_SIN (1) in Xform::Init(), so don't check for 0 here.
 					{
 						m_ErrorReport.push_back(string(loc) + " : Motion parameters should not be specified in regular, non-motion xforms");
 					}
@@ -1047,9 +1047,7 @@ private:
 			else if (ParseAndAssignFloat(curAtt->name, attStr, "animate", xform.m_Animate, success)) { }
 			else if (ParseAndAssignFloat(curAtt->name, attStr, "opacity", xform.m_Opacity, success)) { }
 			else if (ParseAndAssignFloat(curAtt->name, attStr, "var_color", xform.m_DirectColor, success)) { }
-
-			//Parse simple int reads.
-			else if (ParseAndAssignInt(curAtt->name, attStr, "motion_frequency", xform.m_MotionFreq, success)) { }
+			else if (ParseAndAssignFloat(curAtt->name, attStr, "motion_frequency", xform.m_MotionFreq, success)) { }
 
 			//Parse more complicated reads that have multiple possible values.
 			else if (!Compare(curAtt->name, "name"))

@@ -731,7 +731,7 @@ public:
 		{
 			//Original only pulls these from the first motion xform which is a bug. Want to pull it from each one.
 			Xform<T>& currentMot = xform.m_Motion[i];
-			intmax_t freq = currentMot.m_MotionFreq;
+			T freq = currentMot.m_MotionFreq;
 			eMotion func = currentMot.m_MotionFunc;
 
 			//Clamp these to the appropriate range after all are applied.
@@ -1232,7 +1232,7 @@ public:
 	T m_Animate;//Whether or not this xform rotates during animation. 0 means stationary, > 0 means rotate. Use T instead of bool so it can be interpolated.
 	T m_Wind[2];
 	eMotion m_MotionFunc;
-	intmax_t m_MotionFreq;
+	T m_MotionFreq;
 	vector<Xform<T>> m_Motion;
 	string m_Name;
 
