@@ -5,6 +5,7 @@
 #include "PaletteList.h"
 #include "SpatialFilter.h"
 #include "TemporalFilter.h"
+#include "FlameMotion.h"
 
 /// <summary>
 /// Ember class.
@@ -182,6 +183,11 @@ public:
 
 		if (ember.m_Edits != nullptr)
 			m_Edits = xmlCopyDoc(ember.m_Edits, 1);
+
+		m_FlameMotionElements.clear();
+
+		for(int i = 0; i < ember.m_FlameMotionElements.size(); ++i)
+			m_FlameMotionElements.push_back(ember.m_FlameMotionElements[i]);
 
 		return *this;
 	}
@@ -1682,6 +1688,9 @@ public:
 
 	//The 0-based position of this ember in the file it was contained in.
 	size_t m_Index;
+
+	//The list of motion elements for the top-level flame params
+	vector<FlameMotion<T>> m_FlameMotionElements;
 
 private:
 	/// <summary>
