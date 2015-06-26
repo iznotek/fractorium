@@ -2146,15 +2146,15 @@
     <widget class="QDockWidget" name="XformsDockWidget">
      <property name="geometry">
       <rect>
-       <x>300</x>
+       <x>280</x>
        <y>0</y>
-       <width>240</width>
+       <width>267</width>
        <height>881</height>
       </rect>
      </property>
      <property name="minimumSize">
       <size>
-       <width>240</width>
+       <width>267</width>
        <height>613</height>
       </size>
      </property>
@@ -2258,6 +2258,38 @@
            <property name="icon">
             <iconset resource="Fractorium.qrc">
              <normaloff>:/Fractorium/Icons/add.png</normaloff>:/Fractorium/Icons/add.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="AddLinkedXformButton">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>25</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>Add linked xform</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset resource="Fractorium.qrc">
+             <normaloff>:/Fractorium/Icons/link-add.png</normaloff>:/Fractorium/Icons/link-add.png</iconset>
            </property>
           </widget>
          </item>
@@ -3252,7 +3284,7 @@ SpinBox
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>216</width>
+                <width>237</width>
                 <height>745</height>
                </rect>
               </property>
@@ -4909,7 +4941,7 @@ SpinBox
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>216</width>
+                   <width>237</width>
                    <height>680</height>
                   </rect>
                  </property>

@@ -190,6 +190,7 @@ public slots:
 	//Xforms.
 	void OnCurrentXformComboChanged(int index);
 	void OnAddXformButtonClicked(bool checked);
+	void OnAddLinkedXformButtonClicked(bool checked);
 	void OnDuplicateXformButtonClicked(bool checked);
 	void OnClearXformButtonClicked(bool checked);
 	void OnDeleteXformButtonClicked(bool checked);

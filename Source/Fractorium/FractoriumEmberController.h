@@ -62,6 +62,7 @@ public:
 	virtual void SetEmber(size_t index) { }
 	//virtual void Clear() { }
 	virtual void AddXform() { }
+	virtual void AddLinkedXform() { }
 	virtual void DuplicateXform() { }
 	virtual void ClearXform() { }
 	virtual void DeleteXforms() { }
@@ -290,6 +291,7 @@ public:
 	virtual void SetEmber(size_t index) override;
 	//virtual void Clear() override { }
 	virtual void AddXform() override;
+	virtual void AddLinkedXform() override;
 	virtual void DuplicateXform() override;
 	virtual void ClearXform() override;
 	virtual void DeleteXforms() override;

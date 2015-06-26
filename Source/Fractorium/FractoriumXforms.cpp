@@ -9,6 +9,7 @@ void Fractorium::InitXformsUI()
 	int spinHeight = 20, row = 0;
 
 	connect(ui.AddXformButton,		 SIGNAL(clicked(bool)),			   this, SLOT(OnAddXformButtonClicked(bool)),	    Qt::QueuedConnection);
+	connect(ui.AddLinkedXformButton, SIGNAL(clicked(bool)),			   this, SLOT(OnAddLinkedXformButtonClicked(bool)),	Qt::QueuedConnection);
 	connect(ui.DuplicateXformButton, SIGNAL(clicked(bool)),			   this, SLOT(OnDuplicateXformButtonClicked(bool)),	Qt::QueuedConnection);
 	connect(ui.ClearXformButton,	 SIGNAL(clicked(bool)),			   this, SLOT(OnClearXformButtonClicked(bool)),	    Qt::QueuedConnection);
 	connect(ui.DeleteXformButton,	 SIGNAL(clicked(bool)),			   this, SLOT(OnDeleteXformButtonClicked(bool)),    Qt::QueuedConnection);
@@ -86,6 +87,7 @@ void FractoriumEmberController<T>::CurrentXformComboChanged(int index)
 		m_Fractorium->ui.DuplicateXformButton->setEnabled(enable);
 		m_Fractorium->m_XformWeightSpin->setEnabled(enable);
 		m_Fractorium->ui.SoloXformCheckBox->setEnabled(enable);
+		m_Fractorium->ui.AddLinkedXformButton->setEnabled(enable);
 		m_Fractorium->ui.AddFinalXformButton->setEnabled(enable);
 	}
 }
@@ -104,7 +106,6 @@ void FractoriumEmberController<T>::AddXform()
 	Update([&]()
 	{
 		Xform<T> newXform;
-		QComboBox* combo = m_Fractorium->ui.CurrentXformCombo;
 
 		newXform.m_Weight = 0.25;
 		newXform.m_ColorX = m_Rand.Frand01<T>();
@@ -115,6 +116,55 @@ void FractoriumEmberController<T>::AddXform()
 }
 
 void Fractorium::OnAddXformButtonClicked(bool checked) { m_Controller->AddXform(); }
+
+/// <summary>
+/// Add a new linked xform in the current ember and set it as the current xform.
+/// Linked means:
+///
+/// Called when the add xform button is clicked.
+/// Resets the rendering process.
+/// </summary>
+/// <param name="checked">Ignored</param>
+template <typename T>
+void FractoriumEmberController<T>::AddLinkedXform()
+{
+	UpdateXform([&](Xform<T>* xform)
+	{
+		size_t i, count = m_Ember.XformCount();
+		Xform<T> newXform;
+
+		newXform.m_Weight = 0.5;
+		newXform.m_Opacity = 1;
+		newXform.m_ColorSpeed = 1;
+		newXform.m_ColorX = xform->m_ColorX;
+		//newXform.m_ColorY = xform->m_ColorY;
+
+		//Set all of the new xform's xaos values to the selected xform's xaos values,
+		//then set the selected xform's xaos values to 0.
+		for (i = 0; i < count; i++)
+		{
+			newXform.SetXaos(i, xform->Xaos(i));
+			xform->SetXaos(i, 0);
+		}
+
+		//Add the new xform and update the total count.
+		m_Ember.AddXform(newXform);
+		count = m_Ember.XformCount();
+
+		//Set the xaos for all xforms pointing to the new one to zero.
+		for (i = 0; i < count; i++)
+			if (auto* xf = m_Ember.GetXform(i))
+				xf->SetXaos(count - 1, 0);
+
+		xform->SetXaos(count - 1, 1);//Set the xaos value for the previous xform pointing to the new one to one.
+		xform->m_Opacity = 0;//Clear the opacity of the previous xform.
+		int index = m_Ember.TotalXformCount() - (m_Ember.UseFinalXform() ? 2 : 1);//Set index to the last item before final.
+		FillXforms(index);
+		FillXaos();
+	}, eXformUpdate::UPDATE_CURRENT);
+}
+
+void Fractorium::OnAddLinkedXformButtonClicked(bool checked) { m_Controller->AddLinkedXform(); }
 
 /// <summary>
 /// Duplicate the specified xforms in the current ember, and set the last one as the current xform.
