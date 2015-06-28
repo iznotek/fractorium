@@ -58,13 +58,12 @@ private:
 /// VariationTreeWidgetItem and VariationTreeDoubleSpinBox need each other, but each can't include the other.
 /// So VariationTreeWidgetItem includes this file, and use a forward declaration here.
 /// </summary>
-template <typename T> class VariationTreeWidgetItem;
+class VariationTreeWidgetItem;
 
 /// <summary>
 /// Derivation for the double spin boxes that are in the
 /// variations tree.
 /// </summary>
-template <typename T>
 class VariationTreeDoubleSpinBox : public DoubleSpinBox
 {
 public:
@@ -73,27 +72,27 @@ public:
 	/// </summary>
 	/// <param name="p">The parent widget</param>
 	/// <param name="widgetItem">The widget item this spinner is contained in</param>
-	/// <param name="var">The variation this spinner is for</param>
+	/// <param name="id">The variation this spinner is for</param>
 	/// <param name="param">The name of the parameter this is for</param>
 	/// <param name="h">The height of the spin box. Default: 16.</param>
 	/// <param name="step">The step used to increment/decrement the spin box when using the mouse wheel. Default: 0.05.</param>
-	explicit VariationTreeDoubleSpinBox(QWidget* p, VariationTreeWidgetItem<T>* widgetItem, Variation<T>* var, string param, int h = 16, double step = 0.05)
+	explicit VariationTreeDoubleSpinBox(QWidget* p, VariationTreeWidgetItem* widgetItem, eVariationId id, string param, int h = 16, double step = 0.05)
 		: DoubleSpinBox(p, h, step)
 	{
 		m_WidgetItem = widgetItem;
 		m_Param = param;
-		m_Variation = var;
+		m_Id = id;
 		setDecimals(3);
 	}
 
 	virtual ~VariationTreeDoubleSpinBox() { }
 	bool IsParam() { return !m_Param.empty(); }
 	string ParamName() { return m_Param; }
-	Variation<T>* GetVariation() { return m_Variation; }
-	VariationTreeWidgetItem<T>* WidgetItem() { return m_WidgetItem; }
+	eVariationId GetVariationId() { return m_Id; }
+	VariationTreeWidgetItem* WidgetItem() { return m_WidgetItem; }
 
 private:
 	string m_Param;
-	Variation<T>* m_Variation;
-	VariationTreeWidgetItem<T>* m_WidgetItem;
+	eVariationId m_Id;
+	VariationTreeWidgetItem* m_WidgetItem;
 };
