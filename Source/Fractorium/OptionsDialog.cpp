@@ -65,12 +65,13 @@ FractoriumOptionsDialog::FractoriumOptionsDialog(FractoriumSettings* settings, Q
 		ui.OpenCLCheckBox->setEnabled(false);
 	}
 
-	ui.EarlyClipCheckBox->setChecked(	   m_Settings->EarlyClip());
-	ui.YAxisUpCheckBox->setChecked(		   m_Settings->YAxisUp());
-	ui.TransparencyCheckBox->setChecked(   m_Settings->Transparency());
-	ui.DoublePrecisionCheckBox->setChecked(m_Settings->Double());
-	ui.ShowAllXformsCheckBox->setChecked(  m_Settings->ShowAllXforms());
-	ui.ThreadCountSpin->setValue(		   m_Settings->ThreadCount());
+	ui.EarlyClipCheckBox->setChecked(	    m_Settings->EarlyClip());
+	ui.YAxisUpCheckBox->setChecked(		    m_Settings->YAxisUp());
+	ui.TransparencyCheckBox->setChecked(    m_Settings->Transparency());
+	ui.ContinuousUpdateCheckBox->setChecked(m_Settings->ContinuousUpdate());
+	ui.DoublePrecisionCheckBox->setChecked( m_Settings->Double());
+	ui.ShowAllXformsCheckBox->setChecked(   m_Settings->ShowAllXforms());
+	ui.ThreadCountSpin->setValue(		    m_Settings->ThreadCount());
 	
 	if (m_Settings->CpuDEFilter())
 		ui.CpuFilteringDERadioButton->setChecked(true);
@@ -100,6 +101,7 @@ FractoriumOptionsDialog::FractoriumOptionsDialog(FractoriumSettings* settings, Q
 bool FractoriumOptionsDialog::EarlyClip() { return ui.EarlyClipCheckBox->isChecked(); }
 bool FractoriumOptionsDialog::YAxisUp() { return ui.YAxisUpCheckBox->isChecked(); }
 bool FractoriumOptionsDialog::Transparency() { return ui.TransparencyCheckBox->isChecked(); }
+bool FractoriumOptionsDialog::ContinuousUpdate() { return ui.ContinuousUpdateCheckBox->isChecked(); }
 bool FractoriumOptionsDialog::OpenCL() { return ui.OpenCLCheckBox->isChecked(); }
 bool FractoriumOptionsDialog::Double() { return ui.DoublePrecisionCheckBox->isChecked(); }
 bool FractoriumOptionsDialog::ShowAllXforms() { return ui.ShowAllXformsCheckBox->isChecked(); }
@@ -152,6 +154,7 @@ void FractoriumOptionsDialog::accept()
 	m_Settings->EarlyClip(EarlyClip());
 	m_Settings->YAxisUp(YAxisUp());
 	m_Settings->Transparency(Transparency());
+	m_Settings->ContinuousUpdate(ContinuousUpdate());
 	m_Settings->OpenCL(OpenCL());
 	m_Settings->Double(Double());
 	m_Settings->ShowAllXforms(ShowAllXforms());
@@ -187,6 +190,7 @@ void FractoriumOptionsDialog::reject()
 	ui.EarlyClipCheckBox->setChecked(m_Settings->EarlyClip());
 	ui.YAxisUpCheckBox->setChecked(m_Settings->YAxisUp());
 	ui.TransparencyCheckBox->setChecked(m_Settings->Transparency());
+	ui.ContinuousUpdateCheckBox->setChecked(m_Settings->ContinuousUpdate());
 	ui.OpenCLCheckBox->setChecked(m_Settings->OpenCL());
 	ui.DoublePrecisionCheckBox->setChecked(m_Settings->Double());
 	ui.ShowAllXformsCheckBox->setChecked(m_Settings->ShowAllXforms());

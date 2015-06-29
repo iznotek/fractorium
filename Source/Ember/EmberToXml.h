@@ -529,7 +529,7 @@ private:
 
 				if (parVar)
 				{
-					ParamWithName<T>* params = parVar->Params();
+					auto params = parVar->Params();
 
 					for (j = 0; j < parVar->ParamCount(); j++)
 					{

@@ -547,18 +547,18 @@ public:
 		if (second != nullptr && first.size() == c.size())
 		{
 			second->Clear();
-			ParamWithName<T>* secondParams = second->Params();
+			auto secondParams = second->Params();
 
 			//Iterate through each of the source variations.
 			for (size_t i = 0; i < first.size(); i++)
 			{
-				ParametricVariation<T>* firstVar = first[i];
+				auto firstVar = first[i];
 
 				//Make sure the source variation at this index is the same type as the variation being written to.
 				if (firstVar->VariationId() == second->VariationId())
 				{
 					size_t size = firstVar->ParamCount();
-					ParamWithName<T>* firstParams = firstVar->Params();
+					auto firstParams = firstVar->Params();
 
 					//Multiply each parameter of the variation at this index by the coefficient at this index, and add
 					//the result to the corresponding parameter in second.

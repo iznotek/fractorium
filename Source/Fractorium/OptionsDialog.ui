@@ -113,13 +113,13 @@
          </property>
         </widget>
        </item>
-       <item row="5" column="0" colspan="2">
+       <item row="6" column="0" colspan="2">
         <widget class="QComboBox" name="PlatformCombo"/>
        </item>
-       <item row="6" column="0" colspan="2">
+       <item row="7" column="0" colspan="2">
         <widget class="QComboBox" name="DeviceCombo"/>
        </item>
-       <item row="7" column="0">
+       <item row="8" column="0">
         <widget class="QSpinBox" name="ThreadCountSpin">
          <property name="toolTip">
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The number of threads to use with CPU rendering.&lt;/p&gt;&lt;p&gt;Decrease for more responsive editing, increase for better performance.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -135,7 +135,7 @@
          </property>
         </widget>
        </item>
-       <item row="10" column="0">
+       <item row="11" column="0">
         <widget class="QGroupBox" name="InteraciveCpuFilteringGroupBox">
          <property name="title">
           <string>CPU Filtering</string>
@@ -182,7 +182,7 @@
          </layout>
         </widget>
        </item>
-       <item row="11" column="0">
+       <item row="12" column="0">
         <widget class="QGroupBox" name="InteraciveGpuFilteringGroupBox">
          <property name="title">
           <string>OpenCL Filtering</string>
@@ -226,7 +226,7 @@
          </layout>
         </widget>
        </item>
-       <item row="8" column="0">
+       <item row="9" column="0">
         <widget class="QSpinBox" name="CpuSubBatchSpin">
          <property name="toolTip">
           <string>The number of 10,000 iteration chunks ran per thread on the CPU
@@ -243,7 +243,7 @@ in interactive mode for each mouse movement</string>
          </property>
         </widget>
        </item>
-       <item row="9" column="0">
+       <item row="10" column="0">
         <widget class="QSpinBox" name="OpenCLSubBatchSpin">
          <property name="toolTip">
           <string>The number of ~8M iteration chunks ran using OpenCL
@@ -297,6 +297,16 @@ in interactive mode for each mouse movement</string>
          </property>
          <property name="text">
           <string>Show All Xforms</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QCheckBox" name="ContinuousUpdateCheckBox">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Continually update output image during interactive rendering.&lt;/p&gt;&lt;p&gt;This will slow down performance, but will give continuous updates on how the final render will look. Note that only log scale filtering is applied on each update. Full DE is not applied until iteration is complete.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Continuous Update</string>
          </property>
         </widget>
        </item>
@@ -716,11 +726,12 @@ in interactive mode for each mouse movement</string>
  </customwidgets>
  <tabstops>
   <tabstop>EarlyClipCheckBox</tabstop>
-  <tabstop>YAxisUpCheckBox</tabstop>
-  <tabstop>TransparencyCheckBox</tabstop>
   <tabstop>OpenCLCheckBox</tabstop>
+  <tabstop>YAxisUpCheckBox</tabstop>
   <tabstop>DoublePrecisionCheckBox</tabstop>
+  <tabstop>TransparencyCheckBox</tabstop>
   <tabstop>ShowAllXformsCheckBox</tabstop>
+  <tabstop>ContinuousUpdateCheckBox</tabstop>
   <tabstop>PlatformCombo</tabstop>
   <tabstop>DeviceCombo</tabstop>
   <tabstop>ThreadCountSpin</tabstop>
@@ -730,9 +741,7 @@ in interactive mode for each mouse movement</string>
   <tabstop>CpuFilteringDERadioButton</tabstop>
   <tabstop>OpenCLFilteringLogRadioButton</tabstop>
   <tabstop>OpenCLFilteringDERadioButton</tabstop>
-  <tabstop>OptionsXmlSavingTable</tabstop>
-  <tabstop>OptionsIdentityTable</tabstop>
-  <tabstop>OptionsButtonBox</tabstop>
+  <tabstop>AutoUniqueCheckBox</tabstop>
  </tabstops>
  <resources/>
  <connections>

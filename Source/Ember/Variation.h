@@ -1232,7 +1232,7 @@ public:
 	/// Abstract copy function. Derived classes must implement.
 	/// </summary>
 	/// <returns>A copy of this object</returns>
-	virtual Variation<T>* Copy() = 0;
+	virtual Variation<T>* Copy() const = 0;
 
 	/// <summary>
 	/// Create a new Variation<float>, store it in the pointer reference passed in and
@@ -1695,7 +1695,7 @@ public:
 	/// </summary>
 	/// <param name="name">The name to search for</param>
 	/// <returns>A pointer to the parameter value if the name matched, else false.</returns>
-	T* GetParam(const char* name)
+	T* GetParam(const char* name) const
 	{
 		for (auto& param : m_Params)
 			if (!_stricmp(param.Name().c_str(), name))
@@ -1825,8 +1825,8 @@ public:
 	/// <summary>
 	/// Accessors.
 	/// </summary>
-	ParamWithName<T>* Params() { return &m_Params[0]; }
-	size_t ParamCount() { return m_Params.size(); }
+	const ParamWithName<T>* Params() const { return &m_Params[0]; }
+	size_t ParamCount() const { return m_Params.size(); }
 	const vector<ParamWithName<T>>& ParamsVec() const { return m_Params; }
 
 protected:
@@ -1898,7 +1898,7 @@ protected:
 	{ \
 	} \
 	\
-	virtual Variation<T>* Copy() override \
+	virtual Variation<T>* Copy() const override \
 	{ \
 		return new name<T>(*this); \
 	} \
@@ -1925,7 +1925,7 @@ protected:
 	{ \
 	} \
 	\
-	virtual Variation<T>* Copy() override \
+	virtual Variation<T>* Copy() const override \
 	{ \
 		return new name<T>(*this); \
 	} \
@@ -2011,7 +2011,7 @@ protected:
 		CopyParamVals(var.ParamsVec()); /* Copy values from var's vector and precalc. */ \
 	} \
 	\
-	virtual Variation<T>* Copy() override \
+	virtual Variation<T>* Copy() const override \
 	{ \
 		return new name<T>(*this); \
 	} \
@@ -2042,7 +2042,7 @@ protected:
 		CopyParamVals(var.ParamsVec()); /* Copy values from var's vector and precalc. */ \
 	} \
 	\
-	virtual Variation<T>* Copy() override \
+	virtual Variation<T>* Copy() const override \
 	{ \
 		return new name<T>(*this); \
 	} \

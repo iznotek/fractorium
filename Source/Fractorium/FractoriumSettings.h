@@ -11,6 +11,7 @@
 #define TRANSPARENCY         "render/transparency"
 #define OPENCL               "render/opencl"
 #define DOUBLEPRECISION		 "render/dp64"
+#define CONTUPDATE			 "render/continuousupdate"
 #define SHOWALLXFORMS	     "render/dragshowallxforms"
 #define PLATFORMINDEX        "render/platformindex"
 #define DEVICEINDEX          "render/deviceindex"
@@ -88,6 +89,9 @@ public:
 
 	bool ShowAllXforms();
 	void ShowAllXforms(bool b);
+
+	bool ContinuousUpdate();
+	void ContinuousUpdate(bool b);
 
 	uint PlatformIndex();
 	void PlatformIndex(uint b);

@@ -607,7 +607,9 @@ FilterAndAccum:
 AccumOnly:
 	if (m_ProcessState == FILTER_DONE || forceOutput)
 	{
-		if (m_Callback && !m_Callback->ProgressFunc(m_Ember, m_ProgressParameter, 0, 2, 0))//Original only allowed stages 0 and 1. Add 2 to mean final accum.
+		//Original only allowed stages 0 and 1. Add 2 to mean final accum.
+		//Do not update state/progress on forced output because it will be immediately overwritten.
+		if (m_Callback && !forceOutput && !m_Callback->ProgressFunc(m_Ember, m_ProgressParameter, 0, 2, 0))
 		{
 			Abort();
 			success = RENDER_ABORT;

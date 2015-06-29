@@ -119,6 +119,9 @@ void FractoriumSettings::Double(bool b)						  { setValue(DOUBLEPRECISION, b);		
 bool FractoriumSettings::ShowAllXforms()					  { return value(SHOWALLXFORMS).toBool();		 }
 void FractoriumSettings::ShowAllXforms(bool b)				  { setValue(SHOWALLXFORMS, b);					 }
 
+bool FractoriumSettings::ContinuousUpdate()					  { return value(CONTUPDATE).toBool();			 }
+void FractoriumSettings::ContinuousUpdate(bool b)			  { setValue(CONTUPDATE, b);					 }
+
 uint FractoriumSettings::PlatformIndex()              { return value(PLATFORMINDEX).toUInt();        }
 void FractoriumSettings::PlatformIndex(uint i)        { setValue(PLATFORMINDEX, i);                  }
 															  

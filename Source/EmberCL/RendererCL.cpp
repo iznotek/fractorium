@@ -945,7 +945,7 @@ eRenderStatus RendererCL<T>::RunLogScaleFilter()
 		m_ErrorReport.push_back(loc);
 	}
 
-	if (b && m_Callback)
+	if (b && m_Callback && m_LastIterPercent >= 99.0)//Only update progress if we've really reached the end, not via forced output.
 		m_Callback->ProgressFunc(m_Ember, m_ProgressParameter, 100.0, 1, 0.0);
 
 	return b ? RENDER_OK : RENDER_ERROR;

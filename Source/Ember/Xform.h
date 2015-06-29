@@ -766,9 +766,9 @@ public:
 				//Now apply the motion func to the params if needed.
 				if (motParVar != nullptr)
 				{
-					ParametricVariation<T>* parVar = dynamic_cast<ParametricVariation<T>*>(var);
-					ParamWithName<T>* params = parVar->Params();
-					ParamWithName<T>* motParams = motParVar->Params();
+					auto parVar = dynamic_cast<ParametricVariation<T>*>(var);
+					auto params = parVar->Params();
+					auto motParams = motParVar->Params();
 
 					for (size_t k = 0; k < motParVar->ParamCount(); k++)
 					{

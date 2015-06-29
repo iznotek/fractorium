@@ -397,7 +397,7 @@ bool TestVarCounts()
 
 	for (; start < (uint)LAST_VAR; start++)
 	{
-		Variation<float>* var = vlf.GetVariation((eVariationId)start);
+		auto var = vlf.GetVariation((eVariationId)start);
 
 		if (!var)
 		{
@@ -603,7 +603,7 @@ bool TestVarPrePostNames()
 
 	for (size_t i = 0; i < vlf.Size(); i++)
 	{
-		Variation<float>* var = vlf.GetVariation(i);
+		auto var = vlf.GetVariation(i);
 		string name = var->Name();
 
 		if (var->VarType() == VARTYPE_REG)
@@ -643,7 +643,7 @@ bool TestVarPrePostNames()
 			break;
 		}
 
-		if (ParametricVariation<float>* parVar = dynamic_cast<ParametricVariation<float>*>(var))
+		if (auto parVar = dynamic_cast<ParametricVariation<float>*>(const_cast<Variation<float>*>(var)))
 		{
 			vector<ParamWithName<float>> params = parVar->ParamsVec();
 
@@ -699,7 +699,7 @@ bool TestParVars()
 
 	for (size_t i = 0; i < vlf.ParametricSize(); i++)
 	{
-		if (ParametricVariation<float>* parVar = vlf.GetParametricVariation(i))
+		if (auto parVar = vlf.GetParametricVariation(i))
 		{
 			if (parVar->ParamCount() < 1)
 			{
@@ -709,7 +709,7 @@ bool TestParVars()
 
 			vector<string> names;
 			vector<float*> addresses;
-			ParamWithName<float>* params = parVar->Params();
+			auto params = parVar->Params();
 
 			names.reserve(parVar->ParamCount());
 			addresses.reserve(parVar->ParamCount());
@@ -754,7 +754,7 @@ bool TestVarRegPrePost()
 
 	for (size_t i = 0; i < vlf.RegSize(); i++)
 	{
-		Variation<float>* regVar = vlf.GetVariation(i, VARTYPE_REG);
+		auto regVar = vlf.GetVariation(i, VARTYPE_REG);
 		
 		if (regVar)
 		{
@@ -762,8 +762,8 @@ bool TestVarRegPrePost()
 			{
 				string name = regVar->Name();
 
-				Variation<float>* preVar = vlf.GetVariation("pre_" + name);
-				Variation<float>* postVar = vlf.GetVariation("post_" + name);
+				auto preVar = vlf.GetVariation("pre_" + name);
+				auto postVar = vlf.GetVariation("post_" + name);
 
 				if (!preVar)
 				{

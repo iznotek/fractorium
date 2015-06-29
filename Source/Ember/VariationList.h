@@ -375,7 +375,7 @@ public:
 	/// </summary>
 	/// <param name="index">The index in the list to retrieve</param>
 	/// <returns>A pointer to the variation at the index if in range, else nullptr.</returns>
-	Variation<T>* GetVariation(size_t index) { return index < m_Variations.size() ? m_Variations[index] : nullptr; }
+	const Variation<T>* GetVariation(size_t index) const { return index < m_Variations.size() ? m_Variations[index] : nullptr; }
 
 	/// <summary>
 	/// Get a pointer to the variation of a specified type at the specified index.
@@ -383,7 +383,7 @@ public:
 	/// <param name="index">The index in the list to retrieve</param>
 	/// <param name="varType">The type of variation to retrieve</param>
 	/// <returns>A pointer to the variation of the specified type at the index if in range, else nullptr.</returns>
-	Variation<T>* GetVariation(size_t index, eVariationType varType)
+	const Variation<T>* GetVariation(size_t index, eVariationType varType) const
 	{
 		if (varType == VARTYPE_REG)
 			return index < m_RegVariations.size() ? m_RegVariations[index] : nullptr;
@@ -402,15 +402,15 @@ public:
 	/// <param name="index">The index in the list to make a copy of</param>
 	/// <param name="weight">The weight to assign the new copy. Default: 1</param>
 	/// <returns>A pointer to the variation at the index if in range, else nullptr.</returns>
-	Variation<T>* GetVariationCopy(size_t index, T weight = 1) { return MakeCopyWithWeight(GetVariation(index), weight); }
-	Variation<T>* GetVariationCopy(size_t index, eVariationType varType, T weight = 1) { return MakeCopyWithWeight(GetVariation(index, varType), weight); }
+	Variation<T>* GetVariationCopy(size_t index, T weight = 1) const { return MakeCopyWithWeight(GetVariation(index), weight); }
+	Variation<T>* GetVariationCopy(size_t index, eVariationType varType, T weight = 1) const { return MakeCopyWithWeight(GetVariation(index, varType), weight); }
 
 	/// <summary>
 	/// Get a pointer to the variation with the specified ID.
 	/// </summary>
 	/// <param name="id">The ID to search for</param>
 	/// <returns>A pointer to the variation if found, else nullptr.</returns>
-	Variation<T>* GetVariation(eVariationId id)
+	const Variation<T>* GetVariation(eVariationId id) const
 	{
 		for (uint i = 0; i < m_Variations.size() && m_Variations[i] != nullptr; i++)
 			if (id == m_Variations[i]->VariationId())
@@ -426,14 +426,14 @@ public:
 	/// <param name="id">The id of the variation in the list to make a copy of</param>
 	/// <param name="weight">The weight to assign the new copy. Default: 1</param>
 	/// <returns>A pointer to the variation with a matching ID, else nullptr.</returns>
-	Variation<T>* GetVariationCopy(eVariationId id, T weight = 1) { return MakeCopyWithWeight(GetVariation(id), weight); }
+	Variation<T>* GetVariationCopy(eVariationId id, T weight = 1) const { return MakeCopyWithWeight(GetVariation(id), weight); }
 
 	/// <summary>
 	/// Get a pointer to the variation with the specified name.
 	/// </summary>
 	/// <param name="name">The name to search for</param>
 	/// <returns>A pointer to the variation if found, else nullptr.</returns>
-	Variation<T>* GetVariation(const string& name)
+	const Variation<T>* GetVariation(const string& name) const
 	{
 		for (uint i = 0; i < m_Variations.size() && m_Variations[i] != nullptr; i++)
 			if (!_stricmp(name.c_str(), m_Variations[i]->Name().c_str()))
@@ -449,7 +449,7 @@ public:
 	/// <param name="name">The name of the variation in the list to make a copy of</param>
 	/// <param name="weight">The weight to assign the new copy. Default: 1</param>
 	/// <returns>A pointer to the variation with a matching name, else nullptr.</returns>
-	Variation<T>* GetVariationCopy(const string& name, T weight = 1) { return MakeCopyWithWeight(GetVariation(name), weight); }
+	Variation<T>* GetVariationCopy(const string& name, T weight = 1) const { return MakeCopyWithWeight(GetVariation(name), weight); }
 
 	/// <summary>
 	/// Get a parametric variation at the specified index.
@@ -457,14 +457,14 @@ public:
 	/// </summary>
 	/// <param name="index">The index in the parametric variations list to retrieve</param>
 	/// <returns>The parametric variation at the index specified if in range, else nullptr.</returns>
-	ParametricVariation<T>* GetParametricVariation(size_t index) { return index < m_ParametricVariations.size() ? m_ParametricVariations[index] : nullptr; }
+	const ParametricVariation<T>* GetParametricVariation(size_t index) const { return index < m_ParametricVariations.size() ? m_ParametricVariations[index] : nullptr; }
 
 	/// <summary>
 	/// Get a parametric variation with the specified name.
 	/// </summary>
 	/// <param name="name">The name of the variation in the parametric variations list to retrieve</param>
 	/// <returns>The parametric variation with a matching name, else nullptr.</returns>
-	ParametricVariation<T>* GetParametricVariation(const string& name)
+	const ParametricVariation<T>* GetParametricVariation(const string& name) const
 	{
 		for (uint i = 0; i < m_ParametricVariations.size() && m_ParametricVariations[i] != nullptr; i++)
 			if (!_stricmp(name.c_str(), m_ParametricVariations[i]->Name().c_str()))
@@ -490,11 +490,11 @@ public:
 	/// <summary>
 	/// Accessors.
 	/// </summary>
-	size_t Size() { return m_Variations.size(); }
-	size_t RegSize() { return m_RegVariations.size(); }
-	size_t PreSize() { return m_PreVariations.size(); }
-	size_t PostSize() { return m_PostVariations.size(); }
-	size_t ParametricSize() { return m_ParametricVariations.size(); }
+	size_t Size() const { return m_Variations.size(); }
+	size_t RegSize() const { return m_RegVariations.size(); }
+	size_t PreSize() const { return m_PreVariations.size(); }
+	size_t PostSize() const { return m_PostVariations.size(); }
+	size_t ParametricSize() const { return m_ParametricVariations.size(); }
 
 private:
 	/// <summary>
@@ -504,7 +504,7 @@ private:
 	/// <param name="var">The variation to copy</param>
 	/// <param name="weight">The weight to assign it</param>
 	/// <returns>A pointer to the new variation copy if success, else nullptr.</returns>
-	Variation<T>* MakeCopyWithWeight(Variation<T>* var, T weight)
+	Variation<T>* MakeCopyWithWeight(const Variation<T>* var, T weight) const
 	{
 		if (var)
 		{
