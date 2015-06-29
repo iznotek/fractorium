@@ -879,8 +879,8 @@ public:
 
 								if (tempParVar != nullptr && (parVar->ParamCount() == tempParVar->ParamCount()))//This check will should always be true, but just check to be absolutely sure to avoid clobbering memory.
 								{
-									ParamWithName<T>* params = parVar->Params();
-									ParamWithName<T>* tempParams = tempParVar->Params();
+									auto params = parVar->Params();
+									auto tempParams = tempParVar->Params();
 
 									for (l = 0; l < parVar->ParamCount(); l++)
 									{

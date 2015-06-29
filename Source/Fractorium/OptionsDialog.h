@@ -37,6 +37,7 @@ private:
 	bool YAxisUp();
 	bool AlphaChannel();
 	bool Transparency();
+	bool ContinuousUpdate();
 	bool OpenCL();
 	bool Double();
 	bool ShowAllXforms();

@@ -1154,9 +1154,9 @@ private:
 				//Only correct names if it came from an outside source. Names originating from this library are always considered correct.
 				string s = fromEmber ? string(CCX(curAtt->name)) : GetCorrectedVariationName(m_BadVariationNames, curAtt);
 
-				if (Variation<T>* var = m_VariationList.GetVariation(s))
+				if (auto var = m_VariationList.GetVariation(s))
 				{
-					Variation<T>* varCopy = var->Copy();
+					auto varCopy = var->Copy();
 
 					Atof(attStr, varCopy->m_Weight);
 					xform.AddVariation(varCopy);

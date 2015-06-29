@@ -369,7 +369,7 @@ bool FractoriumEmberController<T>::Render()
 	if (ProcessState() != ACCUM_DONE)
 	{
 		//if (m_Renderer->Run(m_FinalImage, 0) == RENDER_OK)//Full, non-incremental render for debugging.
-		if (m_Renderer->Run(m_FinalImage[m_FinalImageIndex], 0, m_SubBatchCount, iterBegin) == RENDER_OK)//Force output on iterBegin.
+		if (m_Renderer->Run(m_FinalImage[m_FinalImageIndex], 0, m_SubBatchCount, (iterBegin || m_Fractorium->m_Settings->ContinuousUpdate())) == RENDER_OK)//Force output on iterBegin or if the settings specify to always do it.
 		{
 			//The amount to increment sub batch while rendering proceeds is purely empirical.
 			//Change later if better values can be derived/observed.
