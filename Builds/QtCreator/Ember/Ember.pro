@@ -9,7 +9,7 @@ include(../shared_settings.pri)
 
 QMAKE_CXXFLAGS += -D_USRDLL 
 QMAKE_CXXFLAGS += -D_CONSOLE
-QMAKE_CXXFLAGS += -BUILDING_EMBERCL
+QMAKE_CXXFLAGS += -BUILDING_EMBER
 
 SOURCES += \
     ../../../Source/Ember/Affine2D.cpp \

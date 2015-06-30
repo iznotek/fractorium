@@ -820,7 +820,7 @@ public:
 	const vector<T>& XaosVec() const { return m_Xaos; }
 	Ember<T>* ParentEmber() const { return m_ParentEmber; }
 	void ParentEmber(Ember<T>* ember) { m_ParentEmber = ember; }
-	intmax_t IndexInParentEmber() { return m_ParentEmber ? m_ParentEmber->GetTotalXformIndex(this) : -1; }
+	intmax_t IndexInParentEmber() const { return m_ParentEmber ? m_ParentEmber->GetTotalXformIndex(const_cast<Xform<T>*>(this)) : -1; }
 
 	/// <summary>
 	/// Set the precalc flags based on whether any variation in the vector needs them.

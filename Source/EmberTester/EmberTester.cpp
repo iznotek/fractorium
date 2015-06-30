@@ -321,7 +321,7 @@ void TestAtomicAdd()
 }
 
 template <typename T>
-bool SearchVar(Variation<T>* var, vector<string>& stringVec, bool matchAll)
+bool SearchVar(const Variation<T>* var, vector<string>& stringVec, bool matchAll)
 {
 	bool ret = false;
 	size_t i;
@@ -363,7 +363,7 @@ static vector<Variation<T>*> FindVarsWith(vector<string>& stringVec, bool findAl
 
 	while (index < vl.RegSize())
 	{
-		Variation<T>* regVar = vl.GetVariation(index, VARTYPE_REG);
+		auto regVar = vl.GetVariation(index, VARTYPE_REG);
 
 		if (SearchVar(regVar, stringVec, false))
 		{
@@ -449,7 +449,7 @@ bool TestVarUnique()
 }
 
 template <typename sT, typename dT>
-bool TestVarPrecalcEqual(Variation<sT>* var1, Variation<dT>* var2)
+bool TestVarPrecalcEqual(const Variation<sT>* var1, const Variation<dT>* var2)
 {
 	bool success = true;
 
@@ -807,7 +807,7 @@ bool TestVarPrecalcUsedCL()
 
 	for (size_t i = 0; i < vlf.Size(); i++)
 	{
-		Variation<float>* var = vlf.GetVariation(i);
+		auto var = vlf.GetVariation(i);
 		string s = var->OpenCLString();
 
 		if (var->NeedPrecalcAngles())
@@ -997,7 +997,7 @@ bool TestVarAssignTypes()
 
 	for (size_t i = 0; i < vlf.Size(); i++)
 	{
-		Variation<float>* var = vlf.GetVariation(i);
+		auto var = vlf.GetVariation(i);
 		string s = var->OpenCLString();
 
 		//Only test pre and post. The assign type for regular is ignored, and will always be summed.
@@ -1055,7 +1055,7 @@ bool TestVarAssignVals()
 
 	for (size_t i = 0; i < vlf.Size(); i++)
 	{
-		Variation<float>* var = vlf.GetVariation(i);
+		auto var = vlf.GetVariation(i);
 
 		if (!SearchVar(var, xout, false))
 		{
@@ -1089,7 +1089,7 @@ bool TestZepsFloor()
 
 	for (size_t i = 0; i < vlf.Size(); i++)
 	{
-		Variation<float>* var = vlf.GetVariation(i);
+		auto var = vlf.GetVariation(i);
 
 		if (SearchVar(var, zeps, false))
 		{
@@ -1114,7 +1114,7 @@ bool TestConstants()
 
 	for (size_t i = 0; i < vlf.Size(); i++)
 	{
-		Variation<float>* var = vlf.GetVariation(i);
+		auto var = vlf.GetVariation(i);
 
 		if (SearchVar(var, stringVec, false))
 		{
@@ -1131,7 +1131,7 @@ void PrintAllVars()
 	uint i = 0;
 	VariationList<float> vlf;
 
-	while(Variation<float>* var = vlf.GetVariation(i++))
+	while(auto var = vlf.GetVariation(i++))
 		cout << var->Name() << endl;
 }
 
