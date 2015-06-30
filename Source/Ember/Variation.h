@@ -1156,7 +1156,7 @@ public:
 	/// Per-variation precalc OpenCL string used for pre and post variations.
 	/// </summary>
 	/// <returns>The per-variation OpenCL precalc string</returns>
-	string PrecalcOpenCLString()
+	string PrecalcOpenCLString() const
 	{
 		ostringstream ss;
 
@@ -1272,13 +1272,13 @@ public:
 	/// Derived classes will implement this.
 	/// </summary>
 	/// <returns>The OpenCL string to perform the equivalent calculation on the GPU in OpenCL</returns>
-	virtual string OpenCLString() { return ""; }
+	virtual string OpenCLString() const { return ""; }
 
 	/// <summary>
 	/// If the OpenCL string depends on any functions specific to this variation, return them.
 	/// </summary>
 	/// <returns>The OpenCL string for functions specific to this variation</returns>
-	virtual string OpenCLFuncsString() { return ""; }
+	virtual string OpenCLFuncsString() const { return ""; }
 
 	/// <summary>
 	/// In addition to the standard precalculation stored in the IteratorHelper object, some
@@ -1336,8 +1336,8 @@ public:
 	eVariationAssignType AssignType() const { return m_AssignType; }
 	const Xform<T>* ParentXform() const { return m_Xform; }
 	void ParentXform(Xform<T>* xform) { m_Xform = xform; }
-	intmax_t IndexInXform() { return m_Xform ? m_Xform->GetVariationIndex(this) : -1; }
-	intmax_t XformIndexInEmber() { return m_Xform ? m_Xform->IndexInParentEmber() : -1; }
+	intmax_t IndexInXform() const { return m_Xform ? m_Xform->GetVariationIndex(const_cast<Variation<T>*>(this)) : -1; }
+	intmax_t XformIndexInEmber() const { return m_Xform ? m_Xform->IndexInParentEmber() : -1; }
 
 	T m_Weight;//The weight of the variation.
 

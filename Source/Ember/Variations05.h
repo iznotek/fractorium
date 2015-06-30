@@ -34,7 +34,7 @@ public:
 		helper.Out.z += helper.In.z * r * m_Z;//The += is intentional.
 	}
 
-	virtual string OpenCLString() override
+	virtual string OpenCLString() const override
 	{
 		ostringstream ss, ss2;
 		intmax_t i = 0, varIndex = IndexInXform();
@@ -142,7 +142,7 @@ public:
 		helper.Out.z = (m_VarType == VARTYPE_REG) ? 0 : helper.In.z;
 	}
 
-	virtual string OpenCLString() override
+	virtual string OpenCLString() const override
 	{
 		ostringstream ss, ss2;
 		intmax_t i = 0, varIndex = IndexInXform();
@@ -208,7 +208,7 @@ public:
 		return ss.str();
 	}
 
-	virtual string OpenCLFuncsString()
+	virtual string OpenCLFuncsString() const
 	{
 		return
 			"real_t CircleLinearDiscreteNoise2(int x, int y)\n"
@@ -300,7 +300,7 @@ public:
 		helper.Out.z = (m_VarType == VARTYPE_REG) ? 0 : helper.In.z;
 	}
 
-	virtual string OpenCLString() override
+	virtual string OpenCLString() const override
 	{
 		ostringstream ss, ss2;
 		intmax_t i = 0, varIndex = IndexInXform();
@@ -339,7 +339,7 @@ public:
 		return ss.str();
 	}
 
-	virtual string OpenCLFuncsString()
+	virtual string OpenCLFuncsString() const
 	{
 		return
 			"real_t CircleRandDiscreteNoise2(int x, int y)\n"
@@ -428,7 +428,7 @@ public:
 		helper.Out.z = (m_VarType == VARTYPE_REG) ? 0 : helper.In.z;
 	}
 
-	virtual string OpenCLString() override
+	virtual string OpenCLString() const override
 	{
 		ostringstream ss, ss2;
 		intmax_t i = 0, varIndex = IndexInXform();
@@ -470,7 +470,7 @@ public:
 		return ss.str();
 	}
 
-	virtual string OpenCLFuncsString()
+	virtual string OpenCLFuncsString() const
 	{
 		return
 			"real_t CircleTrans1DiscreteNoise2(int x, int y)\n"
@@ -666,7 +666,7 @@ public:
 		}
 	}
 
-	virtual string OpenCLString() override
+	virtual string OpenCLString() const override
 	{
 		ostringstream ss, ss2;
 		intmax_t i = 0, varIndex = IndexInXform();
@@ -897,7 +897,7 @@ public:
 		}
 	}
 
-	virtual string OpenCLString() override
+	virtual string OpenCLString() const override
 	{
 		ostringstream ss, ss2;
 		intmax_t i = 0, varIndex = IndexInXform();
@@ -1039,7 +1039,7 @@ public:
 		helper.Out.z = sin(boot) * tmp;
 	}
 
-	virtual string OpenCLString() override
+	virtual string OpenCLString() const override
 	{
 		ostringstream ss;
 		intmax_t varIndex = IndexInXform();
@@ -1095,7 +1095,7 @@ public:
 		helper.Out.z = m_Weight * z;
 	}
 
-	virtual string OpenCLString() override
+	virtual string OpenCLString() const override
 	{
 		ostringstream ss, ss2;
 		intmax_t i = 0, varIndex = IndexInXform();
@@ -1175,7 +1175,7 @@ public:
 		helper.Out.z = r * z;
 	}
 
-	virtual string OpenCLString() override
+	virtual string OpenCLString() const override
 	{
 		ostringstream ss, ss2;
 		intmax_t i = 0, varIndex = IndexInXform();
@@ -1259,7 +1259,7 @@ public:
 		helper.Out.z = m_Uz * r;
 	}
 
-	virtual string OpenCLString() override
+	virtual string OpenCLString() const override
 	{
 		ostringstream ss, ss2;
 		intmax_t i = 0, varIndex = IndexInXform();
@@ -1354,7 +1354,7 @@ public:
 		}
 	}
 
-	virtual string OpenCLString() override
+	virtual string OpenCLString() const override
 	{
 		ostringstream ss, ss2;
 		intmax_t i = 0, varIndex = IndexInXform();
@@ -1430,7 +1430,7 @@ public:
 		helper.Out.z = (m_VarType == VARTYPE_REG) ? 0 : helper.In.z;
 	}
 
-	virtual string OpenCLString() override
+	virtual string OpenCLString() const override
 	{
 		ostringstream ss, ss2;
 		intmax_t i = 0, varIndex = IndexInXform();
@@ -1500,7 +1500,7 @@ public:
 		helper.Out.z = m_Weight * (helper.In.z + m_Scale * sin(avgxy * m_Freq));//Averages the XY to get Z.
 	}
 
-	virtual string OpenCLString() override
+	virtual string OpenCLString() const override
 	{
 		ostringstream ss, ss2;
 		intmax_t i = 0, varIndex = IndexInXform();
@@ -1560,7 +1560,7 @@ public:
 		helper.Out.z = m_Weight * sin(r);
 	}
 
-	virtual string OpenCLString() override
+	virtual string OpenCLString() const override
 	{
 		ostringstream ss, ss2;
 		intmax_t i = 0, varIndex = IndexInXform();
@@ -1639,7 +1639,7 @@ public:
 		helper.Out.z = tempPZ + m_Vv * (m_Z * m_SinTanC * tempTZ);
 	}
 
-	virtual string OpenCLString() override
+	virtual string OpenCLString() const override
 	{
 		ostringstream ss, ss2;
 		int i = 0;
@@ -1735,7 +1735,7 @@ public:
 		helper.Out.z = m_Weight * (atan2(SQR(helper.In.x), SQR(helper.In.y)) * cos(helper.In.z));
 	}
 
-	virtual string OpenCLString() override
+	virtual string OpenCLString() const override
 	{
 		ostringstream ss;
 		intmax_t varIndex = IndexInXform();
@@ -1775,7 +1775,7 @@ public:
 		helper.Out.z = z * r;
 	}
 
-	virtual string OpenCLString() override
+	virtual string OpenCLString() const override
 	{
 		ostringstream ss, ss2;
 		int i = 0;
@@ -1842,7 +1842,7 @@ public:
 		//outPoint.m_Y = 0;
 	}
 
-	virtual string OpenCLString() override
+	virtual string OpenCLString() const override
 	{
 		ostringstream ss, ss2;
 		intmax_t i = 0, varIndex = IndexInXform();
@@ -1971,7 +1971,7 @@ public:
 		helper.Out.z = (m_VarType == VARTYPE_REG) ? 0 : helper.In.z;
 	}
 
-	virtual string OpenCLString() override
+	virtual string OpenCLString() const override
 	{
 		ostringstream ss, ss2;
 		intmax_t i = 0, varIndex = IndexInXform();
@@ -2078,7 +2078,7 @@ public:
 		helper.Out.z = (m_VarType == VARTYPE_REG) ? 0 : helper.In.z;
 	}
 
-	virtual string OpenCLString() override
+	virtual string OpenCLString() const override
 	{
 		ostringstream ss;
 		intmax_t varIndex = IndexInXform();
@@ -2157,7 +2157,7 @@ public:
 		}
 	}
 
-	virtual string OpenCLString() override
+	virtual string OpenCLString() const override
 	{
 		ostringstream ss, ss2;
 		intmax_t i = 0, varIndex = IndexInXform();
@@ -2336,7 +2336,7 @@ public:
 		}
 	}
 
-	virtual string OpenCLString() override
+	virtual string OpenCLString() const override
 	{
 		ostringstream ss, ss2;
 		int i = 0;
@@ -2546,7 +2546,7 @@ public:
 		}
 	}
 
-	virtual string OpenCLString() override
+	virtual string OpenCLString() const override
 	{
 		ostringstream ss, ss2;
 		int i = 0;
@@ -2739,7 +2739,7 @@ public:
 		helper.Out.z = (m_VarType == VARTYPE_REG) ? 0 : helper.In.z;
 	}
 
-	virtual string OpenCLString() override
+	virtual string OpenCLString() const override
 	{
 		ostringstream ss, ss2;
 		intmax_t i = 0, varIndex = IndexInXform();
@@ -2864,7 +2864,7 @@ public:
 		return ss.str();
 	}
 
-	virtual string OpenCLFuncsString()
+	virtual string OpenCLFuncsString() const
 	{
 		return
 			"\n"
