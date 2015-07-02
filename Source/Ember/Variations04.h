@@ -3089,7 +3089,7 @@ public:
 			"\n"
 			"real_t Interference2Tri(real_t a, real_t b, real_t c, real_t p, real_t x)\n"
 			"{\n"
-			"	return a * 2 * pow(fabs(asin(cos(b * x + c - M_PI_2))) * M_1_PI, p);\n"
+			"	return a * 2 * pow(fabs(asin(cos(b * x + c - (real_t)M_PI_2))) * (real_t)M_1_PI, p);\n"
 			"}\n"
 			"\n"
 			"real_t Interference2Squ(real_t a, real_t b, real_t c, real_t p, real_t x)\n"
