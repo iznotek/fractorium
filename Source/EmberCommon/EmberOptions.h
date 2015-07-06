@@ -76,7 +76,6 @@ enum eOptionIDs
 	OPT_SYMMETRY,
 	OPT_SHEEP_GEN,
 	OPT_SHEEP_ID,
-	OPT_LOOPS,
 	OPT_REPEAT,
 	OPT_TRIES,
 	OPT_MAX_XFORMS,
@@ -93,6 +92,7 @@ enum eOptionIDs
 	OPT_OFFSETX,
 	OPT_OFFSETY,
 	OPT_USEMEM,
+	OPT_LOOPS,
 
 	OPT_ISAAC_SEED,//String value args.
 	OPT_IN,
@@ -357,7 +357,6 @@ public:
 		INITUINTOPTION(Frame,          Eou(OPT_ANIM_GENOME, OPT_FRAME,            _T("--frame"),            0,                       SO_REQ_SEP, "\t--frame=<val>            Synonym for \"time\".\n"));
 		INITUINTOPTION(Dtime,          Eou(OPT_USE_ANIMATE, OPT_DTIME,            _T("--dtime"),            1,                       SO_REQ_SEP, "\t--dtime=<val>            Time between frames [default: 1].\n"));
 		INITUINTOPTION(Frames,         Eou(OPT_USE_GENOME,  OPT_NFRAMES,          _T("--nframes"),          20,                      SO_REQ_SEP, "\t--nframes=<val>          Number of frames for each stage of the animation [default: 20].\n"));
-		INITUINTOPTION(Loops,          Eou(OPT_USE_GENOME,  OPT_LOOPS,            _T("--loops"),            1,                       SO_REQ_SEP, "\t--loops=<val>            Number of times to rotate each control point in sequence [default: 1].\n"));
 		INITUINTOPTION(Repeat,         Eou(OPT_USE_GENOME,  OPT_REPEAT,           _T("--repeat"),           1,                       SO_REQ_SEP, "\t--repeat=<val>           Number of new flames to create. Ignored if sequence, inter or rotate were specified [default: 1].\n"));
 		INITUINTOPTION(Tries,          Eou(OPT_USE_GENOME,  OPT_TRIES,            _T("--tries"),            10,                      SO_REQ_SEP, "\t--tries=<val>            Number times to try creating a flame that meets the specified constraints. Ignored if sequence, inter or rotate were specified [default: 10].\n"));
 		INITUINTOPTION(MaxXforms,      Eou(OPT_USE_GENOME,  OPT_MAX_XFORMS,       _T("--maxxforms"),        UINT_MAX,                SO_REQ_SEP, "\t--maxxforms=<val>        The maximum number of xforms allowed in the final output.\n"));
@@ -376,6 +375,7 @@ public:
 		INITDOUBLEOPTION(OffsetX,      Eod(OPT_USE_GENOME,  OPT_OFFSETX,          _T("--offsetx"),              0.0,                  SO_REQ_SEP, "\t--offsetx=<val>          Amount to jitter each flame horizontally when applying genome tools [default: 0].\n"));
 		INITDOUBLEOPTION(OffsetY,      Eod(OPT_USE_GENOME,  OPT_OFFSETY,          _T("--offsety"),              0.0,                  SO_REQ_SEP, "\t--offsety=<val>          Amount to jitter each flame vertically when applying genome tools [default: 0].\n"));
 		INITDOUBLEOPTION(UseMem,       Eod(OPT_USE_RENDER,  OPT_USEMEM,           _T("--use_mem"),              0.0,                  SO_REQ_SEP, "\t--use_mem=<val>          Number of bytes of memory to use [default: max system memory].\n"));
+		INITDOUBLEOPTION(Loops,        Eod(OPT_USE_GENOME,  OPT_LOOPS,            _T("--loops"),                1,                    SO_REQ_SEP, "\t--loops=<val>            Number of times to rotate each control point in sequence [default: 1].\n"));
 
 		//String.
 		INITSTRINGOPTION(IsaacSeed,    Eos(OPT_USE_ALL,     OPT_ISAAC_SEED,       _T("--isaac_seed"),           "",                   SO_REQ_SEP, "\t--isaac_seed=<val>       Character-based seed for the random number generator [default: random].\n"));
@@ -487,7 +487,6 @@ public:
 					PARSEUINTOPTION(OPT_TIME, Time);
 					PARSEUINTOPTION(OPT_DTIME, Dtime);
 					PARSEUINTOPTION(OPT_NFRAMES, Frames);
-					PARSEUINTOPTION(OPT_LOOPS, Loops);
 					PARSEUINTOPTION(OPT_REPEAT, Repeat);
 					PARSEUINTOPTION(OPT_TRIES, Tries);
 					PARSEUINTOPTION(OPT_MAX_XFORMS, MaxXforms);
@@ -503,6 +502,7 @@ public:
 					PARSEDOUBLEOPTION(OPT_OFFSETX, OffsetX);
 					PARSEDOUBLEOPTION(OPT_OFFSETY, OffsetY);
 					PARSEDOUBLEOPTION(OPT_USEMEM, UseMem);
+					PARSEDOUBLEOPTION(OPT_LOOPS, Loops);
 
 					PARSESTRINGOPTION(OPT_ISAAC_SEED, IsaacSeed);//String args.
 					PARSESTRINGOPTION(OPT_IN, Input);
@@ -703,7 +703,6 @@ public:
 	EmberOptionEntry<uint> Time;
 	EmberOptionEntry<uint> Dtime;
 	EmberOptionEntry<uint> Frames;
-	EmberOptionEntry<uint> Loops;
 	EmberOptionEntry<uint> Repeat;
 	EmberOptionEntry<uint> Tries;
 	EmberOptionEntry<uint> MaxXforms;
@@ -719,6 +718,7 @@ public:
 	EmberOptionEntry<double> OffsetX;
 	EmberOptionEntry<double> OffsetY;
 	EmberOptionEntry<double> UseMem;
+	EmberOptionEntry<double> Loops;
 
 	EmberOptionEntry<string> IsaacSeed;//Value string.
 	EmberOptionEntry<string> Input;
