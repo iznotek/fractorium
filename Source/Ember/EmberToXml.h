@@ -493,6 +493,9 @@ private:
 				os << "motion_function=\"hill\" ";
 			else if (xform.m_MotionFunc== MOTION_SAW)
 				os << "motion_function=\"saw\" ";
+
+			if (xform.m_MotionOffset != 0)
+				os << "motion_offset=\"" << xform.m_MotionOffset << "\" ";
 		}
 		else
 		{
@@ -730,6 +733,9 @@ private:
 	{
 		ostringstream os;
 		os << "<flame_motion motion_frequency=\"" << motion.m_MotionFreq << "\" ";
+
+		if (motion.m_MotionOffset > 0)
+			os << "motion_offset=\"" << motion.m_MotionOffset << "\" ";
 
 		os << "motion_func=";
 		switch(motion.m_MotionFunc)

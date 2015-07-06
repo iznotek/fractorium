@@ -20,6 +20,7 @@ public:
 	{
 		m_MotionFreq = 0;
 		m_MotionFunc = MOTION_SIN;
+		m_MotionOffset = 0;
 	}
 
 	FlameMotion(const FlameMotion<T> &other)
@@ -51,10 +52,12 @@ public:
 
 		m_MotionFunc = other.m_MotionFunc;
 		m_MotionFreq = T(other.m_MotionFreq);
+		m_MotionOffset = T(other.m_MotionOffset);
 		return *this;
 	}
 
 	T m_MotionFreq;
+	T m_MotionOffset;
 	eMotion m_MotionFunc;
 	vector<pair<eFlameMotionParam, T>> m_MotionParams;
 

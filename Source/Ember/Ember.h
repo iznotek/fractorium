@@ -1293,7 +1293,7 @@ public:
 		point.m_Z -= m_CamZPos;
 	}
 
-#define APP_FMP(x) x += param.second * Interpolater<T>::MotionFuncs(motion.m_MotionFunc, motion.m_MotionFreq * blend)
+#define APP_FMP(x) x += param.second * Interpolater<T>::MotionFuncs(motion.m_MotionFunc, motion.m_MotionFreq * (blend + motion.m_MotionOffset))
 	/// <summary>
 	/// Update ember parameters based on stored motion elements
 	/// </summary>

@@ -1015,6 +1015,7 @@ private:
 					attStr = reinterpret_cast<char*>(xmlGetProp(childNode, curAtt->name));
 
 					if		(ParseAndAssignFloat(curAtt->name, attStr, "motion_frequency", motion.m_MotionFreq, ret)) { }
+					else if	(ParseAndAssignFloat(curAtt->name, attStr, "motion_offset", motion.m_MotionOffset, ret)) { }
 					else if (!Compare(curAtt->name, "motion_function"))
 					{
 						string func(attStr);
@@ -1180,6 +1181,7 @@ private:
 			else if (ParseAndAssignFloat(curAtt->name, attStr, "opacity", xform.m_Opacity, success)) { }
 			else if (ParseAndAssignFloat(curAtt->name, attStr, "var_color", xform.m_DirectColor, success)) { }
 			else if (ParseAndAssignFloat(curAtt->name, attStr, "motion_frequency", xform.m_MotionFreq, success)) { }
+			else if (ParseAndAssignFloat(curAtt->name, attStr, "motion_offset", xform.m_MotionOffset, success)) { }
 
 			//Parse more complicated reads that have multiple possible values.
 			else if (!Compare(curAtt->name, "name"))
