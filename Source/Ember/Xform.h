@@ -165,6 +165,7 @@ public:
 		m_Wind[1] = T(xform.m_Wind[1]);
 		m_MotionFreq = xform.m_MotionFreq;
 		m_MotionFunc = xform.m_MotionFunc;
+		m_MotionOffset = xform.m_MotionOffset;
 
 		ClearAndDeleteVariations();
 
@@ -234,6 +235,7 @@ public:
 			m_Wind[0] = 0;
 			m_Wind[1] = 0;
 			m_MotionFreq = 0;
+			m_MotionOffset = 0;
 		}
 		else
 		{
@@ -262,6 +264,7 @@ public:
 			m_Wind[0] = EMPTYFIELD;
 			m_Wind[1] = EMPTYFIELD;
 			m_MotionFreq = EMPTYFIELD;
+			m_MotionOffset = EMPTYFIELD;
 		}
 
 		m_MotionFunc = MOTION_SIN;
@@ -716,7 +719,7 @@ public:
 	do \
 	{ \
 		if (currentMot.x != EMPTYFIELD) \
-			x += currentMot.x * Interpolater<T>::MotionFuncs(func, freq * blend); \
+			x += currentMot.x * Interpolater<T>::MotionFuncs(func, freq * (blend + offset)); \
 	} while (0)
 
 	/// <summary>
@@ -731,8 +734,9 @@ public:
 		{
 			//Original only pulls these from the first motion xform which is a bug. Want to pull it from each one.
 			Xform<T>& currentMot = xform.m_Motion[i];
-			intmax_t freq = currentMot.m_MotionFreq;
+			T freq = currentMot.m_MotionFreq;
 			eMotion func = currentMot.m_MotionFunc;
+			T offset = currentMot.m_MotionOffset;
 
 			//Clamp these to the appropriate range after all are applied.
 			APPMOT(m_Weight);
@@ -753,13 +757,13 @@ public:
 				if (!var)//It wasn't present, so add it and set the weight.
 				{
 					Variation<T>* newVar = motVar->Copy();
-					newVar->m_Weight = motVar->m_Weight * Interpolater<T>::MotionFuncs(func, freq * blend);
+					newVar->m_Weight = motVar->m_Weight * Interpolater<T>::MotionFuncs(func, freq * (blend + offset));
 					AddVariation(newVar);
 					var = newVar;//Use this below for params.
 				}
 				else//It was present, so apply the motion func to the weight.
 				{
-					var->m_Weight += motVar->m_Weight * Interpolater<T>::MotionFuncs(func, freq * blend);
+					var->m_Weight += motVar->m_Weight * Interpolater<T>::MotionFuncs(func, freq * (blend + offset));
 				}
 
 				//At this point, we've added if needed, or just applied the motion func to the weight.
@@ -773,7 +777,7 @@ public:
 					for (size_t k = 0; k < motParVar->ParamCount(); k++)
 					{
 						if (!motParams[k].IsPrecalc())
-							*(params[k].Param()) += motParams[k].ParamVal() * Interpolater<T>::MotionFuncs(func, freq * blend);
+							*(params[k].Param()) += motParams[k].ParamVal() * Interpolater<T>::MotionFuncs(func, freq * (blend + offset));
 					}
 				}
 			}
@@ -1157,6 +1161,7 @@ public:
 		ss << "Wind: " << m_Wind[0] << ", " << m_Wind[1] << endl;
 		ss << "Motion Frequency: " << m_MotionFreq << endl;
 		ss << "Motion Func: " << m_MotionFunc << endl;
+		ss << "Motion Offset: " << m_MotionOffset << endl;
 
 		const_cast<Xform<T>*>(this)->AllVarsFunc([&] (vector<Variation<T>*>& variations, bool& keepGoing)
 		{
@@ -1232,7 +1237,8 @@ public:
 	T m_Animate;//Whether or not this xform rotates during animation. 0 means stationary, > 0 means rotate. Use T instead of bool so it can be interpolated.
 	T m_Wind[2];
 	eMotion m_MotionFunc;
-	intmax_t m_MotionFreq;
+	T m_MotionFreq;
+	T m_MotionOffset;
 	vector<Xform<T>> m_Motion;
 	string m_Name;
 

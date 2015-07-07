@@ -221,6 +221,9 @@ public:
 
 		os << "\">\n";
 
+		for (i = 0; i < ember.m_FlameMotionElements.size(); ++i)
+			os << "   " << ToString(ember.m_FlameMotionElements[i]);
+
 		//This is a grey area, what to do about symmetry to avoid duplicating the symmetry xforms when reading back?//TODO//BUG.
 		//if (ember.m_Symmetry)
 		//	os << "   <symmetry kind=\"" << ember.m_Symmetry << "\"/>\n";
@@ -488,6 +491,11 @@ private:
 				os << "motion_function=\"triangle\" ";
 			else if (xform.m_MotionFunc== MOTION_HILL)
 				os << "motion_function=\"hill\" ";
+			else if (xform.m_MotionFunc== MOTION_SAW)
+				os << "motion_function=\"saw\" ";
+
+			if (xform.m_MotionOffset != 0)
+				os << "motion_offset=\"" << xform.m_MotionOffset << "\" ";
 		}
 		else
 		{
@@ -713,6 +721,113 @@ private:
 			string s(reinterpret_cast<char*>(xmlNodeGetContent(editNode)));
 			os << Trim(s);
 		}
+
+		return os.str();
+	}
+
+	/// <summary>
+	/// Convert a FlameMotion element to an xml string
+	/// </summary>
+	/// <param name="motion">The FlameMotion object to convert to XML</param>
+	string ToString(const FlameMotion<T> &motion)
+	{
+		ostringstream os;
+		os << "<flame_motion motion_frequency=\"" << motion.m_MotionFreq << "\" ";
+
+		if (motion.m_MotionOffset > 0)
+			os << "motion_offset=\"" << motion.m_MotionOffset << "\" ";
+
+		os << "motion_func=";
+		switch(motion.m_MotionFunc)
+		{
+		case MOTION_SIN:
+			os << "\"sin\"";
+			break;
+		case MOTION_HILL:
+			os << "\"hill\"";
+			break;
+		case MOTION_TRIANGLE:
+			os << "\"triangle\"";
+			break;
+		case MOTION_SAW:
+			os << "\"saw\"";
+			break;
+		}
+
+		T r = 0.0;
+		T g = 0.0;
+		T b = 0.0;
+		T cx = 0.0;
+		T cy = 0.0;
+
+		for(int i = 0; i < motion.m_MotionParams.size(); ++i)
+		{
+			switch(motion.m_MotionParams[i].first)
+			{
+			case FLAME_MOTION_ZOOM:
+				os << " zoom=\"" << motion.m_MotionParams[i].second << "\"";
+				break;
+			case FLAME_MOTION_ZPOS:
+				os << " cam_zpos=\"" << motion.m_MotionParams[i].second << "\"";
+				break;
+			case FLAME_MOTION_PERSPECTIVE:
+				os << " cam_persp=\"" << motion.m_MotionParams[i].second << "\"";
+				break;
+			case FLAME_MOTION_YAW:
+				os << " cam_yaw=\"" << motion.m_MotionParams[i].second << "\"";
+				break;
+			case FLAME_MOTION_PITCH:
+				os << " cam_pitch=\"" << motion.m_MotionParams[i].second << "\"";
+				break;
+			case FLAME_MOTION_DEPTH_BLUR:
+				os << " cam_dof=\"" << motion.m_MotionParams[i].second << "\"";
+				break;
+			case FLAME_MOTION_CENTER_X:
+				cx = motion.m_MotionParams[i].second;
+				break;
+			case FLAME_MOTION_CENTER_Y:
+				cy = motion.m_MotionParams[i].second;
+				break;
+			case FLAME_MOTION_ROTATE:
+				os << " rotate=\"" << motion.m_MotionParams[i].second << "\"";
+				break;
+			case FLAME_MOTION_HUE:
+				os << " hue=\"" << motion.m_MotionParams[i].second << "\"";
+				break;
+			case FLAME_MOTION_BRIGHTNESS:
+				os << " brightness=\"" << motion.m_MotionParams[i].second << "\"";
+				break;
+			case FLAME_MOTION_GAMMA:
+				os << " gamma=\"" << motion.m_MotionParams[i].second << "\"";
+				break;
+			case FLAME_MOTION_GAMMA_THRESH:
+				os << " gamma_threshold=\"" << motion.m_MotionParams[i].second << "\"";
+				break;
+			case FLAME_MOTION_HIGHLIGHT_POWER:
+				os << " highlight_power=\"" << motion.m_MotionParams[i].second << "\"";
+				break;
+			case FLAME_MOTION_BACKGROUND_R:
+				r = motion.m_MotionParams[i].second;
+				break;
+			case FLAME_MOTION_BACKGROUND_G:
+				g = motion.m_MotionParams[i].second;
+				break;
+			case FLAME_MOTION_BACKGROUND_B:
+				b = motion.m_MotionParams[i].second;
+				break;
+			case FLAME_MOTION_VIBRANCY:
+				os << " vibrancy=\"" << motion.m_MotionParams[i].second << "\"";
+				break;
+			}
+		}
+
+		if ( r != 0.0 || g != 0.0 || b != 0.0 )
+			os << " background=\"" << r << " " << g << " " << b << "\"";
+
+		if ( cx != 0.0 || cy != 0.0 )
+			os << " center=\"" << cx << " " << cy << "\"";
+
+		os << "/>\n";
 
 		return os.str();
 	}
