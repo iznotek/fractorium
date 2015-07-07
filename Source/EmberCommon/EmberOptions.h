@@ -375,7 +375,7 @@ public:
 		INITDOUBLEOPTION(OffsetX,      Eod(OPT_USE_GENOME,  OPT_OFFSETX,          _T("--offsetx"),              0.0,                  SO_REQ_SEP, "\t--offsetx=<val>          Amount to jitter each flame horizontally when applying genome tools [default: 0].\n"));
 		INITDOUBLEOPTION(OffsetY,      Eod(OPT_USE_GENOME,  OPT_OFFSETY,          _T("--offsety"),              0.0,                  SO_REQ_SEP, "\t--offsety=<val>          Amount to jitter each flame vertically when applying genome tools [default: 0].\n"));
 		INITDOUBLEOPTION(UseMem,       Eod(OPT_USE_RENDER,  OPT_USEMEM,           _T("--use_mem"),              0.0,                  SO_REQ_SEP, "\t--use_mem=<val>          Number of bytes of memory to use [default: max system memory].\n"));
-		INITDOUBLEOPTION(Loops,        Eod(OPT_USE_GENOME,  OPT_LOOPS,            _T("--loops"),                1,                    SO_REQ_SEP, "\t--loops=<val>            Number of times to rotate each control point in sequence [default: 1].\n"));
+		INITDOUBLEOPTION(Loops,        Eod(OPT_USE_GENOME,  OPT_LOOPS,            _T("--loops"),                1.0,                  SO_REQ_SEP, "\t--loops=<val>            Number of times to rotate each control point in sequence [default: 1].\n"));
 
 		//String.
 		INITSTRINGOPTION(IsaacSeed,    Eos(OPT_USE_ALL,     OPT_ISAAC_SEED,       _T("--isaac_seed"),           "",                   SO_REQ_SEP, "\t--isaac_seed=<val>       Character-based seed for the random number generator [default: random].\n"));

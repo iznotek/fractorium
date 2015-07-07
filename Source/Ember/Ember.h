@@ -5,7 +5,7 @@
 #include "PaletteList.h"
 #include "SpatialFilter.h"
 #include "TemporalFilter.h"
-#include "FlameMotion.h"
+#include "EmberMotion.h"
 
 /// <summary>
 /// Ember class.
@@ -184,10 +184,7 @@ public:
 		if (ember.m_Edits != nullptr)
 			m_Edits = xmlCopyDoc(ember.m_Edits, 1);
 
-		m_FlameMotionElements.clear();
-
-		for(int i = 0; i < ember.m_FlameMotionElements.size(); ++i)
-			m_FlameMotionElements.push_back(ember.m_FlameMotionElements[i]);
+		CopyVec(m_EmberMotionElements, ember.m_EmberMotionElements);
 
 		return *this;
 	}
@@ -479,7 +476,7 @@ public:
 		for (size_t i = 0; i < TotalXformCount(); i++)
 			GetTotalXform(i)->DeleteMotionElements();
 
-		m_FlameMotionElements.clear();
+		m_EmberMotionElements.clear();
 	}
 
 	/// <summary>
@@ -1294,19 +1291,20 @@ public:
 	}
 
 #define APP_FMP(x) x += param.second * Interpolater<T>::MotionFuncs(motion.m_MotionFunc, motion.m_MotionFreq * (blend + motion.m_MotionOffset))
+
 	/// <summary>
 	/// Update ember parameters based on stored motion elements
 	/// </summary>
 	/// <param name="blend">The time percentage value which dictates how much of a percentage of 360 degrees it should be rotated and the time position for the motion elements</param>
 	void ApplyFlameMotion(T blend)
 	{
-		for (size_t i = 0; i < m_FlameMotionElements.size(); ++i)
+		for (size_t i = 0; i < m_EmberMotionElements.size(); ++i)
 		{
-			const FlameMotion<T> &motion = m_FlameMotionElements[i];
+			auto& motion = m_EmberMotionElements[i];
 
 			for (size_t j = 0; j < motion.m_MotionParams.size(); ++j)
 			{
-				const pair<eFlameMotionParam, T> &param = motion.m_MotionParams[j];
+				auto& param = motion.m_MotionParams[j];
 
 				switch (param.first)
 				{
@@ -1768,7 +1766,7 @@ public:
 	size_t m_Index;
 
 	//The list of motion elements for the top-level flame params
-	vector<FlameMotion<T>> m_FlameMotionElements;
+	vector<EmberMotion<T>> m_EmberMotionElements;
 
 private:
 	/// <summary>

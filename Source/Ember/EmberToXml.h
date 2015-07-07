@@ -221,8 +221,8 @@ public:
 
 		os << "\">\n";
 
-		for (i = 0; i < ember.m_FlameMotionElements.size(); ++i)
-			os << "   " << ToString(ember.m_FlameMotionElements[i]);
+		for (i = 0; i < ember.m_EmberMotionElements.size(); ++i)
+			os << "   " << ToString(ember.m_EmberMotionElements[i]);
 
 		//This is a grey area, what to do about symmetry to avoid duplicating the symmetry xforms when reading back?//TODO//BUG.
 		//if (ember.m_Symmetry)
@@ -729,7 +729,7 @@ private:
 	/// Convert a FlameMotion element to an xml string
 	/// </summary>
 	/// <param name="motion">The FlameMotion object to convert to XML</param>
-	string ToString(const FlameMotion<T> &motion)
+	string ToString(const EmberMotion<T>& motion)
 	{
 		ostringstream os;
 		os << "<flame_motion motion_frequency=\"" << motion.m_MotionFreq << "\" ";
@@ -738,7 +738,8 @@ private:
 			os << "motion_offset=\"" << motion.m_MotionOffset << "\" ";
 
 		os << "motion_func=";
-		switch(motion.m_MotionFunc)
+
+		switch (motion.m_MotionFunc)
 		{
 		case MOTION_SIN:
 			os << "\"sin\"";
@@ -760,7 +761,7 @@ private:
 		T cx = 0.0;
 		T cy = 0.0;
 
-		for(int i = 0; i < motion.m_MotionParams.size(); ++i)
+		for (int i = 0; i < motion.m_MotionParams.size(); ++i)
 		{
 			switch(motion.m_MotionParams[i].first)
 			{
@@ -821,10 +822,10 @@ private:
 			}
 		}
 
-		if ( r != 0.0 || g != 0.0 || b != 0.0 )
+		if (r != 0.0 || g != 0.0 || b != 0.0)
 			os << " background=\"" << r << " " << g << " " << b << "\"";
 
-		if ( cx != 0.0 || cy != 0.0 )
+		if (cx != 0.0 || cy != 0.0)
 			os << " center=\"" << cx << " " << cy << "\"";
 
 		os << "/>\n";

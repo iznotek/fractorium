@@ -978,7 +978,7 @@ private:
 				if (theXform)
 				{
 					//Check for non-zero motion params.
-					if (abs(theXform->m_MotionFreq) > 0.0)//Original checked for motion func being non-zero, but it was set to MOTION_SIN (1) in Xform::Init(), so don't check for 0 here.
+					if (fabs(theXform->m_MotionFreq) > 0.0)//Original checked for motion func being non-zero, but it was set to MOTION_SIN (1) in Xform::Init(), so don't check for 0 here.
 					{
 						m_ErrorReport.push_back(string(loc) + " : Motion parameters should not be specified in regular, non-motion xforms");
 					}
@@ -1007,7 +1007,7 @@ private:
 			}
 			else if (!Compare(childNode->name, "flame_motion"))
 			{
-				FlameMotion<T> motion;
+				EmberMotion<T> motion;
 
 				att = childNode->properties;
 
@@ -1026,13 +1026,14 @@ private:
 					else if (!Compare(curAtt->name, "motion_function"))
 					{
 						string func(attStr);
-						if ( func == "sin" )
+
+						if (func == "sin")
 							motion.m_MotionFunc = MOTION_SIN;
-						else if ( func == "triangle" )
+						else if (func == "triangle")
 							motion.m_MotionFunc = MOTION_TRIANGLE;
-						else if ( func == "hill" )
+						else if (func == "hill")
 							motion.m_MotionFunc = MOTION_HILL;
-						else if ( func == "saw" )
+						else if (func == "saw")
 							motion.m_MotionFunc = MOTION_SAW;
 						else
 						{
@@ -1041,31 +1042,31 @@ private:
 						}
 					}
 					else if (!Compare(curAtt->name, "zoom"))
-						ret = ret && AttToFlameMotionFloat(att, attStr, FLAME_MOTION_ZOOM, motion);
+						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_ZOOM, motion);
 					else if (!Compare(curAtt->name, "cam_zpos"))
-						ret = ret && AttToFlameMotionFloat(att, attStr, FLAME_MOTION_ZPOS, motion);
+						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_ZPOS, motion);
 					else if (!Compare(curAtt->name, "cam_persp"))
-						ret = ret && AttToFlameMotionFloat(att, attStr, FLAME_MOTION_PERSPECTIVE, motion);
+						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_PERSPECTIVE, motion);
 					else if (!Compare(curAtt->name, "cam_yaw"))
-						ret = ret && AttToFlameMotionFloat(att, attStr, FLAME_MOTION_YAW, motion);
+						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_YAW, motion);
 					else if (!Compare(curAtt->name, "cam_pitch"))
-						ret = ret && AttToFlameMotionFloat(att, attStr, FLAME_MOTION_PITCH, motion);
+						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_PITCH, motion);
 					else if (!Compare(curAtt->name, "cam_dof"))
-						ret = ret && AttToFlameMotionFloat(att, attStr, FLAME_MOTION_DEPTH_BLUR, motion);
+						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_DEPTH_BLUR, motion);
 					else if (!Compare(curAtt->name, "rotate"))
-						ret = ret && AttToFlameMotionFloat(att, attStr, FLAME_MOTION_ROTATE, motion);
+						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_ROTATE, motion);
 					else if (!Compare(curAtt->name, "hue"))
-						ret = ret && AttToFlameMotionFloat(att, attStr, FLAME_MOTION_HUE, motion);
+						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_HUE, motion);
 					else if (!Compare(curAtt->name, "brightness"))
-						ret = ret && AttToFlameMotionFloat(att, attStr, FLAME_MOTION_BRIGHTNESS, motion);
+						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_BRIGHTNESS, motion);
 					else if (!Compare(curAtt->name, "gamma"))
-						ret = ret && AttToFlameMotionFloat(att, attStr, FLAME_MOTION_GAMMA, motion);
+						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_GAMMA, motion);
 					else if (!Compare(curAtt->name, "gamma_threshold"))
-						ret = ret && AttToFlameMotionFloat(att, attStr, FLAME_MOTION_GAMMA_THRESH, motion);
+						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_GAMMA_THRESH, motion);
 					else if (!Compare(curAtt->name, "highlight_power"))
-						ret = ret && AttToFlameMotionFloat(att, attStr, FLAME_MOTION_HIGHLIGHT_POWER, motion);
+						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_HIGHLIGHT_POWER, motion);
 					else if (!Compare(curAtt->name, "vibrancy"))
-						ret = ret && AttToFlameMotionFloat(att, attStr, FLAME_MOTION_VIBRANCY, motion);
+						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_VIBRANCY, motion);
 					else if (!Compare(curAtt->name, "background"))
 					{
 						double r, g, b;
@@ -1078,11 +1079,13 @@ private:
 						}
 
 						if (r != 0)
-							motion.m_MotionParams.push_back(pair<eFlameMotionParam, T>(FLAME_MOTION_BACKGROUND_R, T(r)));
+							motion.m_MotionParams.push_back(MotionParam<T>(FLAME_MOTION_BACKGROUND_R, T(r)));
+
 						if (g != 0)
-							motion.m_MotionParams.push_back(pair<eFlameMotionParam, T>(FLAME_MOTION_BACKGROUND_G, T(g)));
+							motion.m_MotionParams.push_back(MotionParam<T>(FLAME_MOTION_BACKGROUND_G, T(g)));
+
 						if (b != 0)
-							motion.m_MotionParams.push_back(pair<eFlameMotionParam, T>(FLAME_MOTION_BACKGROUND_B, T(b)));
+							motion.m_MotionParams.push_back(MotionParam<T>(FLAME_MOTION_BACKGROUND_B, T(b)));
 					}
 					else if (!Compare(curAtt->name, "center"))
 					{
@@ -1096,9 +1099,10 @@ private:
 						}
 
 						if (cx != 0)
-							motion.m_MotionParams.push_back(pair<eFlameMotionParam, T>(FLAME_MOTION_CENTER_X, T(cx)));
+							motion.m_MotionParams.push_back(MotionParam<T>(FLAME_MOTION_CENTER_X, T(cx)));
+
 						if (cy != 0)
-							motion.m_MotionParams.push_back(pair<eFlameMotionParam, T>(FLAME_MOTION_CENTER_Y, T(cy)));
+							motion.m_MotionParams.push_back(MotionParam<T>(FLAME_MOTION_CENTER_Y, T(cy)));
 					}
 					else
 					{
@@ -1110,7 +1114,7 @@ private:
 					xmlFree(attStr);
 				}
 
-				currentEmber.m_FlameMotionElements.push_back(motion);
+				currentEmber.m_EmberMotionElements.push_back(motion);
 			}
 		}
 
@@ -1125,26 +1129,27 @@ private:
 	}
 
 	/// <summary>
-	/// Parse a floating point value from an xml attribute and add the value to a FlameMotion object
+	/// Parse a floating point value from an xml attribute and add the value to a EmberMotion object
 	/// </summary>
 	/// <param name="att">The current attribute</param>
 	/// <param name="attStr">The attribute value to parse</param>
 	/// <param name="param">The flame motion parameter type</param>
 	/// <param name="motion">The flame motion element to add the parameter to</param>
 	/// <returns>True if there were no errors, else false.</returns>
-	bool AttToFlameMotionFloat(xmlAttrPtr att, const char *attStr, eFlameMotionParam param, FlameMotion<T> &motion)
+	bool AttToEmberMotionFloat(xmlAttrPtr att, const char* attStr, eEmberMotionParam param, EmberMotion<T>& motion)
 	{
 		const char* loc = __FUNCTION__;
-
 		bool r = false;
 		T val = 0.0;
 
 		if (Atof(attStr, val))
 		{
-			motion.m_MotionParams.push_back(pair<eFlameMotionParam, T>(param, val));
+			motion.m_MotionParams.push_back(MotionParam<T>(param, val));
 			r = true;
-		} else {
-			m_ErrorReport.push_back(string(loc) + " : Failed to parse float value for flame motion attribute \"" + string(CCX(att->name)) + "\" : " + string(attStr) + "");
+		}
+		else
+		{
+			m_ErrorReport.push_back(string(loc) + " : Failed to parse float value for flame motion attribute \"" + string(CCX(att->name)) + "\" : " + string(attStr));
 		}
 
 		return r;

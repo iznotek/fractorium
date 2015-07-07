@@ -395,14 +395,14 @@ bool EmberGenome(EmberOptions& opt)
 			if (i < embers.size() - 1)
 			{
 				vector<Ember<T>> interpEmbers;
+
 				interpEmbers.push_back(embers[i]);
 				interpEmbers.push_back(embers[i + 1]);
 
 				if (opt.Loops() > 0)
 				{
-				  // we might have looped a non-integral number of times, so store the last result as our flame to interpolate from
-
-				  interpEmbers[i] = result;
+					//We might have looped a non-integral number of times, so store the last result as our flame to interpolate from.
+					interpEmbers[i] = result;
 				}
 
 				for (frame = 0; frame < opt.Frames(); frame++)

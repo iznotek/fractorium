@@ -271,6 +271,7 @@
     <ClInclude Include="..\..\..\Source\Ember\CarToRas.h" />
     <ClInclude Include="..\..\..\Source\Ember\Curves.h" />
     <ClInclude Include="..\..\..\Source\Ember\EmberDefines.h" />
+    <ClInclude Include="..\..\..\Source\Ember\EmberMotion.h" />
     <ClInclude Include="..\..\..\Source\Ember\EmberPch.h" />
     <ClInclude Include="..\..\..\Source\Ember\Ember.h" />
     <ClInclude Include="..\..\..\Source\Ember\DensityFilter.h" />
