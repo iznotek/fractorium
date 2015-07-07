@@ -239,7 +239,7 @@ bool EmberGenome(EmberOptions& opt)
 
 	if (opt.TemplateFile() != "")
 	{
-		if (!ParseEmberFile(parser, opt.TemplateFile(), templateEmbers))
+		if (!ParseEmberFile(parser, opt.TemplateFile(), templateEmbers, false))//Do not use defaults here to ensure only present fields get used when applying the template.
 			return false;
 
 		if (templateEmbers.size() > 1)

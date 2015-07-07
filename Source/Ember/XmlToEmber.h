@@ -253,8 +253,9 @@ public:
 	/// <param name="buf">The buffer to parse</param>
 	/// <param name="filename">Full path and filename, optionally empty</param>
 	/// <param name="embers">The newly constructed embers based on what was parsed</param>
+	/// <param name="useDefaults">True to use defaults if they are not present in the file, else false to use invalid values as placeholders to indicate the values were not present. Default: true.</param>
 	/// <returns>True if there were no errors, else false.</returns>
-	bool Parse(byte* buf, const char* filename, vector<Ember<T>>& embers)
+	bool Parse(byte* buf, const char* filename, vector<Ember<T>>& embers, bool useDefaults = true)
 	{
 		char* bn;
 		const char* xmlPtr;
@@ -286,7 +287,7 @@ public:
 		//Scan for <flame> nodes, starting with this node.
 		//t.Tic();
 		bn = basename(const_cast<char*>(filename));
-		ScanForEmberNodes(rootnode, bn, embers);
+		ScanForEmberNodes(rootnode, bn, embers, useDefaults);
 		xmlFreeDoc(doc);
 		emberSize = embers.size();
 		//t.Toc("ScanForEmberNodes");
@@ -337,8 +338,9 @@ public:
 	/// </summary>
 	/// <param name="filename">Full path and filename</param>
 	/// <param name="embers">The newly constructed embers based on what was parsed</param>
+	/// <param name="useDefaults">True to use defaults if they are not present in the file, else false to use invalid values as placeholders to indicate the values were not present. Default: true.</param>
 	/// <returns>True if there were no errors, else false.</returns>
-	bool Parse(const char* filename, vector<Ember<T>>& embers)
+	bool Parse(const char* filename, vector<Ember<T>>& embers, bool useDefaults = true)
 	{
 		const char* loc = __FUNCTION__;
 		string buf;
@@ -353,7 +355,7 @@ public:
 		if (ReadFile(filename, buf))
 		{
 			std::replace(buf.begin(), buf.end(), '&', '+');
-			return Parse(reinterpret_cast<byte*>(const_cast<char*>(buf.data())), filename, embers);
+			return Parse(reinterpret_cast<byte*>(const_cast<char*>(buf.data())), filename, embers, useDefaults);
 		}
 		else
 			return false;
@@ -488,7 +490,8 @@ private:
 	/// <param name="curNode">The current node to parse</param>
 	/// <param name="parentFile">The full path and filename</param>
 	/// <param name="embers">The newly constructed embers based on what was parsed</param>
-	void ScanForEmberNodes(xmlNode* curNode, char* parentFile, vector<Ember<T>>& embers)
+	/// <param name="useDefaults">True to use defaults if they are not present in the file, else false to use invalid values as placeholders to indicate the values were not present.</param>
+	void ScanForEmberNodes(xmlNode* curNode, char* parentFile, vector<Ember<T>>& embers, bool useDefaults)
 	{
 		bool parseEmberSuccess;
 		xmlNodePtr thisNode = nullptr;
@@ -503,6 +506,10 @@ private:
 			if (thisNode->type == XML_ELEMENT_NODE && !Compare(thisNode->name, "flame"))
 			{
 				Ember<T> currentEmber;//Place this inside here so its constructor is called each time.
+
+				//Useful for parsing templates when not every member should be set.
+				if (!useDefaults)
+					currentEmber.Clear(false);
 
 				parseEmberSuccess = ParseEmberElement(thisNode, currentEmber);
 
@@ -532,7 +539,7 @@ private:
 			else
 			{
 				//Check all of the children of this element.
-				ScanForEmberNodes(thisNode->children, parentFile, embers);
+				ScanForEmberNodes(thisNode->children, parentFile, embers, useDefaults);
 			}
 		}
 	}

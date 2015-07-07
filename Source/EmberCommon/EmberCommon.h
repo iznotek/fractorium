@@ -81,11 +81,12 @@ private:
 /// <param name="parser">The parser to use</param>
 /// <param name="filename">The full path and name of the file</param>
 /// <param name="embers">Storage for the embers read from the file</param>
+/// <param name="useDefaults">True to use defaults if they are not present in the file, else false to use invalid values as placeholders to indicate the values were not present. Default: true.</param>
 /// <returns>True if success, else false.</returns>
 template <typename T>
-static bool ParseEmberFile(XmlToEmber<T>& parser, string filename, vector<Ember<T>>& embers)
+static bool ParseEmberFile(XmlToEmber<T>& parser, string filename, vector<Ember<T>>& embers, bool useDefaults = true)
 {
-	if (!parser.Parse(filename.c_str(), embers))
+	if (!parser.Parse(filename.c_str(), embers, useDefaults))
 	{
 		cout << "Error parsing flame file " << filename << ", returning without executing." << endl;
 		return false;
