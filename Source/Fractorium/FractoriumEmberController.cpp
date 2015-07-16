@@ -217,6 +217,7 @@ template <typename T>
 void FractoriumEmberController<T>::Update(std::function<void (void)> func, bool updateRender, eProcessAction action)
 {
 	func();
+	FillSummary();
 
 	if (updateRender)
 		UpdateRender(action);
@@ -294,6 +295,8 @@ void FractoriumEmberController<T>::UpdateXform(std::function<void(Xform<T>*)> fu
 		break;
 	}
 
+	FillSummary();
+
 	if (updateRender)
 		UpdateRender(action);
 }
@@ -305,6 +308,7 @@ void FractoriumEmberController<T>::UpdateXform(std::function<void(Xform<T>*)> fu
 /// Resets the rendering process.
 /// </summary>
 /// <param name="ember">The ember to set as the current</param>
+/// <param name="verbatim">If true, do not overwrite temporal samples, quality or supersample value, else overwrite.</param>
 template <typename T>
 template <typename U>
 void FractoriumEmberController<T>::SetEmberPrivate(const Ember<U>& ember, bool verbatim)
@@ -335,6 +339,7 @@ void FractoriumEmberController<T>::SetEmberPrivate(const Ember<U>& ember, bool v
 	m_GLController->ResetMouseState();
 	FillXforms();//Must do this first because the palette setup in FillParamTablesAndPalette() uses the xforms combo.
 	FillParamTablesAndPalette();
+	FillSummary();
 
 	//If a resize happened, this won't do anything because the new size is not reflected in the scroll area yet.
 	//However, it will have been taken care of in SyncSizes() in that case, so it's ok. 

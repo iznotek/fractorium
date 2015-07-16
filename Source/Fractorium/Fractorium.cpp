@@ -103,6 +103,7 @@ Fractorium::Fractorium(QWidget* p)
 	InitXaosUI();
 	InitPaletteUI();
 	InitLibraryUI();
+	InitInfoUI();
 	InitMenusUI();
 
 	//This will init the controller and fill in the variations and palette tables with template specific instances
@@ -175,6 +176,7 @@ Fractorium::Fractorium(QWidget* p)
 	ui.XformPaletteRefTable->setStyleSheet("QTableWidget::item { padding: 0px; border: none; margin: 0px; }");
 	ui.PaletteAdjustTable->setStyleSheet("QTableWidget::item { padding: 1px; }");//Need this to avoid covering the top border pixel with the spinners.
 	ui.statusBar->setStyleSheet("QStatusBar QLabel { padding-left: 2px; padding-right: 2px; }");
+	ui.XaosTableView->setStyleSheet("QTableView { margin: 1px}");
 
 	//setStyleSheet("QGroupBox { border: 2px solid gray; border-radius: 3px; } ");
 	
@@ -747,7 +749,11 @@ void Fractorium::SetTabOrders()
 	w = SetTabOrder(this, w, ui.PaletteFilterClearButton);
 	w = SetTabOrder(this, w, ui.PaletteListTable);
 
-	w = SetTabOrder(this, ui.InfoBoundsGroupBox, ui.InfoBoundsFrame);//Info.
+
+	w = SetTabOrder(this, ui.SummaryTableWidget, ui.SummaryTreeWidget);//Info summary.
+	
+	w = SetTabOrder(this, ui.InfoBoundsGroupBox, ui.InfoBoundsFrame);//Info bounds.
+	
 	w = SetTabOrder(this, w, ui.InfoBoundsTable);
 	w = SetTabOrder(this, w, ui.InfoFileOpeningGroupBox);
 	w = SetTabOrder(this, w, ui.InfoFileOpeningTextEdit);
