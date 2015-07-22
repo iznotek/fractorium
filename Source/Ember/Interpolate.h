@@ -883,9 +883,13 @@ public:
 
 			return fr;
 		}
-		else//MOTION_HILL
+		else if (funcNum == MOTION_HILL)
 		{
 			return ((1 - cos(T(2.0) * T(M_PI) * timeVal)) * T(0.5));
+		}
+		else //MOTION_SAW
+		{
+			return (T(2.0) * fmod(timeVal - T(0.5), T(1.0)) - T(1.0));
 		}
 	}
 

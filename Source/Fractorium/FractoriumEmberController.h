@@ -178,7 +178,7 @@ public:
 	virtual void XformColorSpeedChanged(double d) { }
 	virtual void XformOpacityChanged(double d) { }
 	virtual void XformDirectColorChanged(double d) { }
-	void SetPaletteRefTable(QPixmap* pixmap);
+	virtual QColor ColorIndexToQColor(double d) { return QColor(); }
 
 	//Xforms Variations.
 	virtual void SetupVariationTree() { }
@@ -199,11 +199,12 @@ public:
 	virtual bool FillPaletteTable(const string& s) { return false; }
 	virtual void ApplyPaletteToEmber() { }
 	virtual void PaletteAdjust() { }
-	virtual QRgb GetQRgbFromPaletteIndex(uint i) { return QRgb(); }
 	virtual void PaletteCellClicked(int row, int col) { }
+	QImage& FinalPaletteImage() { return m_FinalPaletteImage; }
 
 	//Info.
-
+	virtual void FillSummary() { }
+	
 	//Rendering/progress.
 	virtual bool Render() { return false; }
 	virtual bool CreateRenderer(eRendererType renderType, uint platform, uint device, bool shared = true) { return false; }
@@ -413,6 +414,7 @@ public:
 	virtual void XformColorSpeedChanged(double d) override;
 	virtual void XformOpacityChanged(double d) override;
 	virtual void XformDirectColorChanged(double d) override;
+	virtual QColor ColorIndexToQColor(double d) override;
 	void FillColorWithXform(Xform<T>* xform);
 
 	//Xforms Variations.
@@ -433,10 +435,10 @@ public:
 	virtual bool FillPaletteTable(const string& s) override;
 	virtual void ApplyPaletteToEmber() override;
 	virtual void PaletteAdjust() override;
-	virtual QRgb GetQRgbFromPaletteIndex(uint i) override { return QRgb(); }
 	virtual void PaletteCellClicked(int row, int col) override;
 
 	//Info.
+	virtual void FillSummary() override;
 
 	//Rendering/progress.
 	virtual bool Render() override;

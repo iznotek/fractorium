@@ -183,13 +183,7 @@ void FractoriumEmberController<T>::BackgroundChanged(const QColor& color)
 		QString g = ToString(color.green());
 		QString b = ToString(color.blue());
 
-		int threshold = 105;
-		int delta = (color.red()   * 0.299) + //Magic numbers gotten from a Stack Overflow post.
-					(color.green() * 0.587) +
-					(color.blue()  * 0.114);
-
-		QColor textColor = (255 - delta < threshold) ? QColor(0, 0, 0) : QColor(255, 255, 255);
-		colorTable->item(itemRow, 1)->setTextColor(textColor);
+		colorTable->item(itemRow, 1)->setTextColor(VisibleColor(color));
 		colorTable->item(itemRow, 1)->setText("rgb(" + r + ", " + g + ", " + b + ")");
 
 		//Color is 0-255, normalize to 0-1.

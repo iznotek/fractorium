@@ -196,6 +196,10 @@ public:
 	/// <summary>
 	/// Member-wise constructor.
 	/// </summary>
+	/// <param name="rr">The red value, either 0-1 or 0-255.</param>
+	/// <param name="gg">The green value, either 0-1 or 0-255.</param>
+	/// <param name="bb">The blue value, either 0-1 or 0-255.</param>
+	/// <param name="aa">The alpha value, either 0-1 or 0-255.</param>
 	Color(T rr, T gg, T bb, T aa)
 		: v4T(rr, gg, bb, aa)
 	{

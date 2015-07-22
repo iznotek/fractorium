@@ -192,7 +192,7 @@ void FractoriumEmberController<T>::UpdateAdjustedPaletteGUI(Palette<T>& palette)
 		memcpy(m_FinalPaletteImage.scanLine(0), v.data(), v.size() * sizeof(v[0]));//Memcpy the data in.
 		QPixmap pixmap = QPixmap::fromImage(m_FinalPaletteImage);//Create a QPixmap out of the QImage.
 		previewPaletteItem->setData(Qt::DecorationRole, pixmap.scaled(QSize(pixmap.width(), palettePreviewTable->rowHeight(0) + 2), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));//Set the pixmap on the palette tab.
-		SetPaletteRefTable(&pixmap);//Set the palette ref table on the xforms | color tab.
+		m_Fractorium->SetPaletteTableItem(&pixmap, m_Fractorium->ui.XformPaletteRefTable, m_Fractorium->m_PaletteRefItem, 0, 0);//Set the palette ref table on the xforms | color tab.
 
 		QTableWidgetItem* previewNameItem = palettePreviewTable->item(0, 0);
 		previewNameItem->setText(paletteName);//Finally, set the name of the palette to be both the text and the tooltip.

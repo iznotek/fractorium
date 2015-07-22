@@ -24,6 +24,7 @@ template<> unique_ptr<QTIsaac<ISAAC_SIZE, ISAAC_INT>> QTIsaac<ISAAC_SIZE, ISAAC_
 #include "VariationList.h"
 #include "Affine2D.h"
 #include "Xform.h"
+#include "EmberMotion.h"
 #include "EmberToXml.h"
 #include "XmlToEmber.h"
 #include "SpatialFilter.h"
@@ -65,6 +66,8 @@ uint Timing::m_ProcessorCount;
 	template EMBER_API class StandardIterator<T>; \
 	template EMBER_API class XaosIterator<T>; \
 	template EMBER_API class Xform<T>; \
+	template EMBER_API class MotionParam<T>; \
+	template EMBER_API class EmberMotion<T>; \
 	template EMBER_API class IteratorHelper<T>; \
 	template EMBER_API class Variation<T>; \
 	template EMBER_API class ParamWithName<T>; \

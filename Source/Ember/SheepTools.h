@@ -1010,11 +1010,11 @@ public:
 
 			if (!xform1->m_Motion.empty())
 				xform2->ApplyMotion(*xform1, blend);
-
-			xform2->DeleteMotionElements();
 		}
 
+		rotated.ApplyFlameMotion(blend);
 		rotated.RotateAffines(-blend * 360);//Rotate the affines.
+		rotated.DeleteMotionElements();//Delete all motion elements from the looped ember, at the xform level and at the parent ember level.
 	}
 
 	/// <summary>

@@ -226,8 +226,9 @@ void FractoriumEmberController<T>::EmberTreeItemChanged(QTreeWidgetItem* item, i
 				m_Ember.m_Name = newName;
 				m_LastSaveCurrent = "";//Reset will force the dialog to show on the next save current since the user probably wants a different name.
 			}
-	
+
 			tree->blockSignals(false);
+			FillSummary();
 		}
 		else if (QTreeWidgetItem* parentItem = dynamic_cast<QTreeWidgetItem*>(item))
 		{

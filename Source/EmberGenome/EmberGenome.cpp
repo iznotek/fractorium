@@ -239,7 +239,7 @@ bool EmberGenome(EmberOptions& opt)
 
 	if (opt.TemplateFile() != "")
 	{
-		if (!ParseEmberFile(parser, opt.TemplateFile(), templateEmbers))
+		if (!ParseEmberFile(parser, opt.TemplateFile(), templateEmbers, false))//Do not use defaults here to ensure only present fields get used when applying the template.
 			return false;
 
 		if (templateEmbers.size() > 1)
@@ -382,9 +382,9 @@ bool EmberGenome(EmberOptions& opt)
 
 		for (i = 0; i < embers.size(); i++)
 		{
-			if (opt.Loops())
+			if (opt.Loops() > 0)
 			{
-				for (frame = 0; frame < opt.Frames(); frame++)
+				for (frame = 0; frame < round(T(opt.Frames()) * opt.Loops()); frame++)
 				{
 					blend = T(frame) / T(opt.Frames());
 					tools.Spin(embers[i], pTemplate, result, frameCount++, blend);//Result is cleared and reassigned each time inside of Spin().
@@ -394,12 +394,23 @@ bool EmberGenome(EmberOptions& opt)
 
 			if (i < embers.size() - 1)
 			{
+				vector<Ember<T>> interpEmbers;
+
+				interpEmbers.push_back(embers[i]);
+				interpEmbers.push_back(embers[i + 1]);
+
+				if (opt.Loops() > 0)
+				{
+					//We might have looped a non-integral number of times, so store the last result as our flame to interpolate from.
+					interpEmbers[i] = result;
+				}
+
 				for (frame = 0; frame < opt.Frames(); frame++)
 				{
 					seqFlag = (frame == 0 || frame == opt.Frames() - 1);
 					blend = frame / T(opt.Frames());
 					result.Clear();
-					tools.SpinInter(&embers[i], pTemplate, result, frameCount++, seqFlag, blend);
+					tools.SpinInter(&interpEmbers[i], pTemplate, result, frameCount++, seqFlag, blend);
 					cout << emberToXml.ToString(result, opt.Extras(), opt.PrintEditDepth(), !opt.NoEdits(), false, opt.HexPalette());
 				}
 			}

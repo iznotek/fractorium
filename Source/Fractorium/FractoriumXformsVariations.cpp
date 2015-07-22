@@ -150,6 +150,7 @@ void FractoriumEmberController<T>::VariationSpinBoxValueChanged(double d)//Would
 			{
 				if (xformParVar->SetParamVal(sender->ParamName().c_str(), d))
 				{
+					FillSummary();
 					UpdateRender();
 				}
 			}
@@ -203,6 +204,7 @@ void FractoriumEmberController<T>::VariationSpinBoxValueChanged(double d)//Would
 				}
 			}
 
+			FillSummary();
 			UpdateRender();
 		}
 	}

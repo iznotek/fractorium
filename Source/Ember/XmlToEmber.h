@@ -253,8 +253,9 @@ public:
 	/// <param name="buf">The buffer to parse</param>
 	/// <param name="filename">Full path and filename, optionally empty</param>
 	/// <param name="embers">The newly constructed embers based on what was parsed</param>
+	/// <param name="useDefaults">True to use defaults if they are not present in the file, else false to use invalid values as placeholders to indicate the values were not present. Default: true.</param>
 	/// <returns>True if there were no errors, else false.</returns>
-	bool Parse(byte* buf, const char* filename, vector<Ember<T>>& embers)
+	bool Parse(byte* buf, const char* filename, vector<Ember<T>>& embers, bool useDefaults = true)
 	{
 		char* bn;
 		const char* xmlPtr;
@@ -286,7 +287,7 @@ public:
 		//Scan for <flame> nodes, starting with this node.
 		//t.Tic();
 		bn = basename(const_cast<char*>(filename));
-		ScanForEmberNodes(rootnode, bn, embers);
+		ScanForEmberNodes(rootnode, bn, embers, useDefaults);
 		xmlFreeDoc(doc);
 		emberSize = embers.size();
 		//t.Toc("ScanForEmberNodes");
@@ -337,8 +338,9 @@ public:
 	/// </summary>
 	/// <param name="filename">Full path and filename</param>
 	/// <param name="embers">The newly constructed embers based on what was parsed</param>
+	/// <param name="useDefaults">True to use defaults if they are not present in the file, else false to use invalid values as placeholders to indicate the values were not present. Default: true.</param>
 	/// <returns>True if there were no errors, else false.</returns>
-	bool Parse(const char* filename, vector<Ember<T>>& embers)
+	bool Parse(const char* filename, vector<Ember<T>>& embers, bool useDefaults = true)
 	{
 		const char* loc = __FUNCTION__;
 		string buf;
@@ -353,7 +355,7 @@ public:
 		if (ReadFile(filename, buf))
 		{
 			std::replace(buf.begin(), buf.end(), '&', '+');
-			return Parse(reinterpret_cast<byte*>(const_cast<char*>(buf.data())), filename, embers);
+			return Parse(reinterpret_cast<byte*>(const_cast<char*>(buf.data())), filename, embers, useDefaults);
 		}
 		else
 			return false;
@@ -488,7 +490,8 @@ private:
 	/// <param name="curNode">The current node to parse</param>
 	/// <param name="parentFile">The full path and filename</param>
 	/// <param name="embers">The newly constructed embers based on what was parsed</param>
-	void ScanForEmberNodes(xmlNode* curNode, char* parentFile, vector<Ember<T>>& embers)
+	/// <param name="useDefaults">True to use defaults if they are not present in the file, else false to use invalid values as placeholders to indicate the values were not present.</param>
+	void ScanForEmberNodes(xmlNode* curNode, char* parentFile, vector<Ember<T>>& embers, bool useDefaults)
 	{
 		bool parseEmberSuccess;
 		xmlNodePtr thisNode = nullptr;
@@ -503,6 +506,10 @@ private:
 			if (thisNode->type == XML_ELEMENT_NODE && !Compare(thisNode->name, "flame"))
 			{
 				Ember<T> currentEmber;//Place this inside here so its constructor is called each time.
+
+				//Useful for parsing templates when not every member should be set.
+				if (!useDefaults)
+					currentEmber.Clear(false);
 
 				parseEmberSuccess = ParseEmberElement(thisNode, currentEmber);
 
@@ -532,7 +539,7 @@ private:
 			else
 			{
 				//Check all of the children of this element.
-				ScanForEmberNodes(thisNode->children, parentFile, embers);
+				ScanForEmberNodes(thisNode->children, parentFile, embers, useDefaults);
 			}
 		}
 	}
@@ -971,7 +978,7 @@ private:
 				if (theXform)
 				{
 					//Check for non-zero motion params.
-					if (theXform->m_MotionFreq != 0)//Original checked for motion func being non-zero, but it was set to MOTION_SIN (1) in Xform::Init(), so don't check for 0 here.
+					if (fabs(theXform->m_MotionFreq) > 0.0)//Original checked for motion func being non-zero, but it was set to MOTION_SIN (1) in Xform::Init(), so don't check for 0 here.
 					{
 						m_ErrorReport.push_back(string(loc) + " : Motion parameters should not be specified in regular, non-motion xforms");
 					}
@@ -998,6 +1005,117 @@ private:
 				editNode = xmlCopyNode(childNode, 1);
 				xmlDocSetRootElement(currentEmber.m_Edits, editNode);
 			}
+			else if (!Compare(childNode->name, "flame_motion"))
+			{
+				EmberMotion<T> motion;
+
+				att = childNode->properties;
+
+				if (att == nullptr)
+				{
+					m_ErrorReport.push_back(string(loc) + " : <flame_motion> element has no attributes");
+					return false;
+				}
+
+				for (curAtt = att; curAtt; curAtt = curAtt->next)
+				{
+					attStr = reinterpret_cast<char*>(xmlGetProp(childNode, curAtt->name));
+
+					if		(ParseAndAssignFloat(curAtt->name, attStr, "motion_frequency", motion.m_MotionFreq, ret)) { }
+					else if	(ParseAndAssignFloat(curAtt->name, attStr, "motion_offset", motion.m_MotionOffset, ret)) { }
+					else if (!Compare(curAtt->name, "motion_function"))
+					{
+						string func(attStr);
+
+						if (func == "sin")
+							motion.m_MotionFunc = MOTION_SIN;
+						else if (func == "triangle")
+							motion.m_MotionFunc = MOTION_TRIANGLE;
+						else if (func == "hill")
+							motion.m_MotionFunc = MOTION_HILL;
+						else if (func == "saw")
+							motion.m_MotionFunc = MOTION_SAW;
+						else
+						{
+							m_ErrorReport.push_back(string(loc) + " : invalid flame motion function " + func);
+							return false;
+						}
+					}
+					else if (!Compare(curAtt->name, "zoom"))
+						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_ZOOM, motion);
+					else if (!Compare(curAtt->name, "cam_zpos"))
+						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_ZPOS, motion);
+					else if (!Compare(curAtt->name, "cam_persp"))
+						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_PERSPECTIVE, motion);
+					else if (!Compare(curAtt->name, "cam_yaw"))
+						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_YAW, motion);
+					else if (!Compare(curAtt->name, "cam_pitch"))
+						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_PITCH, motion);
+					else if (!Compare(curAtt->name, "cam_dof"))
+						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_DEPTH_BLUR, motion);
+					else if (!Compare(curAtt->name, "rotate"))
+						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_ROTATE, motion);
+					else if (!Compare(curAtt->name, "hue"))
+						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_HUE, motion);
+					else if (!Compare(curAtt->name, "brightness"))
+						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_BRIGHTNESS, motion);
+					else if (!Compare(curAtt->name, "gamma"))
+						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_GAMMA, motion);
+					else if (!Compare(curAtt->name, "gamma_threshold"))
+						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_GAMMA_THRESH, motion);
+					else if (!Compare(curAtt->name, "highlight_power"))
+						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_HIGHLIGHT_POWER, motion);
+					else if (!Compare(curAtt->name, "vibrancy"))
+						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_VIBRANCY, motion);
+					else if (!Compare(curAtt->name, "background"))
+					{
+						double r, g, b;
+
+						if (sscanf_s(attStr, "%lf %lf %lf", &r, &g, &b) != 3)
+						{
+							m_ErrorReport.push_back(string(loc) + " : Invalid flame motion background attribute " + string(attStr));
+							xmlFree(attStr);
+							return false;
+						}
+
+						if (r != 0)
+							motion.m_MotionParams.push_back(MotionParam<T>(FLAME_MOTION_BACKGROUND_R, T(r)));
+
+						if (g != 0)
+							motion.m_MotionParams.push_back(MotionParam<T>(FLAME_MOTION_BACKGROUND_G, T(g)));
+
+						if (b != 0)
+							motion.m_MotionParams.push_back(MotionParam<T>(FLAME_MOTION_BACKGROUND_B, T(b)));
+					}
+					else if (!Compare(curAtt->name, "center"))
+					{
+						double cx, cy;
+
+						if (sscanf_s(attStr, "%lf %lf", &cx, &cy) != 2)
+						{
+							m_ErrorReport.push_back(string(loc) + " : Invalid flame motion center attribute " + string(attStr));
+							xmlFree(attStr);
+							return false;
+						}
+
+						if (cx != 0)
+							motion.m_MotionParams.push_back(MotionParam<T>(FLAME_MOTION_CENTER_X, T(cx)));
+
+						if (cy != 0)
+							motion.m_MotionParams.push_back(MotionParam<T>(FLAME_MOTION_CENTER_Y, T(cy)));
+					}
+					else
+					{
+						m_ErrorReport.push_back(string(loc) + " : Unknown flame motion attribute " + string(CCX(curAtt->name)));
+						xmlFree(attStr);
+						return false;
+					}
+
+					xmlFree(attStr);
+				}
+
+				currentEmber.m_EmberMotionElements.push_back(motion);
+			}
 		}
 
 		//if (!newLinear)
@@ -1008,6 +1126,33 @@ private:
 				currentEmber.GetXform(i)->m_Opacity = 0;//Will calc the cached adjusted viz value later.
 
 		return m_ErrorReport.empty();
+	}
+
+	/// <summary>
+	/// Parse a floating point value from an xml attribute and add the value to a EmberMotion object
+	/// </summary>
+	/// <param name="att">The current attribute</param>
+	/// <param name="attStr">The attribute value to parse</param>
+	/// <param name="param">The flame motion parameter type</param>
+	/// <param name="motion">The flame motion element to add the parameter to</param>
+	/// <returns>True if there were no errors, else false.</returns>
+	bool AttToEmberMotionFloat(xmlAttrPtr att, const char* attStr, eEmberMotionParam param, EmberMotion<T>& motion)
+	{
+		const char* loc = __FUNCTION__;
+		bool r = false;
+		T val = 0.0;
+
+		if (Atof(attStr, val))
+		{
+			motion.m_MotionParams.push_back(MotionParam<T>(param, val));
+			r = true;
+		}
+		else
+		{
+			m_ErrorReport.push_back(string(loc) + " : Failed to parse float value for flame motion attribute \"" + string(CCX(att->name)) + "\" : " + string(attStr));
+		}
+
+		return r;
 	}
 
 	/// <summary>
@@ -1047,9 +1192,8 @@ private:
 			else if (ParseAndAssignFloat(curAtt->name, attStr, "animate", xform.m_Animate, success)) { }
 			else if (ParseAndAssignFloat(curAtt->name, attStr, "opacity", xform.m_Opacity, success)) { }
 			else if (ParseAndAssignFloat(curAtt->name, attStr, "var_color", xform.m_DirectColor, success)) { }
-
-			//Parse simple int reads.
-			else if (ParseAndAssignInt(curAtt->name, attStr, "motion_frequency", xform.m_MotionFreq, success)) { }
+			else if (ParseAndAssignFloat(curAtt->name, attStr, "motion_frequency", xform.m_MotionFreq, success)) { }
+			else if (ParseAndAssignFloat(curAtt->name, attStr, "motion_offset", xform.m_MotionOffset, success)) { }
 
 			//Parse more complicated reads that have multiple possible values.
 			else if (!Compare(curAtt->name, "name"))
@@ -1073,6 +1217,8 @@ private:
 					xform.m_MotionFunc = MOTION_TRIANGLE;
 				else if (!_stricmp("hill", attStr))
 					xform.m_MotionFunc = MOTION_HILL;
+				else if (!_stricmp("saw", attStr))
+					xform.m_MotionFunc = MOTION_SAW;
 				else
 				{
 					xform.m_MotionFunc = MOTION_SIN;

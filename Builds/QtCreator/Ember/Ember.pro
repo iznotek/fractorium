@@ -52,5 +52,6 @@ HEADERS += \
     ../../../Source/Ember/Variations05.h \
     ../../../Source/Ember/VariationsDC.h \
     ../../../Source/Ember/Xform.h \
-    ../../../Source/Ember/XmlToEmber.h
+    ../../../Source/Ember/XmlToEmber.h \
+    ../../../Source/Ember/EmberMotion.h
 

@@ -142,7 +142,9 @@ void Fractorium::OnSoloXformCheckBoxStateChanged(int state)
 /// <param name="newSize">Ignored</param>
 void Fractorium::OnXformRefPaletteResized(int logicalIndex, int oldSize, int newSize)
 {
-	m_Controller->SetPaletteRefTable(nullptr);
+	QPixmap pixmap = QPixmap::fromImage(m_Controller->FinalPaletteImage());
+
+	SetPaletteTableItem(&pixmap, ui.XformPaletteRefTable, m_PaletteRefItem, 0, 0);
 }
 
 /// <summary>
@@ -195,6 +197,25 @@ void Fractorium::OnCurvesGreenRadioButtonToggled(bool checked) { if (checked) ui
 void Fractorium::OnCurvesBlueRadioButtonToggled(bool checked)  { if (checked) ui.CurvesView->SetTop(CurveIndex::BLUE);  }
 
 /// <summary>
+/// Look up the passed in index in the current ember's palette
+/// and return the QColor equivalent.
+/// </summary>
+/// <param name="d">The palette index to look up, 0-1.</param>
+/// <returns>The palette color at the given index as a QColor</returns>
+template <typename T>
+QColor FractoriumEmberController<T>::ColorIndexToQColor(double d)
+{
+	v4T entry = m_Ember.m_Palette[Clamp<int>(d * COLORMAP_LENGTH_MINUS_1, 0, m_Ember.m_Palette.Size())];
+
+	entry.r *= 255;
+	entry.g *= 255;
+	entry.b *= 255;
+
+	QRgb rgb = uint(entry.r) << 16 | uint(entry.g) << 8 | uint(entry.b);
+	return QColor::fromRgb(rgb);
+}
+
+/// <summary>
 /// Set the selected xforms color index to the passed in value.
 /// Set the color cell in the palette ref table.
 /// </summary>
@@ -207,14 +228,7 @@ void FractoriumEmberController<T>::SetCurrentXformColorIndex(double d, bool upda
 		xform->m_ColorX = Clamp<T>(d, 0, 1);
 	
 		//Grab the current color from the index and assign it to the first cell of the first table.
-		v4T entry = m_Ember.m_Palette[Clamp<int>(d * COLORMAP_LENGTH_MINUS_1, 0, m_Ember.m_Palette.Size())];
-		
-		entry.r *= 255;
-		entry.g *= 255;
-		entry.b *= 255;
-	
-		QRgb rgb = uint(entry.r) << 16 | uint(entry.g) << 8 | uint(entry.b);
-		m_Fractorium->ui.XformColorIndexTable->item(0, 0)->setBackgroundColor(QColor::fromRgb(rgb));
+		m_Fractorium->ui.XformColorIndexTable->item(0, 0)->setBackgroundColor(ColorIndexToQColor(xform->m_ColorX)/*QColor::fromRgb(rgb)*/);
 	}, eXformUpdate::UPDATE_SELECTED, updateRender);
 }
 
@@ -257,22 +271,19 @@ void FractoriumEmberController<T>::FillColorWithXform(Xform<T>* xform)
 }
 
 /// <summary>
-/// Set the palette reference table to the passed in pixmap
+/// Set the cell at the row and column in the passed in table to the passed in pixmap.
 /// </summary>
-/// <param name="pixmap">The pixmap</param>
-void FractoriumEmberControllerBase::SetPaletteRefTable(QPixmap* pixmap)
+/// <param name="pixmap">The pixmap to assign</param>
+/// <param name="table">The table whose cell will be filled with the image</param>
+/// <param name="item">The QTableWidgetItem in the cell</param>
+/// <param name="row">The row of the cell</param>
+/// <param name="col">The column of the cell</param>
+void Fractorium::SetPaletteTableItem(QPixmap* pixmap, QTableWidget* table, QTableWidgetItem* item, int row, int col)
 {
-	QSize size(m_Fractorium->ui.XformPaletteRefTable->columnWidth(0), m_Fractorium->ui.XformPaletteRefTable->rowHeight(0) + 1);
-
 	if (pixmap)
 	{
-		m_Fractorium->m_PaletteRefItem->setData(Qt::DecorationRole, pixmap->scaled(size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
-	}
-	else if (!m_FinalPaletteImage.isNull())
-	{
-		QPixmap pixTemp = QPixmap::fromImage(m_FinalPaletteImage);
-
-		m_Fractorium->m_PaletteRefItem->setData(Qt::DecorationRole, pixTemp.scaled(size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+		QSize size(table->columnWidth(col), table->rowHeight(row) + 1);
+		item->setData(Qt::DecorationRole, pixmap->scaled(size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
 	}
 }
 

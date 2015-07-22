@@ -111,3 +111,78 @@ static bool Exists(const QString& s)
 {
 	 return s != "" && QDir(s).exists();
 }
+
+/// <summary>
+/// Convert a color to one that is displayable on any background.
+/// </summary>
+/// <param name="color">The color to convert</param>
+/// <returns>The converted color</returns>
+static QColor VisibleColor(const QColor& color)
+{
+	int threshold = 105;
+	int delta = (color.red()   * 0.299) + //Magic numbers gotten from a Stack Overflow post.
+		(color.green() * 0.587) +
+		(color.blue()  * 0.114);
+
+	QColor textColor = (255 - delta < threshold) ? QColor(0, 0, 0) : QColor(255, 255, 255);
+	return textColor;
+}
+
+/// <summary>
+/// Determine whether an xform in an ember is linked to any other xform
+/// in the ember.
+/// </summary>
+/// <param name="ember">The ember which contains the xform</param>
+/// <param name="xform">The xform to inspect</param>
+/// <returns>The index of the xform that the xform argument is linked to, else -1</returns>
+template <typename T>
+static intmax_t IsXformLinked(Ember<T>& ember, Xform<T>* xform)
+{
+	auto count = ember.XformCount();
+	auto index = ember.GetXformIndex(xform);
+	intmax_t linked = -1;
+	size_t toOneCount = 0;
+	size_t toZeroCount = 0;
+	size_t toOneIndex = 0;
+	size_t fromOneCount = 0;
+	size_t fromZeroCount = 0;
+	size_t fromOneIndex = 0;
+
+	if (index >= 0)
+	{
+		for (auto i = 0; i < count; i++)
+		{
+			if (xform->Xaos(i) == 0)
+				toZeroCount++;
+			else if (xform->Xaos(i) == 1)
+			{
+				toOneIndex = i;
+				toOneCount++;
+			}
+		}
+
+		if ((toZeroCount == (count - 1)) && toOneCount == 1)
+		{
+			for (auto i = 0; i < count; i++)
+			{
+				if (auto fromXform = ember.GetXform(i))
+				{
+					if (fromXform->Xaos(toOneIndex) == 0)
+						fromZeroCount++;
+					else if (fromXform->Xaos(toOneIndex) == 1)
+					{
+						fromOneIndex = i;
+						fromOneCount++;
+					}
+				}
+			}
+
+			if ((fromZeroCount == (count - 1)) && fromOneCount == 1)
+			{
+				linked = toOneIndex;
+			}
+		}
+	}
+
+	return linked;
+}

@@ -5,6 +5,7 @@
 #include "PaletteList.h"
 #include "SpatialFilter.h"
 #include "TemporalFilter.h"
+#include "EmberMotion.h"
 
 /// <summary>
 /// Ember class.
@@ -182,6 +183,8 @@ public:
 
 		if (ember.m_Edits != nullptr)
 			m_Edits = xmlCopyDoc(ember.m_Edits, 1);
+
+		CopyVec(m_EmberMotionElements, ember.m_EmberMotionElements);
 
 		return *this;
 	}
@@ -472,6 +475,8 @@ public:
 	{
 		for (size_t i = 0; i < TotalXformCount(); i++)
 			GetTotalXform(i)->DeleteMotionElements();
+
+		m_EmberMotionElements.clear();
 	}
 
 	/// <summary>
@@ -1285,6 +1290,83 @@ public:
 		point.m_Z -= m_CamZPos;
 	}
 
+#define APP_FMP(x) x += param.second * Interpolater<T>::MotionFuncs(motion.m_MotionFunc, motion.m_MotionFreq * (blend + motion.m_MotionOffset))
+
+	/// <summary>
+	/// Update ember parameters based on stored motion elements
+	/// </summary>
+	/// <param name="blend">The time percentage value which dictates how much of a percentage of 360 degrees it should be rotated and the time position for the motion elements</param>
+	void ApplyFlameMotion(T blend)
+	{
+		for (size_t i = 0; i < m_EmberMotionElements.size(); ++i)
+		{
+			auto& motion = m_EmberMotionElements[i];
+
+			for (size_t j = 0; j < motion.m_MotionParams.size(); ++j)
+			{
+				auto& param = motion.m_MotionParams[j];
+
+				switch (param.first)
+				{
+				case FLAME_MOTION_ZOOM:
+					APP_FMP(m_Zoom);
+					break;
+				case FLAME_MOTION_ZPOS:
+					APP_FMP(m_CamZPos);
+					break;
+				case FLAME_MOTION_PERSPECTIVE:
+					APP_FMP(m_CamPerspective);
+					break;
+				case FLAME_MOTION_YAW:
+					APP_FMP(m_CamYaw);
+					break;
+				case FLAME_MOTION_PITCH:
+					APP_FMP(m_CamPitch);
+					break;
+				case FLAME_MOTION_DEPTH_BLUR:
+					APP_FMP(m_CamDepthBlur);
+					break;
+				case FLAME_MOTION_CENTER_X:
+					APP_FMP(m_CenterX);
+					break;
+				case FLAME_MOTION_CENTER_Y:
+					APP_FMP(m_CenterY);
+					break;
+				case FLAME_MOTION_ROTATE:
+					APP_FMP(m_Rotate);
+					break;
+				case FLAME_MOTION_HUE:
+					APP_FMP(m_Hue);
+					break;
+				case FLAME_MOTION_BRIGHTNESS:
+					APP_FMP(m_Brightness);
+					break;
+				case FLAME_MOTION_GAMMA:
+					APP_FMP(m_Gamma);
+					break;
+				case FLAME_MOTION_GAMMA_THRESH:
+					APP_FMP(m_GammaThresh);
+					break;
+				case FLAME_MOTION_HIGHLIGHT_POWER:
+					APP_FMP(m_HighlightPower);
+					break;
+				case FLAME_MOTION_BACKGROUND_R:
+					APP_FMP(m_Background.r);
+					break;
+				case FLAME_MOTION_BACKGROUND_G:
+					APP_FMP(m_Background.g);
+					break;
+				case FLAME_MOTION_BACKGROUND_B:
+					APP_FMP(m_Background.b);
+					break;
+				case FLAME_MOTION_VIBRANCY:
+					APP_FMP(m_Vibrancy);
+					break;
+				}
+			}
+		}
+	}
+
 	/// <summary>
 	/// Clear this ember and set to either reasonable or unreasonable default values.
 	/// </summary>
@@ -1682,6 +1764,9 @@ public:
 
 	//The 0-based position of this ember in the file it was contained in.
 	size_t m_Index;
+
+	//The list of motion elements for the top-level flame params
+	vector<EmberMotion<T>> m_EmberMotionElements;
 
 private:
 	/// <summary>

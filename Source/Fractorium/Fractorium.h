@@ -142,9 +142,6 @@ public slots:
 	void OnActionAbout(bool checked);//Help.
 
 	//Toolbar.
-	void OnSaveCurrentAsXmlButtonClicked(bool checked);
-	void OnSaveEntireFileAsXmlButtonClicked(bool checked);
-	void OnSaveCurrentToOpenedFileButtonClicked(bool checked);
 
 	//Library.
 	void OnEmberTreeItemChanged(QTreeWidgetItem* item, int col);
@@ -275,6 +272,10 @@ public slots:
 	void OnPaletteFilterClearButtonClicked(bool checked);
 	void OnPaletteHeaderSectionClicked(int col);
 
+	//Info.
+	void OnSummaryTableHeaderResized(int logicalIndex, int oldSize, int newSize);
+	void OnSummaryTreeHeaderSectionClicked(int logicalIndex);
+
 	//Rendering/progress.
 	void StartRenderTimer();
 	void IdleTimer();
@@ -311,6 +312,7 @@ private:
 	void InitXaosUI();
 	void InitPaletteUI();
 	void InitLibraryUI();
+	void InitInfoUI();
 	void SetTabOrders();
 
 	void ToggleTableRow(QTableView* table, int logicalIndex);
@@ -342,10 +344,13 @@ private:
 	//Palette.
 	void ResetPaletteControls();
 	void SetPaletteFileComboIndex(const string& filename);
+	void SetPaletteTableItem(QPixmap* pixmap, QTableWidget* table, QTableWidgetItem* item, int row, int col);
 
 	//Info.
+	void FillSummary();
 	void UpdateHistogramBounds();
 	void ErrorReportToQTextEdit(const vector<string>& errors, QTextEdit* textEdit, bool clear = true);
+	void SetTableWidgetBackgroundColor();
 
 	//Rendering/progress.
 	bool CreateRendererFromOptions();
@@ -440,6 +445,14 @@ private:
 	SpinBox* m_PaletteContrastSpin;
 	SpinBox* m_PaletteBlurSpin;
 	SpinBox* m_PaletteFrequencySpin;
+
+	//Info.
+	QTableWidgetItem* m_InfoNameItem;
+	QTableWidgetItem* m_InfoPaletteItem;
+	QTableWidgetItem* m_Info3dItem;
+	QTableWidgetItem* m_InfoXaosItem;
+	QTableWidgetItem* m_InfoXformCountItem;
+	QTableWidgetItem* m_InfoFinalXformItem;
 
 	//Files.
 	QFileDialog* m_FileDialog;
