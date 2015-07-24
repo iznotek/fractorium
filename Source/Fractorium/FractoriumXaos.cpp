@@ -97,7 +97,7 @@ void FractoriumEmberController<T>::XaosChanged(int x, int y, double val)
 
 void Fractorium::OnXaosChanged(double d)
 {
-	if (auto* senderSpinBox = dynamic_cast<DoubleSpinBox*>(this->sender()))
+	if (auto* senderSpinBox = qobject_cast<DoubleSpinBox*>(this->sender()))
 	{
 		auto p = senderSpinBox->property("tableindex").toPoint();
 

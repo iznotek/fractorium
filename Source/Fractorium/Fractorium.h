@@ -9,6 +9,7 @@
 #include "TableWidget.h"
 #include "FinalRenderDialog.h"
 #include "OptionsDialog.h"
+#include "VariationsDialog.h"
 #include "AboutDialog.h"
 #include "CurvesGraphicsView.h"
 #include "DoubleSpinBoxTableItemDelegate.h"
@@ -19,6 +20,7 @@
 
 class GLWidget;
 class FractoriumOptionsDialog;
+class FractoriumVariationsDialog;
 class FractoriumFinalRenderDialog;
 class FractoriumAboutDialog;
 class GLEmberControllerBase;
@@ -138,6 +140,7 @@ public slots:
 	void OnActionFinalRender(bool checked);
 	void OnFinalRenderClose(int result);
 	void OnActionOptions(bool checked);
+	void OnActionVariationsDialog(bool checked);
 
 	void OnActionAbout(bool checked);//Help.
 
@@ -333,6 +336,8 @@ private:
 	//Xforms Affine.
 
 	//Xforms Variations.
+	void Filter();
+	void Filter(const QString& text);
 
 	//Xforms Selection.
 	void ClearXformsSelections();
@@ -364,6 +369,7 @@ private:
 	QColorDialog* m_ColorDialog;
 	FractoriumFinalRenderDialog* m_FinalRenderDialog;
 	FractoriumOptionsDialog* m_OptionsDialog;
+	FractoriumVariationsDialog* m_VarDialog;
 	FractoriumAboutDialog* m_AboutDialog;
 
 	//Params.

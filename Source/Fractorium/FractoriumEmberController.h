@@ -181,6 +181,7 @@ public:
 	virtual QColor ColorIndexToQColor(double d) { return QColor(); }
 
 	//Xforms Variations.
+	virtual void Filter(const QString& text) { }
 	virtual void SetupVariationTree() { }
 	virtual void ClearVariationsTree() { }
 	virtual void VariationSpinBoxValueChanged(double d) { }
@@ -418,6 +419,7 @@ public:
 	void FillColorWithXform(Xform<T>* xform);
 
 	//Xforms Variations.
+	virtual void Filter(const QString& text) override;
 	virtual void SetupVariationTree() override;
 	virtual void ClearVariationsTree() override;
 	virtual void VariationSpinBoxValueChanged(double d) override;

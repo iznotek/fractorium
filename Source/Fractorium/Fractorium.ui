@@ -6198,6 +6198,7 @@ SpinBox
    <addaction name="separator"/>
    <addaction name="ActionOptions"/>
    <addaction name="separator"/>
+   <addaction name="ActionVariationsDialog"/>
   </widget>
   <action name="ActionNewFlock">
    <property name="icon">
@@ -6526,6 +6527,18 @@ SpinBox
   <action name="ActionResetWorkspace">
    <property name="text">
     <string>&amp;Reset Workspace</string>
+   </property>
+  </action>
+  <action name="ActionVariationsDialog">
+   <property name="icon">
+    <iconset resource="Fractorium.qrc">
+     <normaloff>:/Fractorium/Icons/table_gear.png</normaloff>:/Fractorium/Icons/table_gear.png</iconset>
+   </property>
+   <property name="text">
+    <string>Variations</string>
+   </property>
+   <property name="toolTip">
+    <string>Show variations filter window</string>
    </property>
   </action>
  </widget>

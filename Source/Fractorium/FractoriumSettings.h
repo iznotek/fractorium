@@ -60,6 +60,8 @@
 #define IDENTITYURL			 "identity/url"
 #define IDENTITYNICK		 "identity/nick"
 
+#define UIVARIATIONS		 "ui/variations"
+
 /// <summary>
 /// Class for preserving various program options between
 /// runs of Fractorium. Each of these generally corresponds
@@ -209,4 +211,7 @@ public:
 
 	QString Nick();
 	void Nick(const QString& s);
+
+	QMap<QString, QVariant> Variations();
+	void Variations(const QMap<QString, QVariant>& m);
 };

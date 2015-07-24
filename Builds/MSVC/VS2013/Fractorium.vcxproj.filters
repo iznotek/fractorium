@@ -256,6 +256,18 @@
     <ClCompile Include="GeneratedFiles\ReleaseNvidia\moc_DoubleSpinBoxTableItemDelegate.cpp">
       <Filter>Generated Files\ReleaseNvidia</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\Fractorium\VariationsDialog.cpp">
+      <Filter>Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_VariationsDialog.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_VariationsDialog.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\ReleaseNvidia\moc_VariationsDialog.cpp">
+      <Filter>Generated Files\ReleaseNvidia</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GeneratedFiles\ui_Fractorium.h">
@@ -299,6 +311,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Fractorium\PaletteTableWidgetItem.h">
       <Filter>Widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="GeneratedFiles\ui_VariationsDialog.h">
+      <Filter>Generated Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -361,6 +376,12 @@
     </CustomBuild>
     <CustomBuild Include="..\..\..\Source\Fractorium\DoubleSpinBoxTableItemDelegate.h">
       <Filter>Widgets</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\Source\Fractorium\VariationsDialog.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\Source\Fractorium\VariationsDialog.h">
+      <Filter>Dialogs</Filter>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>

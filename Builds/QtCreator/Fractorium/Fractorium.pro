@@ -47,6 +47,7 @@ SOURCES += \
     ../../../Source/Fractorium/GLWidget.cpp \
     ../../../Source/Fractorium/Main.cpp \
     ../../../Source/Fractorium/OptionsDialog.cpp \
+	../../../Source/Fractorium/VariationsDialog.cpp \
     ../../../Source/Fractorium/SpinBox.cpp
 
 HEADERS  += \
@@ -75,12 +76,14 @@ HEADERS  += \
     ../../../Source/EmberCommon/EmberCommonPch.h \
     ../../../Source/Fractorium/FractoriumCommon.h \
 	../../../Source/Fractorium/DoubleSpinBoxTableItemDelegate.h \
-	../../../Source/Fractorium/PaletteTableWidgetItem.h
+	../../../Source/Fractorium/PaletteTableWidgetItem.h \
+	../../../Source/Fractorium/VariationsDialog.h
 
 FORMS    += \
     ../../../Source/Fractorium/AboutDialog.ui \
     ../../../Source/Fractorium/FinalRenderDialog.ui \
     ../../../Source/Fractorium/Fractorium.ui \
+	../../../Source/Fractorium/VariationsDialog.ui \
     ../../../Source/Fractorium/OptionsDialog.ui
 
 OTHER_FILES += \

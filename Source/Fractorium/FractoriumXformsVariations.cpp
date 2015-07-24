@@ -13,10 +13,68 @@ void Fractorium::InitXformsVariationsUI()
 	connect(tree->header(),					SIGNAL(sectionClicked(int)),		 this, SLOT(OnTreeHeaderSectionClicked(int)));
 	connect(ui.VariationsFilterLineEdit,	SIGNAL(textChanged(const QString&)), this, SLOT(OnVariationsFilterLineEditTextChanged(const QString&)));
 	connect(ui.VariationsFilterClearButton, SIGNAL(clicked(bool)),				 this, SLOT(OnVariationsFilterClearButtonClicked(bool)));
+	connect(ui.ActionVariationsDialog,		SIGNAL(triggered(bool)),			 this, SLOT(OnActionVariationsDialog(bool)), Qt::QueuedConnection);
 
 	//Setting dimensions in the designer with a layout is futile, so must hard code here.
 	tree->setColumnWidth(0, 160);
 	tree->setColumnWidth(1, 23);
+}
+
+/// <summary>
+/// Show the variations filter dialog.
+/// </summary>
+/// <param name="checked">Ignored</param>
+void Fractorium::OnActionVariationsDialog(bool checked)
+{
+	if (m_VarDialog->exec())
+		Filter();
+}
+
+/// <summary>
+/// Apply the text passed in, in conjuction with the selections from
+/// the variations filter dialog to only show variations whose names
+/// contain the substring and are selected.
+/// Called when the user types in the variation filter text box and
+/// when the variations dialog exits.
+/// </summary>
+/// <param name="text">The text to filter on</param>
+template <typename T>
+void FractoriumEmberController<T>::Filter(const QString& text)
+{
+	auto& ids = m_Fractorium->m_VarDialog->Map();
+	auto tree = m_Fractorium->ui.VariationsTree;
+	auto xform = CurrentXform();
+
+	tree->setUpdatesEnabled(false);
+
+	for (uint i = 0; i < uint(tree->topLevelItemCount()); i++)
+	{
+		if (auto item = dynamic_cast<VariationTreeWidgetItem*>(tree->topLevelItem(i)))
+		{
+			auto varName = item->text(0);
+			
+			if (xform && xform->GetVariationById(item->Id()))//If it's present then show it no matter what the filter is.
+			{
+				item->setHidden(false);
+			}
+			else if (ids.contains(varName))//If the varation is the map of all variations, which is should always be, consider it as well as the filter text.
+			{
+				item->setHidden(!varName.contains(text, Qt::CaseInsensitive) || !ids[varName].toBool());
+			}
+			else//Wasn't present, which should never happen, so just consider filter text.
+			{
+				item->setHidden(!varName.contains(text, Qt::CaseInsensitive));
+			}
+		}
+	}
+
+	m_Fractorium->OnTreeHeaderSectionClicked(m_Fractorium->m_VarSortMode);//Must re-sort every time the filter changes.
+	tree->setUpdatesEnabled(true);
+}
+
+void Fractorium::Filter()
+{
+	m_Controller->Filter(ui.VariationsFilterLineEdit->text());
 }
 
 /// <summary>
@@ -33,7 +91,7 @@ void FractoriumEmberController<T>::SetupVariationTree()
 	QSize hint0(75, 16);
 	QSize hint1(30, 16);
 	auto tree = m_Fractorium->ui.VariationsTree;
-	
+
 	tree->clear();
 	tree->blockSignals(true);
 
@@ -85,7 +143,7 @@ void FractoriumEmberController<T>::SetupVariationTree()
 						varSpinBox->Step(1);
 						varSpinBox->SmallStep(1);
 					}
-					
+
 					varSpinBox->setDecimals(4);
 					tree->setItemWidget(paramWidget, 1, varSpinBox);
 					m_Fractorium->connect(varSpinBox, SIGNAL(valueChanged(double)), SLOT(OnVariationSpinBoxValueChanged(double)), Qt::QueuedConnection);
@@ -94,6 +152,7 @@ void FractoriumEmberController<T>::SetupVariationTree()
 		}
 	}
 
+	Filter("");
 	tree->blockSignals(false);
 }
 
@@ -223,6 +282,7 @@ void FractoriumEmberController<T>::FillVariationTreeWithXform(Xform<T>* xform)
 	auto tree = m_Fractorium->ui.VariationsTree;
 
 	tree->blockSignals(true);
+	m_Fractorium->Filter();
 
 	for (uint i = 0; i < tree->topLevelItemCount(); i++)
 	{
@@ -233,6 +293,9 @@ void FractoriumEmberController<T>::FillVariationTreeWithXform(Xform<T>* xform)
 
 		if (auto spinBox = dynamic_cast<VariationTreeDoubleSpinBox*>(tree->itemWidget(item, 1)))//Get the widget for the item, and cast the widget to the VariationTreeDoubleSpinBox type.
 		{
+			if (var)//Ensure it's visible, even if it's supposed to be filtered.
+				item->setHidden(false);
+
 			spinBox->SetValueStealth(var ? var->m_Weight : 0);//If the variation was present, set the spin box to its weight, else zero.
 			item->setBackgroundColor(0, var ? QColor(200, 200, 200) : QColor(255, 255, 255));//Ensure background is always white if the value goes to zero, else gray if var present.
 
@@ -290,20 +353,7 @@ void Fractorium::OnTreeHeaderSectionClicked(int logicalIndex)
 /// <param name="text">The text to filter on</param>
 void Fractorium::OnVariationsFilterLineEditTextChanged(const QString& text)
 {
-	QTreeWidget* tree = ui.VariationsTree;
-
-	tree->setUpdatesEnabled(false);
-
-	for (uint i = 0; i < uint(tree->topLevelItemCount()); i++)
-	{
-		QTreeWidgetItem* item = tree->topLevelItem(i);
-		QString varName = item->text(0);
-
-		item->setHidden(!varName.contains(text, Qt::CaseInsensitive));
-	}
-
-	OnTreeHeaderSectionClicked(m_VarSortMode);//Must re-sort every time the filter changes.
-	tree->setUpdatesEnabled(true);
+	Filter();
 }
 
 /// <summary>

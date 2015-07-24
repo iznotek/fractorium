@@ -77,7 +77,7 @@ public:
 	uint Strips();
 	FinalRenderGuiState State();
 
-public Q_SLOTS:
+public slots:
 	void MoveCursorToEnd();
 	void OnEarlyClipCheckBoxStateChanged(int state);
 	void OnYAxisUpCheckBoxStateChanged(int state);
@@ -104,10 +104,10 @@ public Q_SLOTS:
 	void OnFinalRenderSuffixChanged(const QString& s);
 	void OnRenderClicked(bool checked);
 	void OnCancelRenderClicked(bool checked);
+	virtual void reject() override;
 
 protected:
-	virtual void reject();
-	virtual void showEvent(QShowEvent* e);
+	virtual void showEvent(QShowEvent* e) override;
 
 private:
 	bool CreateControllerFromGUI(bool createRenderer);
