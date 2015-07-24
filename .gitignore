@@ -47,3 +47,5 @@ Builds/QtCreator/build*
 Makefile
 .qmake.stash
 *.gch
+debug/
+release/
