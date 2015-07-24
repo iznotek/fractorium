@@ -2726,7 +2726,7 @@ public:
 		string inside = "parVars[" + ToUpper(m_Params[i++].Name()) + index;
 
 		ss << "\t{\n"
-		   << "\t\treal_t r, delta = pow(precalcAtanyx / M_PI + 1, " << a << ");\n"
+		   << "\t\treal_t r, delta = pow(precalcAtanyx / (real_t)M_PI + 1, " << a << ");\n"
 		   << "\n"
 		   << "\t\tif (" << inside << " != 0)\n"
 		   << "\t\t	r = xform->m_VariationWeights[" << varIndex << "] * delta / (precalcSqrtSumSquares + delta);\n"
