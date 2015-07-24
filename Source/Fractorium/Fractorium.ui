@@ -6510,7 +6510,7 @@ SpinBox
     <string>Copy selected xforms to the clipboard</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Q</string>
+    <string>Ctrl+D</string>
    </property>
   </action>
   <action name="ActionPasteSelectedXforms">
@@ -6521,7 +6521,7 @@ SpinBox
     <string>Paste copied xforms into the current flame</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+W</string>
+    <string>Ctrl+S</string>
    </property>
   </action>
   <action name="ActionResetWorkspace">
