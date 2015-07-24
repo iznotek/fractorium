@@ -21,7 +21,7 @@ FractoriumFinalRenderDialog::FractoriumFinalRenderDialog(FractoriumSettings* set
 	QTableWidget* table = ui.FinalRenderParamsTable;
 	QTableWidgetItem* item = nullptr;
 
-	m_Fractorium = dynamic_cast<Fractorium*>(p);
+	m_Fractorium = qobject_cast<Fractorium*>(p);
 	m_Settings = settings;
 	ui.FinalRenderThreadCountSpin->setRange(1, Timing::ProcessorCount());
 	connect(ui.FinalRenderEarlyClipCheckBox,	   SIGNAL(stateChanged(int)),		 this, SLOT(OnEarlyClipCheckBoxStateChanged(int)),		 Qt::QueuedConnection);

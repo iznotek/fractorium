@@ -107,6 +107,7 @@ void FractoriumEmberController<T>::FillSummary()
 		QString linked = (linkedIndex != -1) ? (" Linked to " + QString::number(linkedIndex + 1)) : "";
 		auto index = m_Ember.GetXformIndex(xform);
 		m_Ember.CalcNormalizedWeights(m_NormalizedWeights);
+		xform->SetPrecalcFlags();//Needed for HasPost() below.
 
 		if (!m_Ember.IsFinalXform(xform) && index != -1)
 		{

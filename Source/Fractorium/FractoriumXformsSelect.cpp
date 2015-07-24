@@ -77,7 +77,7 @@ void Fractorium::ForEachXformCheckbox(std::function<void(int, QCheckBox*)> func)
 
 	while (QLayoutItem* child = m_XformsSelectionLayout->itemAt(i))
 	{
-		if (auto* w = dynamic_cast<QCheckBox*>(child->widget()))
+		if (auto* w = qobject_cast<QCheckBox*>(child->widget()))
 		{
 			func(i, w);
 		}
@@ -97,7 +97,7 @@ bool FractoriumEmberController<T>::XformCheckboxAt(int i, std::function<void(QCh
 {
 	if (QLayoutItem* child = m_Fractorium->m_XformsSelectionLayout->itemAt(i))
 	{
-		if (auto* w = dynamic_cast<QCheckBox*>(child->widget()))
+		if (auto* w = qobject_cast<QCheckBox*>(child->widget()))
 		{
 			func(w);
 			return true;

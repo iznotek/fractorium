@@ -70,8 +70,8 @@ public:
 	template <typename U>
 	MotionParam &operator = (const MotionParam<U>& other)
 	{
-		first = other.first;
-		second = T(other.second);
+        this->first = other.first;
+        this->second = T(other.second);
 
 		return *this;
 	}

@@ -250,3 +250,6 @@ void FractoriumSettings::SaveImageExt(const QString& s)		  { setValue(SAVEIMAGEE
 
 bool FractoriumSettings::SaveAutoUnique()					  { return value(AUTOUNIQUE).toBool();			 }
 void FractoriumSettings::SaveAutoUnique(bool b)				  { setValue(AUTOUNIQUE, b);					 }
+
+QMap<QString, QVariant> FractoriumSettings::Variations()			  { return value(UIVARIATIONS).toMap();	 }
+void FractoriumSettings::Variations(const QMap<QString, QVariant>& m) { setValue(UIVARIATIONS, m);			 }

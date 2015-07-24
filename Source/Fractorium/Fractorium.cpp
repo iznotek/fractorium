@@ -51,6 +51,7 @@ Fractorium::Fractorium(QWidget* p)
 	m_FolderDialog = nullptr;
 	m_FinalRenderDialog = new FractoriumFinalRenderDialog(m_Settings, this);
 	m_OptionsDialog = new FractoriumOptionsDialog(m_Settings, this);
+	m_VarDialog = new FractoriumVariationsDialog(m_Settings, this);
 	m_AboutDialog = new FractoriumAboutDialog(this);
 
 	//Put the about dialog in the screen center.
@@ -198,6 +199,7 @@ Fractorium::Fractorium(QWidget* p)
 /// </summary>
 Fractorium::~Fractorium()
 {
+	m_VarDialog->SyncSettings();
 	m_Settings->setValue("windowState", saveState());
 	m_Settings->sync();
 }
@@ -776,13 +778,13 @@ void Fractorium::ToggleTableRow(QTableView* table, int logicalIndex)
 	auto model = table->model();
 	int cols = model->columnCount();
 	bool shift = QGuiApplication::keyboardModifiers().testFlag(Qt::ShiftModifier);
-	auto tableWidget = dynamic_cast<QTableWidget*>(table);
+	auto tableWidget = qobject_cast<QTableWidget*>(table);
 
 	if (tableWidget)
 	{
 		for (int i = 0; i < cols; i++)
 		{
-			if (auto* spinBox = dynamic_cast<DoubleSpinBox*>(tableWidget->cellWidget(logicalIndex, i)))
+			if (auto* spinBox = qobject_cast<DoubleSpinBox*>(tableWidget->cellWidget(logicalIndex, i)))
 			{
 				if (!IsNearZero(spinBox->value()))
 				{
@@ -798,7 +800,7 @@ void Fractorium::ToggleTableRow(QTableView* table, int logicalIndex)
 		double val = allZero ? 1.0 : 0.0;
 
 		for (int i = 0; i < cols; i++)
-			if (auto* spinBox = dynamic_cast<DoubleSpinBox*>(tableWidget->cellWidget(logicalIndex, i)))
+			if (auto* spinBox = qobject_cast<DoubleSpinBox*>(tableWidget->cellWidget(logicalIndex, i)))
 				spinBox->setValue(val);
 	}
 	else
@@ -838,13 +840,13 @@ void Fractorium::ToggleTableCol(QTableView* table, int logicalIndex)
 	int rows = model->rowCount();
 	bool shift = QGuiApplication::keyboardModifiers().testFlag(Qt::ShiftModifier);
 	
-	auto tableWidget = dynamic_cast<QTableWidget*>(table);
+	auto tableWidget = qobject_cast<QTableWidget*>(table);
 
 	if (tableWidget)
 	{
 		for (int i = 0; i < rows; i++)
 		{
-			if (auto* spinBox = dynamic_cast<DoubleSpinBox*>(tableWidget->cellWidget(i, logicalIndex)))
+			if (auto* spinBox = qobject_cast<DoubleSpinBox*>(tableWidget->cellWidget(i, logicalIndex)))
 			{
 				if (!IsNearZero(spinBox->value()))
 				{
@@ -860,7 +862,7 @@ void Fractorium::ToggleTableCol(QTableView* table, int logicalIndex)
 		double val = allZero ? 1.0 : 0.0;
 
 		for (int i = 0; i < rows; i++)
-			if (auto* spinBox = dynamic_cast<DoubleSpinBox*>(tableWidget->cellWidget(i, logicalIndex)))
+			if (auto* spinBox = qobject_cast<DoubleSpinBox*>(tableWidget->cellWidget(i, logicalIndex)))
 				spinBox->setValue(val);
 	}
 	else

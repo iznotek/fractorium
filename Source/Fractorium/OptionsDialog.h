@@ -29,8 +29,8 @@ public:
 public slots:
 	void OnOpenCLCheckBoxStateChanged(int state);
 	void OnPlatformComboCurrentIndexChanged(int index);
-	virtual void accept();
-	virtual void reject();
+	virtual void accept() override;
+	virtual void reject() override;
 
 private:
 	bool EarlyClip();
