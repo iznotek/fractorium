@@ -92,7 +92,7 @@ bool FractoriumEmberController<T>::FillPaletteTable(const string& s)
 		QTableWidget* paletteTable = m_Fractorium->ui.PaletteListTable;
 		QTableWidget* palettePreviewTable = m_Fractorium->ui.PalettePreviewTable;
 
-		m_CurrentPaletteFilePath = m_Fractorium->ui.PaletteFilenameCombo->property("path").toString().toStdString() + s;
+		m_CurrentPaletteFilePath = m_Fractorium->ui.PaletteFilenameCombo->property("path").toString().toStdString() + "/" + s;
 
 		if (size_t paletteSize = m_PaletteList.Size(m_CurrentPaletteFilePath))
 		{
