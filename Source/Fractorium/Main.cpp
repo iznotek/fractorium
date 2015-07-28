@@ -44,9 +44,18 @@ int main(int argc, char *argv[])
 	 "}" );
 #endif
 
-	Fractorium w;
-	w.show();
-	a.installEventFilter(&w);
-	return a.exec();
+	int rv = -1;
+
+	try
+	{
+		Fractorium w;
+		w.show();
+		a.installEventFilter(&w);
+		rv = a.exec();
+	} catch (const char *e) {
+		QMessageBox::critical(0, "Fatal Error", e);
+	}
+
+	return rv;
 }
 
