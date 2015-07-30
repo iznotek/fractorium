@@ -13,8 +13,10 @@ TEMPLATE = app
 
 include(../shared_settings.pri)
 
-LIBS += -L$$DESTDIR -lEmber
-LIBS += -L$$DESTDIR -lEmberCL
+macx:ICON = ../../package/osx/Fractorium.icns
+
+LIBS += -L$$absolute_path($$DESTDIR) -lEmber
+LIBS += -L$$absolute_path($$DESTDIR) -lEmberCL
 
 INCLUDEPATH += ../../../Source/Fractorium
 

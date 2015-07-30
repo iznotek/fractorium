@@ -5,8 +5,8 @@ CONFIG -= qt
 
 include(../shared_settings.pri)
 
-LIBS += -L$$DESTDIR -lEmber
-LIBS += -L$$DESTDIR -lEmberCL
+LIBS += -L$$absolute_path($$DESTDIR) -lEmber
+LIBS += -L$$absolute_path($$DESTDIR) -lEmberCL
 
 !macx:PRECOMPILED_HEADER = ../../../Source/EmberCommon/EmberCommonPch.h
 

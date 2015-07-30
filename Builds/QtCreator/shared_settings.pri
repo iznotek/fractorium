@@ -33,9 +33,13 @@ native {
   QMAKE_CXXFLAGS += -march=k8
 }
 
+release:DESTDIR = ../../../release
+debug:DESTDIR = ../../../debug
 
-DESTDIR = $$(HOME)/Dev/fractorium/Bin
-debug:DESTDIR = $$(HOME)/Dev/fractorium/Dbg
+OBJECTS_DIR = $$DESTDIR/.obj
+MOC_DIR = $$DESTDIR/.moc
+RCC_DIR = $$DESTDIR/.qrc
+UI_DIR = $$DESTDIR/.ui
 
 LIBS += -L/usr/lib -ljpeg
 LIBS += -L/usr/lib -lpng
