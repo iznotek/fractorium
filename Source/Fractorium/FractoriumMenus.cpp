@@ -844,10 +844,8 @@ void Fractorium::OnActionOptions(bool checked)
 {
 	if (m_OptionsDialog->exec())
 	{
-		//First completely stop what the current rendering process is doing.
-		m_Controller->Shutdown();
-		StartRenderTimer();//This will recreate the controller and/or the renderer from the options if necessary, then start the render timer.
-		m_Settings->sync();
+		SyncOptionsToToolbar();//This won't trigger a recreate, the call below handles it.
+		ShutdownAndRecreateFromOptions();//This will recreate the controller and/or the renderer from the options if necessary, then start the render timer.
 	}
 }
 

@@ -150,6 +150,35 @@ void FractoriumOptionsDialog::OnPlatformComboCurrentIndexChanged(int index)
 /// </summary>
 void FractoriumOptionsDialog::accept()
 {
+	GuiToData();
+	QDialog::accept();
+}
+
+/// <summary>
+/// Restore all GUI items to what was originally in the settings object.
+/// Called when the user clicks cancel or closes with the X.
+/// </summary>
+void FractoriumOptionsDialog::reject()
+{
+	DataToGui();
+	QDialog::reject();
+}
+
+/// <summary>
+/// Copy the state of the map to the checkboxes and show the dialog.
+/// </summary>
+/// <param name="e">Event, passed to base.</param>
+void FractoriumOptionsDialog::showEvent(QShowEvent* e)
+{
+	DataToGui();
+	QDialog::showEvent(e);
+}
+
+/// <summary>
+/// Copy the state of the Gui to the settings object.
+/// </summary>
+void FractoriumOptionsDialog::GuiToData()
+{
 	//Interactive rendering.
 	m_Settings->EarlyClip(EarlyClip());
 	m_Settings->YAxisUp(YAxisUp());
@@ -176,15 +205,12 @@ void FractoriumOptionsDialog::accept()
 	m_Settings->Id(m_IdEdit->text());
 	m_Settings->Url(m_UrlEdit->text());
 	m_Settings->Nick(m_NickEdit->text());
-
-	QDialog::accept();
 }
 
 /// <summary>
-/// Restore all GUI items to what was originally in the settings object.
-/// Called when the user clicks cancel or closes with the X.
+/// Copy the state of the settings object to the Gui.
 /// </summary>
-void FractoriumOptionsDialog::reject()
+void FractoriumOptionsDialog::DataToGui()
 {
 	//Interactive rendering.
 	ui.EarlyClipCheckBox->setChecked(m_Settings->EarlyClip());
@@ -212,6 +238,4 @@ void FractoriumOptionsDialog::reject()
 	m_IdEdit->setText(m_Settings->Id());
 	m_UrlEdit->setText(m_Settings->Url());
 	m_NickEdit->setText(m_Settings->Nick());
-
-	QDialog::reject();
 }

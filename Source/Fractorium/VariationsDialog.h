@@ -20,24 +20,25 @@ class FractoriumVariationsDialog : public QDialog
 	Q_OBJECT
 public:
 	FractoriumVariationsDialog(FractoriumSettings* settings, QWidget* p = nullptr, Qt::WindowFlags f = nullptr);
-	const QMap<QString, QVariant>& Map();
 	void ForEachCell(std::function<void(QTableWidgetItem* cb)> func);
 	void ForEachSelectedCell(std::function<void(QTableWidgetItem* cb)> func);
 	void SyncSettings();
+	const QMap<QString, QVariant>& Map();
 
 public slots:
 	void OnSelectAllButtonClicked(bool checked);
 	void OnInvertSelectionButtonClicked(bool checked);
 	void OnSelectNoneButtonClicked(bool checked);
-	void Accept();
 	void OnVariationsTableItemChanged(QTableWidgetItem* item);
+	virtual void accept() override;
+	virtual void reject() override;
 
 protected:
 	virtual void showEvent(QShowEvent* e) override;
 
 private:
-	void MapToCheckBoxes();
-	void CheckBoxesToMap();
+	void DataToGui();
+	void GuiToData();
 	void Populate();
 	void SetCheckFromMap(QTableWidgetItem* cb, const Variation<float>* var);
 	VariationList<float> m_VariationList;

@@ -396,7 +396,7 @@ bool FractoriumEmberController<T>::Render()
 
 				m_Fractorium->m_ProgressBar->setValue(100);
 
-				//Only certain status can be reported with OpenCL.
+				//Only certain stats can be reported with OpenCL.
 				if (m_Renderer->RendererType() == OPENCL_RENDERER)
 				{
 					m_Fractorium->m_RenderStatusLabel->setText("Iters: " + iters + ". Scaled quality: " + scaledQuality + ". Total time: " + QString::fromStdString(renderTime));
@@ -438,6 +438,7 @@ bool FractoriumEmberController<T>::Render()
 
 				m_LastEditWasUndoRedo = false;
 				m_Fractorium->UpdateHistogramBounds();//Mostly of engineering interest.
+				FillSummary();//Only update summary on render completion since it's not the type of thing the user needs real-time updates on.
 			}
 			
 			//Update the GL window on start because the output will be forced.
@@ -597,6 +598,17 @@ bool FractoriumEmberController<T>::CreateRenderer(eRendererType renderType, uint
 	}
 
 	return ok;
+}
+
+/// <summary>
+/// Wrapper to stop the timer, shutdown the controller and recreate, then restart the controller and renderer from the options.
+/// </summary>
+void Fractorium::ShutdownAndRecreateFromOptions()
+{
+	//First completely stop what the current rendering process is doing.
+	m_Controller->Shutdown();
+	StartRenderTimer();//This will recreate the controller and/or the renderer from the options if necessary, then start the render timer.
+	m_Settings->sync();
 }
 
 /// <summary>

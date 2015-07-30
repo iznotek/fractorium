@@ -26,23 +26,6 @@ FractoriumVariationsDialog::FractoriumVariationsDialog(FractoriumSettings* setti
 	connect(ui.SelectAllButton, SIGNAL(clicked(bool)), this, SLOT(OnSelectAllButtonClicked(bool)), Qt::QueuedConnection);
 	connect(ui.InvertSelectionButton, SIGNAL(clicked(bool)), this, SLOT(OnInvertSelectionButtonClicked(bool)), Qt::QueuedConnection);
 	connect(ui.SelectNoneButton, SIGNAL(clicked(bool)), this, SLOT(OnSelectNoneButtonClicked(bool)), Qt::QueuedConnection);
-	connect(ui.ButtonBox, SIGNAL(accepted()), this, SLOT(Accept()));
-}
-
-/// <summary>
-/// Copy the values of the checkboxes to the map.
-/// </summary>
-void FractoriumVariationsDialog::SyncSettings()
-{
-	QMap<QString, QVariant> m;
-
-	ForEachCell([&](QTableWidgetItem* cb)
-	{
-		if (!cb->text().isEmpty())
-			m[cb->text()] = cb->checkState() == Qt::CheckState::Checked;
-	});
-
-	m_Settings->Variations(m);
 }
 
 /// <summary>
@@ -83,6 +66,32 @@ void FractoriumVariationsDialog::ForEachSelectedCell(std::function<void(QTableWi
 
 	table->model()->blockSignals(false);
 	table->model()->layoutChanged();
+}
+
+/// <summary>
+/// Copy the values of the checkboxes to the map.
+/// </summary>
+void FractoriumVariationsDialog::SyncSettings()
+{
+	QMap<QString, QVariant> m;
+
+	ForEachCell([&](QTableWidgetItem* cb)
+	{
+		if (!cb->text().isEmpty())
+			m[cb->text()] = cb->checkState() == Qt::CheckState::Checked;
+	});
+
+	m_Settings->Variations(m);
+}
+
+/// <summary>
+/// Return a const reference to the map.
+/// This will contains the state of the checkboxes after
+/// the user clicks ok.
+/// </summary>
+const QMap<QString, QVariant>& FractoriumVariationsDialog::Map()
+{
+	return m_Vars;
 }
 
 /// <summary>
@@ -172,19 +181,21 @@ void FractoriumVariationsDialog::OnVariationsTableItemChanged(QTableWidgetItem* 
 /// Called when the user clicks ok.
 /// Copy the state of the checkboxes to the map.
 /// </summary>
-void FractoriumVariationsDialog::Accept()
+void FractoriumVariationsDialog::accept()
 {
-	CheckBoxesToMap();
+	GuiToData();
+	QDialog::accept();
 }
 
 /// <summary>
-/// Return a const reference to the map.
-/// This will contains the state of the checkboxes after
-/// the user clicks ok.
+/// Called when the user clicks cancel.
+/// Reset the state of the the checkboxes to what the map previously was
+/// when the dialog was shown.
 /// </summary>
-const QMap<QString, QVariant>& FractoriumVariationsDialog::Map()
+void FractoriumVariationsDialog::reject()
 {
-	return m_Vars;
+	DataToGui();
+	QDialog::reject();
 }
 
 /// <summary>
@@ -193,8 +204,32 @@ const QMap<QString, QVariant>& FractoriumVariationsDialog::Map()
 /// <param name="e">Event, passed to base.</param>
 void FractoriumVariationsDialog::showEvent(QShowEvent* e)
 {
-	MapToCheckBoxes();
+	DataToGui();
 	QDialog::showEvent(e);
+}
+
+/// <summary>
+/// Copy the values in the map to the state of the checkboxes.
+/// </summary>
+void FractoriumVariationsDialog::DataToGui()
+{
+	ForEachCell([&](QTableWidgetItem* cb)
+	{
+		if (auto var = m_VariationList.GetVariation(cb->text().toStdString()))
+			SetCheckFromMap(cb, var);
+	});
+}
+
+/// <summary>
+/// Copy the state of the checkboxes to the map.
+/// </summary>
+void FractoriumVariationsDialog::GuiToData()
+{
+	ForEachCell([&](QTableWidgetItem* cb)
+	{
+		if (auto var = m_VariationList.GetVariation(cb->text().toStdString()))
+			m_Vars[cb->text()] = (cb->checkState() == Qt::Checked);
+	});
 }
 
 /// <summary>
@@ -215,28 +250,4 @@ void FractoriumVariationsDialog::SetCheckFromMap(QTableWidgetItem* cb, const Var
 
 		cb->setCheckState(chk ? Qt::Checked : Qt::Unchecked);
 	}
-}
-
-/// <summary>
-/// Copy the values in the map to the state of the checkboxes.
-/// </summary>
-void FractoriumVariationsDialog::MapToCheckBoxes()
-{
-	ForEachCell([&](QTableWidgetItem* cb)
-	{
-		if (auto var = m_VariationList.GetVariation(cb->text().toStdString()))
-			SetCheckFromMap(cb, var);
-	});
-}
-
-/// <summary>
-/// Copy the state of the checkboxes to the map.
-/// </summary>
-void FractoriumVariationsDialog::CheckBoxesToMap()
-{
-	ForEachCell([&](QTableWidgetItem* cb)
-	{
-		if (auto var = m_VariationList.GetVariation(cb->text().toStdString()))
-			m_Vars[cb->text()] = (cb->checkState() == Qt::Checked);
-	});
 }

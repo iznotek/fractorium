@@ -6196,9 +6196,12 @@ SpinBox
    <addaction name="ActionStopRenderingPreviews"/>
    <addaction name="ActionFinalRender"/>
    <addaction name="separator"/>
-   <addaction name="ActionOptions"/>
-   <addaction name="separator"/>
    <addaction name="ActionVariationsDialog"/>
+   <addaction name="ActionCpu"/>
+   <addaction name="ActionCL"/>
+   <addaction name="ActionSP"/>
+   <addaction name="ActionDP"/>
+   <addaction name="ActionOptions"/>
   </widget>
   <action name="ActionNewFlock">
    <property name="icon">
@@ -6539,6 +6542,50 @@ SpinBox
    </property>
    <property name="toolTip">
     <string>Show variations filter window</string>
+   </property>
+  </action>
+  <action name="ActionCpu">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>CPU</string>
+   </property>
+   <property name="toolTip">
+    <string>Use CPU to render</string>
+   </property>
+  </action>
+  <action name="ActionCL">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>CL</string>
+   </property>
+   <property name="toolTip">
+    <string>Use OpenCL to render</string>
+   </property>
+  </action>
+  <action name="ActionSP">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>SP</string>
+   </property>
+   <property name="toolTip">
+    <string>Use single precision to render</string>
+   </property>
+  </action>
+  <action name="ActionDP">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>DP</string>
+   </property>
+   <property name="toolTip">
+    <string>Use DP to render</string>
    </property>
   </action>
  </widget>

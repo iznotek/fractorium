@@ -32,6 +32,9 @@ public slots:
 	virtual void accept() override;
 	virtual void reject() override;
 
+protected:
+	virtual void showEvent(QShowEvent* e) override;
+
 private:
 	bool EarlyClip();
 	bool YAxisUp();
@@ -45,6 +48,8 @@ private:
 	uint PlatformIndex();
 	uint DeviceIndex();
 	uint ThreadCount();
+	void DataToGui();
+	void GuiToData();
 
 	Ui::OptionsDialog ui;
 	OpenCLWrapper m_Wrapper;

@@ -228,7 +228,6 @@ void FractoriumEmberController<T>::EmberTreeItemChanged(QTreeWidgetItem* item, i
 			}
 
 			tree->blockSignals(false);
-			FillSummary();
 		}
 		else if (auto parentItem = dynamic_cast<QTreeWidgetItem*>(item))
 		{

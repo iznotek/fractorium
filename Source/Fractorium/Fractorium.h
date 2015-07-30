@@ -145,6 +145,10 @@ public slots:
 	void OnActionAbout(bool checked);//Help.
 
 	//Toolbar.
+	void OnActionCpu(bool checked);
+	void OnActionCL(bool checked);
+	void OnActionSP(bool checked);
+	void OnActionDP(bool checked);
 
 	//Library.
 	void OnEmberTreeItemChanged(QTreeWidgetItem* item, int col);
@@ -324,6 +328,9 @@ private:
 	//Embers.
 	bool HaveFinal();
 
+	//Toolbar.
+	void SyncOptionsToToolbar();
+
 	//Library.
 	pair<size_t, QTreeWidgetItem*> GetCurrentEmberIndex();
 
@@ -358,6 +365,7 @@ private:
 	void SetTableWidgetBackgroundColor();
 
 	//Rendering/progress.
+	void ShutdownAndRecreateFromOptions();
 	bool CreateRendererFromOptions();
 	bool CreateControllerFromOptions();
 	
