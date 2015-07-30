@@ -306,6 +306,7 @@ protected:
 	virtual void dragEnterEvent(QDragEnterEvent* e) override;
 	virtual void dragMoveEvent(QDragMoveEvent* e) override;
 	virtual void dropEvent(QDropEvent* e) override;
+	virtual void showEvent(QShowEvent *e) override;
 
 private:
 	void InitMenusUI();

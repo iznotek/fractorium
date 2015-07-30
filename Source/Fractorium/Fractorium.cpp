@@ -350,6 +350,19 @@ void Fractorium::resizeEvent(QResizeEvent* e)
 }
 
 /// <summary>
+/// Respond to a show event to ensure Qt updates the native menubar.
+/// On first create, Qt can fail to create the native menu bar properly,
+/// but telling it that this window has become the focus window forces
+/// it to refresh this.
+/// <param name="e">The event</param>
+void Fractorium::showEvent(QShowEvent *e)
+{
+	// tell Qt to refresh the native menubar from this widget
+	emit qGuiApp->focusWindowChanged(windowHandle());
+	QMainWindow::showEvent(e);
+}
+
+/// <summary>
 /// Stop rendering and block before exiting.
 /// Called on program exit.
 /// </summary>
