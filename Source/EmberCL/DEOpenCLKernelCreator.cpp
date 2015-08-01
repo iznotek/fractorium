@@ -550,13 +550,13 @@ string DEOpenCLKernelCreator<T>::CreateGaussianDEKernel(size_t ss)
 		//Start and end values are the indices in the histogram read from
 		//and written to in the accumulator. They are not the indices for the local block of data.
 		//Before computing local offsets, compute the global offsets first to determine if any rows or cols fall outside of the bounds.
-		"	blockHistStartRow = min(botBound, topBound + (((BLOCK_ID_Y * chunkSizeH) + chunkH) * BLOCK_SIZE_Y));\n"//The first histogram row this block will process.
-		"	blockHistEndRow = min(botBound, blockHistStartRow + BLOCK_SIZE_Y);\n"//The last histogram row this block will process, clamped to the last row.
+		"	blockHistStartRow = min(botBound, (uint)(topBound + (((BLOCK_ID_Y * chunkSizeH) + chunkH) * BLOCK_SIZE_Y)));\n"//The first histogram row this block will process.
+		"	blockHistEndRow = min(botBound, (uint)(blockHistStartRow + BLOCK_SIZE_Y));\n"//The last histogram row this block will process, clamped to the last row.
 		"	boxReadStartRow = densityFilter->m_FilterWidth - min(densityFilter->m_FilterWidth, blockHistStartRow);\n"//The first row in the local box to read from when writing back to the final accumulator for this block.
-		"	boxReadEndRow = densityFilter->m_FilterWidth + min(densityFilter->m_FilterWidth + BLOCK_SIZE_Y, densityFilter->m_SuperRasH - blockHistStartRow);\n"//The last row in the local box to read from  when writing back to the final accumulator for this block.
-		"	blockHistStartCol = min(rightBound, leftBound + (((BLOCK_ID_X * chunkSizeW) + chunkW) * BLOCK_SIZE_X));\n"//The first histogram column this block will process.
+		"	boxReadEndRow = densityFilter->m_FilterWidth + min((uint)(densityFilter->m_FilterWidth + BLOCK_SIZE_Y), densityFilter->m_SuperRasH - blockHistStartRow);\n"//The last row in the local box to read from  when writing back to the final accumulator for this block.
+		"	blockHistStartCol = min(rightBound, leftBound + (uint)(((BLOCK_ID_X * chunkSizeW) + chunkW) * BLOCK_SIZE_X));\n"//The first histogram column this block will process.
 		"	boxReadStartCol = densityFilter->m_FilterWidth - min(densityFilter->m_FilterWidth, blockHistStartCol);\n"//The first box col this block will read from when copying to the accumulator.
-		"	boxReadEndCol = densityFilter->m_FilterWidth + min(densityFilter->m_FilterWidth + BLOCK_SIZE_X, densityFilter->m_SuperRasW - blockHistStartCol);\n"//The last box col this block will read from when copying to the accumulator.
+		"	boxReadEndCol = densityFilter->m_FilterWidth + min(densityFilter->m_FilterWidth + (uint)BLOCK_SIZE_X, densityFilter->m_SuperRasW - blockHistStartCol);\n"//The last box col this block will read from when copying to the accumulator.
 		"\n"
 		//Last, the indices in the global accumulator that the local bounds will be writing to.
 		"	accumWriteStartRow = blockHistStartRow - min(densityFilter->m_FilterWidth,  blockHistStartRow);\n"//Will be fw - 0 except for boundary columns, it will be less.
@@ -788,10 +788,10 @@ string DEOpenCLKernelCreator<T>::CreateGaussianDEKernelNoLocalCache(size_t ss)
 		"\n"
 		//Start and end values are the indices in the histogram read from and written to in the accumulator.
 		//Before computing local offsets, compute the global offsets first to determine if any rows or cols fall outside of the bounds.
-		"	uint blockHistStartRow = min(botBound, topBound + (((BLOCK_ID_Y * chunkSizeH) + chunkH) * BLOCK_SIZE_Y));\n"//The first histogram row this block will process.
+		"	uint blockHistStartRow = min(botBound, (uint)(topBound + (((BLOCK_ID_Y * chunkSizeH) + chunkH) * BLOCK_SIZE_Y)));\n"//The first histogram row this block will process.
 		"	uint threadHistRow = blockHistStartRow + THREAD_ID_Y;\n"//The histogram row this individual thread will be reading from.
 		"\n"
-		"	uint blockHistStartCol = min(rightBound, leftBound + (((BLOCK_ID_X * chunkSizeW) + chunkW) * BLOCK_SIZE_X));\n"//The first histogram column this block will process.
+		"	uint blockHistStartCol = min(rightBound, leftBound + (uint)(((BLOCK_ID_X * chunkSizeW) + chunkW) * BLOCK_SIZE_X));\n"//The first histogram column this block will process.
 		"	uint threadHistCol = blockHistStartCol + THREAD_ID_X;\n"//The histogram column this individual thread will be reading from.
 		"\n"
 		"	int i, j;\n"

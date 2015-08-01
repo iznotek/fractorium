@@ -116,8 +116,8 @@ bool RendererCL<T>::Init(uint platform, uint device, bool shared, GLuint outputT
 		//Sadly, at the moment, Fermi runs out of resources at that block size because the DE filter function is so complex.
 		//The next best block size seems to be 24x24.
 		//AMD is further limited because of less local memory so these have to be 16 on AMD.
-		m_MaxDEBlockSizeW = m_NVidia ? 32 : 16;//These *must* both be divisible by 16 or else pixels will go missing.
-		m_MaxDEBlockSizeH = m_NVidia ? 32 : 16;
+		m_MaxDEBlockSizeW = m_NVidia ? 24 : 16;//These *must* both be divisible by 16 or else pixels will go missing.
+		m_MaxDEBlockSizeH = m_NVidia ? 24 : 16;
 		m_Init = true;
 		//t.Toc(loc);
 	}

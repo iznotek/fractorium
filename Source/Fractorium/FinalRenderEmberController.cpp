@@ -230,7 +230,7 @@ FinalRenderEmberController<T>::FinalRenderEmberController(FractoriumFinalRenderD
 					//Can't use strips render here. Run() must be called directly for animation.
 					if (m_Renderer->Run(m_FinalImage[finalImageIndex], i) != RENDER_OK)
 					{
-						Output("Renderering failed.\n");
+						Output("Rendering failed.\n");
 						m_Fractorium->ErrorReportToQTextEdit(m_Renderer->ErrorReport(), m_FinalRenderDialog->ui.FinalRenderTextOutput, false);//Internally calls invoke.
 					}
 					else
@@ -269,7 +269,7 @@ FinalRenderEmberController<T>::FinalRenderEmberController(FractoriumFinalRenderD
 					[&](size_t strip) { m_Stats += m_Renderer->Stats(); },//Post strip.
 					[&](size_t strip)//Error.
 					{
-						Output("Renderering failed.\n");
+						Output("Rendering failed.\n");
 						m_Fractorium->ErrorReportToQTextEdit(m_Renderer->ErrorReport(), m_FinalRenderDialog->ui.FinalRenderTextOutput, false);//Internally calls invoke.
 					},
 					[&](Ember<T>& finalEmber) { RenderComplete(finalEmber); });//Final strip.
@@ -293,7 +293,7 @@ FinalRenderEmberController<T>::FinalRenderEmberController(FractoriumFinalRenderD
 			[&](size_t strip) { m_Stats += m_Renderer->Stats(); },//Post strip.
 			[&](size_t strip)//Error.
 			{
-				Output("Renderering failed.\n");
+				Output("Rendering failed.\n");
 				m_Fractorium->ErrorReportToQTextEdit(m_Renderer->ErrorReport(), m_FinalRenderDialog->ui.FinalRenderTextOutput, false);//Internally calls invoke.
 			},
 			[&](Ember<T>& finalEmber) { RenderComplete(finalEmber); });//Final strip.

@@ -88,7 +88,7 @@ void FractoriumEmberController<T>::CurrentXformComboChanged(int index)
 		m_Fractorium->m_XformWeightSpin->setEnabled(enable);
 		m_Fractorium->ui.SoloXformCheckBox->setEnabled(enable);
 		m_Fractorium->ui.AddLinkedXformButton->setEnabled(enable);
-		m_Fractorium->ui.AddFinalXformButton->setEnabled(enable);
+		m_Fractorium->ui.AddFinalXformButton->setEnabled(!m_Ember.UseFinalXform());
 	}
 }
 

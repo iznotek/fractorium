@@ -357,7 +357,7 @@ void Fractorium::resizeEvent(QResizeEvent* e)
 /// <param name="e">The event</param>
 void Fractorium::showEvent(QShowEvent *e)
 {
-	// tell Qt to refresh the native menubar from this widget
+	//Tell Qt to refresh the native menubar from this widget.
 	emit qGuiApp->focusWindowChanged(windowHandle());
 	QMainWindow::showEvent(e);
 }
