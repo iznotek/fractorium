@@ -5,6 +5,7 @@ NVIDIA=''
 NATIVE=''
 CONCURRENCY='-j9'
 QMAKE=${QMAKE:-qmake}
+RELEASE='CONFIG+=release CONFIG-=debug'
 
 while test $# -gt 0
 do
@@ -16,6 +17,8 @@ do
         --native) NATIVE="CONFIG += native"
             ;;
         --travis) CONCURRENCY="-j1"
+            ;;
+        --debug) RELEASE="CONFIG+=debug CONFIG-=release"
             ;;
         --*) echo "bad option $1"; exit 1
             ;;
@@ -33,7 +36,7 @@ do
   if [ "x1" = "x$REBUILD" ]; then
     make clean
   fi
-  $QMAKE "$NVIDIA" "$NATIVE"
+  $QMAKE "$NVIDIA" "$NATIVE" $RELEASE
   make $CONCURRENCY
   if [ "x$?" != "x0" ]; then
     echo "Build failed! Check output for errors."
