@@ -82,6 +82,8 @@ using EmberNs::Renderer<T, bucketT>::GetSpatialFilter;
 using EmberNs::Renderer<T, bucketT>::CoordMap;
 using EmberNs::Renderer<T, bucketT>::XformDistributions;
 using EmberNs::Renderer<T, bucketT>::XformDistributionsSize;
+using EmberNs::Renderer<T, bucketT>::m_DensityFilter;
+using EmberNs::Renderer<T, bucketT>::m_SpatialFilter;
 
 public:
 	RendererCL(uint platform = 0, uint device = 0, bool shared = false, GLuint outputTexID = 0);

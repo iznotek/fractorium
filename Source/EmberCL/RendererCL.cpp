@@ -111,10 +111,10 @@ bool RendererCL<T, bucketT>::Init(uint platform, uint device, bool shared, GLuin
 		string zeroizeProgram = m_IterOpenCLKernelCreator.ZeroizeKernel();
 		string logAssignProgram = m_DEOpenCLKernelCreator.LogScaleAssignDEKernel();//Build a couple of simple programs to ensure OpenCL is working right.
 
-        if (b && !(b = m_Wrapper.AddProgram(m_IterOpenCLKernelCreator.ZeroizeEntryPoint(),		  zeroizeProgram,	m_IterOpenCLKernelCreator.ZeroizeEntryPoint(),		  m_DoublePrecision))) { m_ErrorReport.push_back(loc); }
-		if (b && !(b = m_Wrapper.AddProgram(m_DEOpenCLKernelCreator.LogScaleAssignDEEntryPoint(), logAssignProgram, m_DEOpenCLKernelCreator.LogScaleAssignDEEntryPoint(), m_DoublePrecision))) { m_ErrorReport.push_back(loc); }
-		if (b && !(b = m_Wrapper.AddAndWriteImage("Palette", CL_MEM_READ_ONLY, m_PaletteFormat, 256, 1, 0, nullptr))) { m_ErrorReport.push_back(loc); }
-		if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_SeedsBufferName, reinterpret_cast<void*>(m_Seeds.data()), SizeOf(m_Seeds)))) { m_ErrorReport.push_back(loc); }
+		if (b && !(b = m_Wrapper.AddProgram(m_IterOpenCLKernelCreator.ZeroizeEntryPoint(),		  zeroizeProgram,	m_IterOpenCLKernelCreator.ZeroizeEntryPoint(),		  m_DoublePrecision))) { this->m_ErrorReport.push_back(loc); }
+		if (b && !(b = m_Wrapper.AddProgram(m_DEOpenCLKernelCreator.LogScaleAssignDEEntryPoint(), logAssignProgram, m_DEOpenCLKernelCreator.LogScaleAssignDEEntryPoint(), m_DoublePrecision))) { this->m_ErrorReport.push_back(loc); }
+		if (b && !(b = m_Wrapper.AddAndWriteImage("Palette", CL_MEM_READ_ONLY, m_PaletteFormat, 256, 1, 0, nullptr))) { this->m_ErrorReport.push_back(loc); }
+		if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_SeedsBufferName, reinterpret_cast<void*>(m_Seeds.data()), SizeOf(m_Seeds)))) { this->m_ErrorReport.push_back(loc); }
 
 		//This is the maximum box dimension for density filtering which consists of (blockSize  * blockSize) + (2 * filterWidth).
 		//These blocks must be square, and ideally, 32x32.
@@ -149,7 +149,7 @@ bool RendererCL<T, bucketT>::SetOutputTexture(GLuint outputTexID)
 
 	if (!m_Wrapper.AddAndWriteImage(m_FinalImageName, CL_MEM_WRITE_ONLY, m_FinalFormat, FinalRasW(), FinalRasH(), 0, nullptr, m_Wrapper.Shared(), m_OutputTexID))
 	{
-		m_ErrorReport.push_back(loc);
+		this->m_ErrorReport.push_back(loc);
 		success = false;
 	}
 
@@ -338,7 +338,7 @@ bool RendererCL<T, bucketT>::ClearFinal()
 		bool b = m_Wrapper.WriteImage2D(index, m_Wrapper.Shared(), FinalRasW(), FinalRasH(), 0, v.data());
 
 		if (!b)
-			m_ErrorReport.push_back(__FUNCTION__);
+			this->m_ErrorReport.push_back(__FUNCTION__);
 
 		return b;
 	}
@@ -442,9 +442,9 @@ bool RendererCL<T, bucketT>::CreateDEFilter(bool& newAlloc)
 		{
 			const char* loc = __FUNCTION__;
 
-			if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_DECoefsBufferName,		  reinterpret_cast<void*>(const_cast<bucketT*>(m_DensityFilter->Coefs())),	  m_DensityFilter->CoefsSizeBytes())))		  { m_ErrorReport.push_back(loc); }
-			if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_DEWidthsBufferName,	  reinterpret_cast<void*>(const_cast<bucketT*>(m_DensityFilter->Widths())),	  m_DensityFilter->WidthsSizeBytes())))		  { m_ErrorReport.push_back(loc); }
-			if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_DECoefIndicesBufferName, reinterpret_cast<void*>(const_cast<uint*>(m_DensityFilter->CoefIndices())), m_DensityFilter->CoefsIndicesSizeBytes()))) { m_ErrorReport.push_back(loc); }
+			if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_DECoefsBufferName,		  reinterpret_cast<void*>(const_cast<bucketT*>(m_DensityFilter->Coefs())),	  m_DensityFilter->CoefsSizeBytes())))		  { this->m_ErrorReport.push_back(loc); }
+			if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_DEWidthsBufferName,	  reinterpret_cast<void*>(const_cast<bucketT*>(m_DensityFilter->Widths())),	  m_DensityFilter->WidthsSizeBytes())))		  { this->m_ErrorReport.push_back(loc); }
+			if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_DECoefIndicesBufferName, reinterpret_cast<void*>(const_cast<uint*>(m_DensityFilter->CoefIndices())), m_DensityFilter->CoefsIndicesSizeBytes()))) { this->m_ErrorReport.push_back(loc); }
 		}
 	}
 	else
@@ -467,7 +467,7 @@ bool RendererCL<T, bucketT>::CreateSpatialFilter(bool& newAlloc)
 	if (Renderer<T, bucketT>::CreateSpatialFilter(newAlloc))
 	{
 		if (newAlloc)
-			if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_SpatialFilterCoefsBufferName, reinterpret_cast<void*>(m_SpatialFilter->Filter()), m_SpatialFilter->BufferSizeBytes()))) { m_ErrorReport.push_back(__FUNCTION__); }
+			if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_SpatialFilterCoefsBufferName, reinterpret_cast<void*>(m_SpatialFilter->Filter()), m_SpatialFilter->BufferSizeBytes()))) { this->m_ErrorReport.push_back(__FUNCTION__); }
 
 	}
 	else
@@ -527,7 +527,7 @@ bool RendererCL<T, bucketT>::RandVec(vector<QTIsaac<ISAAC_SIZE, ISAAC_INT>>& ran
 	if (m_Wrapper.Ok())
 	{
 		FillSeeds();
-		if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_SeedsBufferName, reinterpret_cast<void*>(m_Seeds.data()), SizeOf(m_Seeds)))) { m_ErrorReport.push_back(loc); }
+		if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_SeedsBufferName, reinterpret_cast<void*>(m_Seeds.data()), SizeOf(m_Seeds)))) { this->m_ErrorReport.push_back(loc); }
 	}
 
 	return b;
@@ -571,21 +571,21 @@ bool RendererCL<T, bucketT>::Alloc()
 	size_t accumLength = SuperSize() * sizeof(v4T);
 	const char* loc = __FUNCTION__;
 
-	if (b && !(b = m_Wrapper.AddBuffer(m_EmberBufferName,               sizeof(m_EmberCL))))						  { m_ErrorReport.push_back(loc); }
-	if (b && !(b = m_Wrapper.AddBuffer(m_XformsBufferName,				SizeOf(m_XformsCL))))						  { m_ErrorReport.push_back(loc); }
-	if (b && !(b = m_Wrapper.AddBuffer(m_ParVarsBufferName,             128 * sizeof(T))))							  { m_ErrorReport.push_back(loc); }
-	if (b && !(b = m_Wrapper.AddBuffer(m_DistBufferName,                CHOOSE_XFORM_GRAIN)))						  { m_ErrorReport.push_back(loc); }//Will be resized for xaos.
-	if (b && !(b = m_Wrapper.AddBuffer(m_CarToRasBufferName,            sizeof(m_CarToRasCL))))						  { m_ErrorReport.push_back(loc); }
-	if (b && !(b = m_Wrapper.AddBuffer(m_DEFilterParamsBufferName,      sizeof(m_DensityFilterCL))))				  { m_ErrorReport.push_back(loc); }
-	if (b && !(b = m_Wrapper.AddBuffer(m_SpatialFilterParamsBufferName, sizeof(m_SpatialFilterCL))))				  { m_ErrorReport.push_back(loc); }
-	if (b && !(b = m_Wrapper.AddBuffer(m_CurvesCsaName,					SizeOf(m_Csa.m_Entries))))					  { m_ErrorReport.push_back(loc); }
-	if (b && !(b = m_Wrapper.AddBuffer(m_HistBufferName,				histLength)))								  { m_ErrorReport.push_back(loc); }//Histogram. Will memset to zero later.
-	if (b && !(b = m_Wrapper.AddBuffer(m_AccumBufferName,				accumLength)))								  { m_ErrorReport.push_back(loc); }//Accum buffer.
-	if (b && !(b = m_Wrapper.AddBuffer(m_PointsBufferName,				IterGridKernelCount() * sizeof(PointCL<T>)))) { m_ErrorReport.push_back(loc); }//Points between iter calls.
+	if (b && !(b = m_Wrapper.AddBuffer(m_EmberBufferName,               sizeof(m_EmberCL))))						  { this->m_ErrorReport.push_back(loc); }
+	if (b && !(b = m_Wrapper.AddBuffer(m_XformsBufferName,				SizeOf(m_XformsCL))))						  { this->m_ErrorReport.push_back(loc); }
+	if (b && !(b = m_Wrapper.AddBuffer(m_ParVarsBufferName,             128 * sizeof(T))))							  { this->m_ErrorReport.push_back(loc); }
+	if (b && !(b = m_Wrapper.AddBuffer(m_DistBufferName,                CHOOSE_XFORM_GRAIN)))						  { this->m_ErrorReport.push_back(loc); }//Will be resized for xaos.
+	if (b && !(b = m_Wrapper.AddBuffer(m_CarToRasBufferName,            sizeof(m_CarToRasCL))))						  { this->m_ErrorReport.push_back(loc); }
+	if (b && !(b = m_Wrapper.AddBuffer(m_DEFilterParamsBufferName,      sizeof(m_DensityFilterCL))))				  { this->m_ErrorReport.push_back(loc); }
+	if (b && !(b = m_Wrapper.AddBuffer(m_SpatialFilterParamsBufferName, sizeof(m_SpatialFilterCL))))				  { this->m_ErrorReport.push_back(loc); }
+	if (b && !(b = m_Wrapper.AddBuffer(m_CurvesCsaName,					SizeOf(m_Csa.m_Entries))))					  { this->m_ErrorReport.push_back(loc); }
+	if (b && !(b = m_Wrapper.AddBuffer(m_HistBufferName,				histLength)))								  { this->m_ErrorReport.push_back(loc); }//Histogram. Will memset to zero later.
+	if (b && !(b = m_Wrapper.AddBuffer(m_AccumBufferName,				accumLength)))								  { this->m_ErrorReport.push_back(loc); }//Accum buffer.
+	if (b && !(b = m_Wrapper.AddBuffer(m_PointsBufferName,				IterGridKernelCount() * sizeof(PointCL<T>)))) { this->m_ErrorReport.push_back(loc); }//Points between iter calls.
 
 	LeaveResize();
 
-	if (b && !(b = SetOutputTexture(m_OutputTexID))) { m_ErrorReport.push_back(loc); }
+	if (b && !(b = SetOutputTexture(m_OutputTexID))) { this->m_ErrorReport.push_back(loc); }
 
 	return b;
 }
@@ -637,7 +637,7 @@ eRenderStatus RendererCL<T, bucketT>::GaussianDensityFilter()
 	//	Renderer<T, bucketT>::ResetBuckets(false, true);
 	//	Renderer<T, bucketT>::GaussianDensityFilter();
 	//
-	//	if (!m_Wrapper.WriteBuffer(m_AccumBufferName, AccumulatorBuckets(), accumLength)) { m_ErrorReport.push_back(loc); return RENDER_ERROR; }
+	//	if (!m_Wrapper.WriteBuffer(m_AccumBufferName, AccumulatorBuckets(), accumLength)) { this->m_ErrorReport.push_back(loc); return RENDER_ERROR; }
 	//		return RENDER_OK;
 	//}
 	//else
@@ -703,7 +703,7 @@ EmberStats RendererCL<T, bucketT>::Iterate(size_t iterCount, size_t temporalSamp
 		if (!m_Wrapper.AddAndWriteBuffer(m_ParVarsBufferName, m_Params.second.data(), m_Params.second.size() * sizeof(m_Params.second[0])))
 		{
 			m_Abort = true;
-			m_ErrorReport.push_back(loc);
+			this->m_ErrorReport.push_back(loc);
 			return stats;
 		}
 	}
@@ -729,7 +729,7 @@ EmberStats RendererCL<T, bucketT>::Iterate(size_t iterCount, size_t temporalSamp
 	else
 	{
 		m_Abort = true;
-		m_ErrorReport.push_back(loc);
+		this->m_ErrorReport.push_back(loc);
 	}
 
 	return stats;
@@ -763,7 +763,7 @@ bool RendererCL<T, bucketT>::BuildIterProgramForEmber(bool doAccum)
 	}
 	else
 	{
-		m_ErrorReport.push_back(string(loc) + "():\nBuilding the following program failed: \n" + m_IterKernel + "\n");
+		this->m_ErrorReport.push_back(string(loc) + "():\nBuilding the following program failed: \n" + m_IterKernel + "\n");
 		return false;
 	}
 
@@ -806,12 +806,12 @@ bool RendererCL<T, bucketT>::RunIter(size_t iterCount, size_t temporalSample, si
 		ConvertEmber(m_Ember, m_EmberCL, m_XformsCL);
 		m_CarToRasCL = ConvertCarToRas(*CoordMap());
 
-		if (b && !(b = m_Wrapper.WriteBuffer      (m_EmberBufferName,    reinterpret_cast<void*>(&m_EmberCL),							   sizeof(m_EmberCL))))						    { m_ErrorReport.push_back(loc); }
-		if (b && !(b = m_Wrapper.WriteBuffer	  (m_XformsBufferName,   reinterpret_cast<void*>(m_XformsCL.data()),					   sizeof(m_XformsCL[0]) * m_XformsCL.size()))) { m_ErrorReport.push_back(loc); }
-		if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_DistBufferName,     reinterpret_cast<void*>(const_cast<byte*>(XformDistributions())), XformDistributionsSize())))				    { m_ErrorReport.push_back(loc); }//Will be resized for xaos.
-		if (b && !(b = m_Wrapper.WriteBuffer      (m_CarToRasBufferName, reinterpret_cast<void*>(&m_CarToRasCL),						   sizeof(m_CarToRasCL))))					    { m_ErrorReport.push_back(loc); }
+		if (b && !(b = m_Wrapper.WriteBuffer      (m_EmberBufferName,    reinterpret_cast<void*>(&m_EmberCL),							   sizeof(m_EmberCL))))						    { this->m_ErrorReport.push_back(loc); }
+		if (b && !(b = m_Wrapper.WriteBuffer	  (m_XformsBufferName,   reinterpret_cast<void*>(m_XformsCL.data()),					   sizeof(m_XformsCL[0]) * m_XformsCL.size()))) { this->m_ErrorReport.push_back(loc); }
+		if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_DistBufferName,     reinterpret_cast<void*>(const_cast<byte*>(XformDistributions())), XformDistributionsSize())))				    { this->m_ErrorReport.push_back(loc); }//Will be resized for xaos.
+		if (b && !(b = m_Wrapper.WriteBuffer      (m_CarToRasBufferName, reinterpret_cast<void*>(&m_CarToRasCL),						   sizeof(m_CarToRasCL))))					    { this->m_ErrorReport.push_back(loc); }
 
-		if (b && !(b = m_Wrapper.AddAndWriteImage("Palette", CL_MEM_READ_ONLY, m_PaletteFormat, m_DmapCL.m_Entries.size(), 1, 0, m_DmapCL.m_Entries.data()))) { m_ErrorReport.push_back(loc); }
+		if (b && !(b = m_Wrapper.AddAndWriteImage("Palette", CL_MEM_READ_ONLY, m_PaletteFormat, m_DmapCL.m_Entries.size(), 1, 0, m_DmapCL.m_Entries.data()))) { this->m_ErrorReport.push_back(loc); }
 
 		//If animating, treat each temporal sample as a newly started render for fusing purposes.
 		if (temporalSample > 0)
@@ -841,18 +841,18 @@ bool RendererCL<T, bucketT>::RunIter(size_t iterCount, size_t temporalSample, si
 				iterCountThisLaunch = iterCountPerKernel * (gridW * gridH * IterBlockKernelCount());
 			}
 
-			if (b && !(b = m_Wrapper.SetArg      (kernelIndex, argIndex++, iterCountPerKernel)))   { m_ErrorReport.push_back(loc); }//Number of iters for each thread to run.
-			if (b && !(b = m_Wrapper.SetArg      (kernelIndex, argIndex++, fuse)))                 { m_ErrorReport.push_back(loc); }//Number of iters to fuse.
-			if (b && !(b = m_Wrapper.SetBufferArg(kernelIndex, argIndex++, m_SeedsBufferName)))    { m_ErrorReport.push_back(loc); }//Seeds.
-			if (b && !(b = m_Wrapper.SetBufferArg(kernelIndex, argIndex++, m_EmberBufferName)))    { m_ErrorReport.push_back(loc); }//Ember.
-			if (b && !(b = m_Wrapper.SetBufferArg(kernelIndex, argIndex++, m_XformsBufferName)))   { m_ErrorReport.push_back(loc); }//Xforms.
-			if (b && !(b = m_Wrapper.SetBufferArg(kernelIndex, argIndex++, m_ParVarsBufferName)))  { m_ErrorReport.push_back(loc); }//Parametric variation parameters.
-			if (b && !(b = m_Wrapper.SetBufferArg(kernelIndex, argIndex++, m_DistBufferName)))     { m_ErrorReport.push_back(loc); }//Xform distributions.
-			if (b && !(b = m_Wrapper.SetBufferArg(kernelIndex, argIndex++, m_CarToRasBufferName))) { m_ErrorReport.push_back(loc); }//Coordinate converter.
-			if (b && !(b = m_Wrapper.SetBufferArg(kernelIndex, argIndex++, m_HistBufferName)))     { m_ErrorReport.push_back(loc); }//Histogram.
-			if (b && !(b = m_Wrapper.SetArg		 (kernelIndex, argIndex++, supersize)))			   { m_ErrorReport.push_back(loc); }//Histogram size.
-			if (b && !(b = m_Wrapper.SetImageArg (kernelIndex, argIndex++, false, "Palette")))     { m_ErrorReport.push_back(loc); }//Palette.
-			if (b && !(b = m_Wrapper.SetBufferArg(kernelIndex, argIndex++, m_PointsBufferName)))   { m_ErrorReport.push_back(loc); }//Random start points.
+			if (b && !(b = m_Wrapper.SetArg      (kernelIndex, argIndex++, iterCountPerKernel)))   { this->m_ErrorReport.push_back(loc); }//Number of iters for each thread to run.
+			if (b && !(b = m_Wrapper.SetArg      (kernelIndex, argIndex++, fuse)))                 { this->m_ErrorReport.push_back(loc); }//Number of iters to fuse.
+			if (b && !(b = m_Wrapper.SetBufferArg(kernelIndex, argIndex++, m_SeedsBufferName)))    { this->m_ErrorReport.push_back(loc); }//Seeds.
+			if (b && !(b = m_Wrapper.SetBufferArg(kernelIndex, argIndex++, m_EmberBufferName)))    { this->m_ErrorReport.push_back(loc); }//Ember.
+			if (b && !(b = m_Wrapper.SetBufferArg(kernelIndex, argIndex++, m_XformsBufferName)))   { this->m_ErrorReport.push_back(loc); }//Xforms.
+			if (b && !(b = m_Wrapper.SetBufferArg(kernelIndex, argIndex++, m_ParVarsBufferName)))  { this->m_ErrorReport.push_back(loc); }//Parametric variation parameters.
+			if (b && !(b = m_Wrapper.SetBufferArg(kernelIndex, argIndex++, m_DistBufferName)))     { this->m_ErrorReport.push_back(loc); }//Xform distributions.
+			if (b && !(b = m_Wrapper.SetBufferArg(kernelIndex, argIndex++, m_CarToRasBufferName))) { this->m_ErrorReport.push_back(loc); }//Coordinate converter.
+			if (b && !(b = m_Wrapper.SetBufferArg(kernelIndex, argIndex++, m_HistBufferName)))     { this->m_ErrorReport.push_back(loc); }//Histogram.
+			if (b && !(b = m_Wrapper.SetArg		 (kernelIndex, argIndex++, supersize)))			   { this->m_ErrorReport.push_back(loc); }//Histogram size.
+			if (b && !(b = m_Wrapper.SetImageArg (kernelIndex, argIndex++, false, "Palette")))     { this->m_ErrorReport.push_back(loc); }//Palette.
+			if (b && !(b = m_Wrapper.SetBufferArg(kernelIndex, argIndex++, m_PointsBufferName)))   { this->m_ErrorReport.push_back(loc); }//Random start points.
 
 			if (b && !(b = m_Wrapper.RunKernel(kernelIndex,
 									 gridW * IterBlockKernelWidth(),//Total grid dims.
@@ -863,7 +863,7 @@ bool RendererCL<T, bucketT>::RunIter(size_t iterCount, size_t temporalSample, si
 									 1)))
 			{
 				m_Abort = true;
-				m_ErrorReport.push_back(loc);
+				this->m_ErrorReport.push_back(loc);
 				break;
 			}
 
@@ -903,7 +903,7 @@ bool RendererCL<T, bucketT>::RunIter(size_t iterCount, size_t temporalSample, si
 	else
 	{
 		b = false;
-		m_ErrorReport.push_back(loc);
+		this->m_ErrorReport.push_back(loc);
 	}
 
 	//t2.Toc(__FUNCTION__);
@@ -933,20 +933,20 @@ eRenderStatus RendererCL<T, bucketT>::RunLogScaleFilter()
 
 		OpenCLWrapper::MakeEvenGridDims(blockW, blockH, gridW, gridH);
 
-		if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_DEFilterParamsBufferName, reinterpret_cast<void*>(&m_DensityFilterCL), sizeof(m_DensityFilterCL)))) { m_ErrorReport.push_back(loc); }
+		if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_DEFilterParamsBufferName, reinterpret_cast<void*>(&m_DensityFilterCL), sizeof(m_DensityFilterCL)))) { this->m_ErrorReport.push_back(loc); }
 
-		if (b && !(b = m_Wrapper.SetBufferArg(kernelIndex, argIndex++, m_HistBufferName)))           { m_ErrorReport.push_back(loc); }//Histogram.
-		if (b && !(b = m_Wrapper.SetBufferArg(kernelIndex, argIndex++, m_AccumBufferName)))          { m_ErrorReport.push_back(loc); }//Accumulator.
-		if (b && !(b = m_Wrapper.SetBufferArg(kernelIndex, argIndex++, m_DEFilterParamsBufferName))) { m_ErrorReport.push_back(loc); }//DensityFilterCL.
+		if (b && !(b = m_Wrapper.SetBufferArg(kernelIndex, argIndex++, m_HistBufferName)))           { this->m_ErrorReport.push_back(loc); }//Histogram.
+		if (b && !(b = m_Wrapper.SetBufferArg(kernelIndex, argIndex++, m_AccumBufferName)))          { this->m_ErrorReport.push_back(loc); }//Accumulator.
+		if (b && !(b = m_Wrapper.SetBufferArg(kernelIndex, argIndex++, m_DEFilterParamsBufferName))) { this->m_ErrorReport.push_back(loc); }//DensityFilterCL.
 
 		//t.Tic();
-		if (b && !(b = m_Wrapper.RunKernel(kernelIndex, gridW, gridH, 1, blockW, blockH, 1))) { m_ErrorReport.push_back(loc); }
+		if (b && !(b = m_Wrapper.RunKernel(kernelIndex, gridW, gridH, 1, blockW, blockH, 1))) { this->m_ErrorReport.push_back(loc); }
 		//t.Toc(loc);
 	}
 	else
 	{
 		b = false;
-		m_ErrorReport.push_back(loc);
+		this->m_ErrorReport.push_back(loc);
 	}
 
 	if (b && m_Callback && m_LastIterPercent >= 99.0)//Only update progress if we've really reached the end, not via forced output.
@@ -1002,7 +1002,7 @@ eRenderStatus RendererCL<T, bucketT>::RunDensityFilter()
 		uint chunkSizeH = gapH + 1;
 		double totalChunks = chunkSizeW * chunkSizeH;
 
-		if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_DEFilterParamsBufferName, reinterpret_cast<void*>(&m_DensityFilterCL), sizeof(m_DensityFilterCL)))) { m_ErrorReport.push_back(loc); }
+		if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_DEFilterParamsBufferName, reinterpret_cast<void*>(&m_DensityFilterCL), sizeof(m_DensityFilterCL)))) { this->m_ErrorReport.push_back(loc); }
 
 #ifdef ROW_ONLY_DE
 		blockSizeW = 64;//These *must* both be divisible by 16 or else pixels will go missing.
@@ -1022,7 +1022,7 @@ eRenderStatus RendererCL<T, bucketT>::RunDensityFilter()
 			for (uint colChunk = 0; b && !m_Abort && colChunk < chunkSizeW; colChunk++)
 			{
 				//t2.Tic();
-				if (b && !(b = RunDensityFilterPrivate(kernelIndex, gridW, gridH, blockSizeW, blockSizeH, chunkSizeW, chunkSizeH, colChunk, rowChunk))) { m_Abort = true; m_ErrorReport.push_back(loc); }
+				if (b && !(b = RunDensityFilterPrivate(kernelIndex, gridW, gridH, blockSizeW, blockSizeH, chunkSizeW, chunkSizeH, colChunk, rowChunk))) { m_Abort = true; this->m_ErrorReport.push_back(loc); }
 				//t2.Toc(loc);
 
 				if (b && m_Callback)
@@ -1045,7 +1045,7 @@ eRenderStatus RendererCL<T, bucketT>::RunDensityFilter()
 			for (uint colChunk = 0; b && !m_Abort && colChunk < chunkSizeW; colChunk++)
 			{
 				//t2.Tic();
-				if (b && !(b = RunDensityFilterPrivate(kernelIndex, gridW, gridH, blockSizeW, blockSizeH, chunkSizeW, chunkSizeH, colChunk, rowChunk))) { m_Abort = true; m_ErrorReport.push_back(loc); }
+				if (b && !(b = RunDensityFilterPrivate(kernelIndex, gridW, gridH, blockSizeW, blockSizeH, chunkSizeW, chunkSizeH, colChunk, rowChunk))) { m_Abort = true; this->m_ErrorReport.push_back(loc); }
 				//t2.Toc(loc);
 
 				if (b && m_Callback)
@@ -1068,7 +1068,7 @@ eRenderStatus RendererCL<T, bucketT>::RunDensityFilter()
 	else
 	{
 		b = false;
-		m_ErrorReport.push_back(loc);
+		this->m_ErrorReport.push_back(loc);
 	}
 
 	return m_Abort ? RENDER_ABORT : (b ? RENDER_OK : RENDER_ERROR);
@@ -1099,8 +1099,8 @@ eRenderStatus RendererCL<T, bucketT>::RunFinalAccum()
 		//This is needed with or without early clip.
 		ConvertSpatialFilter();
 
-		if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_SpatialFilterParamsBufferName, reinterpret_cast<void*>(&m_SpatialFilterCL), sizeof(m_SpatialFilterCL)))) { m_ErrorReport.push_back(loc); }
-		if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_CurvesCsaName,					m_Csa.m_Entries.data(),						 SizeOf(m_Csa.m_Entries))))   { m_ErrorReport.push_back(loc); }
+		if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_SpatialFilterParamsBufferName, reinterpret_cast<void*>(&m_SpatialFilterCL), sizeof(m_SpatialFilterCL)))) { this->m_ErrorReport.push_back(loc); }
+		if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_CurvesCsaName,					m_Csa.m_Entries.data(),						 SizeOf(m_Csa.m_Entries))))   { this->m_ErrorReport.push_back(loc); }
 
 		//Since early clip requires gamma correcting the entire accumulator first,
 		//it can't be done inside of the normal final accumulation kernel, so
@@ -1118,15 +1118,15 @@ eRenderStatus RendererCL<T, bucketT>::RunFinalAccum()
 				gridH = m_SpatialFilterCL.m_SuperRasH;
 				OpenCLWrapper::MakeEvenGridDims(blockW, blockH, gridW, gridH);
 
-				if (b && !(b = m_Wrapper.SetBufferArg(gammaCorrectKernelIndex, argIndex++, m_AccumBufferName)))               { m_ErrorReport.push_back(loc); }//Accumulator.
-				if (b && !(b = m_Wrapper.SetBufferArg(gammaCorrectKernelIndex, argIndex++, m_SpatialFilterParamsBufferName))) { m_ErrorReport.push_back(loc); }//SpatialFilterCL.
+				if (b && !(b = m_Wrapper.SetBufferArg(gammaCorrectKernelIndex, argIndex++, m_AccumBufferName)))               { this->m_ErrorReport.push_back(loc); }//Accumulator.
+				if (b && !(b = m_Wrapper.SetBufferArg(gammaCorrectKernelIndex, argIndex++, m_SpatialFilterParamsBufferName))) { this->m_ErrorReport.push_back(loc); }//SpatialFilterCL.
 
-				if (b && !(b = m_Wrapper.RunKernel(gammaCorrectKernelIndex, gridW, gridH, 1, blockW, blockH, 1)))			  { m_ErrorReport.push_back(loc); }
+				if (b && !(b = m_Wrapper.RunKernel(gammaCorrectKernelIndex, gridW, gridH, 1, blockW, blockH, 1)))			  { this->m_ErrorReport.push_back(loc); }
 			}
 			else
 			{
 				b = false;
-				m_ErrorReport.push_back(loc);
+				this->m_ErrorReport.push_back(loc);
 			}
 		}
 
@@ -1137,30 +1137,30 @@ eRenderStatus RendererCL<T, bucketT>::RunFinalAccum()
 		gridH = m_SpatialFilterCL.m_FinalRasH;
 		OpenCLWrapper::MakeEvenGridDims(blockW, blockH, gridW, gridH);
 
-		if (b && !(b = m_Wrapper.SetBufferArg(accumKernelIndex, argIndex++, m_AccumBufferName)))                    { m_ErrorReport.push_back(loc); }//Accumulator.
-		if (b && !(b = m_Wrapper.SetImageArg (accumKernelIndex, argIndex++, m_Wrapper.Shared(), m_FinalImageName))) { m_ErrorReport.push_back(loc); }//Final image.
-		if (b && !(b = m_Wrapper.SetBufferArg(accumKernelIndex, argIndex++, m_SpatialFilterParamsBufferName)))      { m_ErrorReport.push_back(loc); }//SpatialFilterCL.
-		if (b && !(b = m_Wrapper.SetBufferArg(accumKernelIndex, argIndex++, m_SpatialFilterCoefsBufferName)))       { m_ErrorReport.push_back(loc); }//Filter coefs.
-		if (b && !(b = m_Wrapper.SetBufferArg(accumKernelIndex, argIndex++, m_CurvesCsaName)))						{ m_ErrorReport.push_back(loc); }//Curve points.
+		if (b && !(b = m_Wrapper.SetBufferArg(accumKernelIndex, argIndex++, m_AccumBufferName)))                    { this->m_ErrorReport.push_back(loc); }//Accumulator.
+		if (b && !(b = m_Wrapper.SetImageArg (accumKernelIndex, argIndex++, m_Wrapper.Shared(), m_FinalImageName))) { this->m_ErrorReport.push_back(loc); }//Final image.
+		if (b && !(b = m_Wrapper.SetBufferArg(accumKernelIndex, argIndex++, m_SpatialFilterParamsBufferName)))      { this->m_ErrorReport.push_back(loc); }//SpatialFilterCL.
+		if (b && !(b = m_Wrapper.SetBufferArg(accumKernelIndex, argIndex++, m_SpatialFilterCoefsBufferName)))       { this->m_ErrorReport.push_back(loc); }//Filter coefs.
+		if (b && !(b = m_Wrapper.SetBufferArg(accumKernelIndex, argIndex++, m_CurvesCsaName)))						{ this->m_ErrorReport.push_back(loc); }//Curve points.
 		
-		if (b && !(b = m_Wrapper.SetArg		 (accumKernelIndex, argIndex++, curvesSet)))                            { m_ErrorReport.push_back(loc); }//Do curves.
-		if (b && !(b = m_Wrapper.SetArg		 (accumKernelIndex, argIndex++, bucketT(alphaBase))))                   { m_ErrorReport.push_back(loc); }//Alpha base.
-		if (b && !(b = m_Wrapper.SetArg		 (accumKernelIndex, argIndex++, bucketT(alphaScale))))                  { m_ErrorReport.push_back(loc); }//Alpha scale.
+		if (b && !(b = m_Wrapper.SetArg		 (accumKernelIndex, argIndex++, curvesSet)))                            { this->m_ErrorReport.push_back(loc); }//Do curves.
+		if (b && !(b = m_Wrapper.SetArg		 (accumKernelIndex, argIndex++, bucketT(alphaBase))))                   { this->m_ErrorReport.push_back(loc); }//Alpha base.
+		if (b && !(b = m_Wrapper.SetArg		 (accumKernelIndex, argIndex++, bucketT(alphaScale))))                  { this->m_ErrorReport.push_back(loc); }//Alpha scale.
 
 		if (b && m_Wrapper.Shared())
-			if (b && !(b = m_Wrapper.EnqueueAcquireGLObjects(m_FinalImageName))) { m_ErrorReport.push_back(loc); }
+			if (b && !(b = m_Wrapper.EnqueueAcquireGLObjects(m_FinalImageName))) { this->m_ErrorReport.push_back(loc); }
 
-		if (b && !(b = m_Wrapper.RunKernel(accumKernelIndex, gridW, gridH, 1, blockW, blockH, 1))) { m_ErrorReport.push_back(loc); }
+		if (b && !(b = m_Wrapper.RunKernel(accumKernelIndex, gridW, gridH, 1, blockW, blockH, 1))) { this->m_ErrorReport.push_back(loc); }
 
 		if (b && m_Wrapper.Shared())
-			if (b && !(b = m_Wrapper.EnqueueReleaseGLObjects(m_FinalImageName))) { m_ErrorReport.push_back(loc); }
+			if (b && !(b = m_Wrapper.EnqueueReleaseGLObjects(m_FinalImageName))) { this->m_ErrorReport.push_back(loc); }
 
 		//t.Toc((char*)loc);
 	}
 	else
 	{
 		b = false;
-		m_ErrorReport.push_back(loc);
+		this->m_ErrorReport.push_back(loc);
 	}
 
 	return b ? RENDER_OK : RENDER_ERROR;
@@ -1191,15 +1191,15 @@ bool RendererCL<T, bucketT>::ClearBuffer(const string& bufferName, uint width, u
 
 		OpenCLWrapper::MakeEvenGridDims(blockW, blockH, gridW, gridH);
 
-		if (b && !(b = m_Wrapper.SetBufferArg(kernelIndex, argIndex++, bufferName)))          { m_ErrorReport.push_back(loc); }//Buffer of byte.
-		if (b && !(b = m_Wrapper.SetArg      (kernelIndex, argIndex++, width * elementSize))) { m_ErrorReport.push_back(loc); }//Width.
-		if (b && !(b = m_Wrapper.SetArg      (kernelIndex, argIndex++, height)))              { m_ErrorReport.push_back(loc); }//Height.
-		if (b && !(b = m_Wrapper.RunKernel(kernelIndex, gridW, gridH, 1, blockW, blockH, 1))) { m_ErrorReport.push_back(loc); }
+		if (b && !(b = m_Wrapper.SetBufferArg(kernelIndex, argIndex++, bufferName)))          { this->m_ErrorReport.push_back(loc); }//Buffer of byte.
+		if (b && !(b = m_Wrapper.SetArg      (kernelIndex, argIndex++, width * elementSize))) { this->m_ErrorReport.push_back(loc); }//Width.
+		if (b && !(b = m_Wrapper.SetArg      (kernelIndex, argIndex++, height)))              { this->m_ErrorReport.push_back(loc); }//Height.
+		if (b && !(b = m_Wrapper.RunKernel(kernelIndex, gridW, gridH, 1, blockW, blockH, 1))) { this->m_ErrorReport.push_back(loc); }
 	}
 	else
 	{
 		b = false;
-		m_ErrorReport.push_back(loc);
+		this->m_ErrorReport.push_back(loc);
 	}
 
 	return b;
@@ -1227,20 +1227,20 @@ bool RendererCL<T, bucketT>::RunDensityFilterPrivate(uint kernelIndex, uint grid
 	uint argIndex = 0;
 	const char* loc = __FUNCTION__;
 
-	if (b && !(b = m_Wrapper.SetBufferArg(kernelIndex, argIndex, m_HistBufferName)))           { m_ErrorReport.push_back(loc); } argIndex++;//Histogram.
-	if (b && !(b = m_Wrapper.SetBufferArg(kernelIndex, argIndex, m_AccumBufferName)))          { m_ErrorReport.push_back(loc); } argIndex++;//Accumulator.
-	if (b && !(b = m_Wrapper.SetBufferArg(kernelIndex, argIndex, m_DEFilterParamsBufferName))) { m_ErrorReport.push_back(loc); } argIndex++;//FlameDensityFilterCL.
-	if (b && !(b = m_Wrapper.SetBufferArg(kernelIndex, argIndex, m_DECoefsBufferName)))        { m_ErrorReport.push_back(loc); } argIndex++;//Coefs.
-	if (b && !(b = m_Wrapper.SetBufferArg(kernelIndex, argIndex, m_DEWidthsBufferName)))       { m_ErrorReport.push_back(loc); } argIndex++;//Widths.
-	if (b && !(b = m_Wrapper.SetBufferArg(kernelIndex, argIndex, m_DECoefIndicesBufferName)))  { m_ErrorReport.push_back(loc); } argIndex++;//Coef indices.
-	if (b && !(b = m_Wrapper.SetArg(      kernelIndex, argIndex, chunkSizeW)))                 { m_ErrorReport.push_back(loc); } argIndex++;//Chunk size width (gapW + 1).
-	if (b && !(b = m_Wrapper.SetArg(      kernelIndex, argIndex, chunkSizeH)))                 { m_ErrorReport.push_back(loc); } argIndex++;//Chunk size height (gapH + 1).
-	if (b && !(b = m_Wrapper.SetArg(      kernelIndex, argIndex, chunkW)))					   { m_ErrorReport.push_back(loc); } argIndex++;//Column chunk.
-	if (b && !(b = m_Wrapper.SetArg(      kernelIndex, argIndex, chunkH)))					   { m_ErrorReport.push_back(loc); } argIndex++;//Row chunk.
+	if (b && !(b = m_Wrapper.SetBufferArg(kernelIndex, argIndex, m_HistBufferName)))           { this->m_ErrorReport.push_back(loc); } argIndex++;//Histogram.
+	if (b && !(b = m_Wrapper.SetBufferArg(kernelIndex, argIndex, m_AccumBufferName)))          { this->m_ErrorReport.push_back(loc); } argIndex++;//Accumulator.
+	if (b && !(b = m_Wrapper.SetBufferArg(kernelIndex, argIndex, m_DEFilterParamsBufferName))) { this->m_ErrorReport.push_back(loc); } argIndex++;//FlameDensityFilterCL.
+	if (b && !(b = m_Wrapper.SetBufferArg(kernelIndex, argIndex, m_DECoefsBufferName)))        { this->m_ErrorReport.push_back(loc); } argIndex++;//Coefs.
+	if (b && !(b = m_Wrapper.SetBufferArg(kernelIndex, argIndex, m_DEWidthsBufferName)))       { this->m_ErrorReport.push_back(loc); } argIndex++;//Widths.
+	if (b && !(b = m_Wrapper.SetBufferArg(kernelIndex, argIndex, m_DECoefIndicesBufferName)))  { this->m_ErrorReport.push_back(loc); } argIndex++;//Coef indices.
+	if (b && !(b = m_Wrapper.SetArg(      kernelIndex, argIndex, chunkSizeW)))                 { this->m_ErrorReport.push_back(loc); } argIndex++;//Chunk size width (gapW + 1).
+	if (b && !(b = m_Wrapper.SetArg(      kernelIndex, argIndex, chunkSizeH)))                 { this->m_ErrorReport.push_back(loc); } argIndex++;//Chunk size height (gapH + 1).
+	if (b && !(b = m_Wrapper.SetArg(      kernelIndex, argIndex, chunkW)))					   { this->m_ErrorReport.push_back(loc); } argIndex++;//Column chunk.
+	if (b && !(b = m_Wrapper.SetArg(      kernelIndex, argIndex, chunkH)))					   { this->m_ErrorReport.push_back(loc); } argIndex++;//Row chunk.
 	//t.Toc(__FUNCTION__ " set args");
 
 	//t.Tic();
-	if (b && !(b = m_Wrapper.RunKernel(kernelIndex, gridW, gridH, 1, blockW, blockH, 1))) { m_ErrorReport.push_back(loc); }//Method 7, accumulating to temp box area.
+	if (b && !(b = m_Wrapper.RunKernel(kernelIndex, gridW, gridH, 1, blockW, blockH, 1))) { this->m_ErrorReport.push_back(loc); }//Method 7, accumulating to temp box area.
 	//t.Toc(__FUNCTION__ " RunKernel()");
 
 	return b;
@@ -1270,7 +1270,7 @@ int RendererCL<T, bucketT>::MakeAndGetDensityFilterProgram(size_t ss, uint filte
 		}
 		else
 		{
-			m_ErrorReport.push_back(string(loc) + "():\nBuilding the following program failed: \n" + kernel + "\n");
+			this->m_ErrorReport.push_back(string(loc) + "():\nBuilding the following program failed: \n" + kernel + "\n");
 		}
 	}
 
@@ -1300,7 +1300,7 @@ int RendererCL<T, bucketT>::MakeAndGetFinalAccumProgram(double& alphaBase, doubl
 		if (b)
 			kernelIndex = m_Wrapper.FindKernelIndex(finalAccumEntryPoint);//Try to find it again, it will be present if successfully built.
 		else
-			m_ErrorReport.push_back(loc);
+			this->m_ErrorReport.push_back(loc);
 	}
 
 	return kernelIndex;
@@ -1325,7 +1325,7 @@ int RendererCL<T, bucketT>::MakeAndGetGammaCorrectionProgram()
 		if (b)
 			kernelIndex = m_Wrapper.FindKernelIndex(gammaEntryPoint);//Try to find it again, it will be present if successfully built.
 		else
-			m_ErrorReport.push_back(loc);
+			this->m_ErrorReport.push_back(loc);
 	}
 
 	return kernelIndex;
