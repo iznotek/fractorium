@@ -384,12 +384,8 @@ public:
 			}
 			else//Randomize palette only.
 			{
-				Palette<T> palette;
-
 				if (m_PaletteList.Size())
-					palette = *m_PaletteList.GetRandomPalette();
-
-				palette.MakeHueAdjustedPalette(ember.m_Palette, ember.m_Hue);
+					ember.m_Palette = *m_PaletteList.GetRandomPalette();
 
 				//If the palette retrieval fails, skip the mutation.
 				if (ember.m_Palette.m_Index >= 0)
@@ -398,8 +394,7 @@ public:
 				}
 				else
 				{
-					palette.Clear(false);
-					ember.m_Palette = palette;
+					ember.m_Palette.Clear(false);
 					cout << "Failure getting random palette, palette set to white\n";
 				}
 			}
@@ -638,12 +633,10 @@ public:
 		};
 
 		ember.Clear();
-		ember.m_Hue = (m_Rand.Rand() & 7) ? 0 : m_Rand.Frand01<T>();
 
 		if (m_PaletteList.Size())
-			palette = *m_PaletteList.GetRandomPalette();
+			ember.m_Palette = *m_PaletteList.GetRandomPalette();
 
-		palette.MakeHueAdjustedPalette(ember.m_Palette, ember.m_Hue);
 		ember.m_Time = 0;
 		ember.m_Interp = EMBER_INTERP_LINEAR;
 		ember.m_PaletteInterp = INTERP_HSV;
@@ -922,16 +915,9 @@ public:
 
 		if (changePalette)
 		{
-			Palette<T>* palette = nullptr;
-
-			ember.m_Hue = 0.0;
-
 			if (m_PaletteList.Size())
-				palette = m_PaletteList.GetRandomPalette();
-
-			if (palette)
 			{
-				palette->MakeHueAdjustedPalette(ember.m_Palette, ember.m_Hue);
+				ember.m_Palette = *m_PaletteList.GetRandomPalette();
 			}
 			else
 			{

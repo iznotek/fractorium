@@ -259,7 +259,7 @@ static Renderer<T, bucketT>* CreateRenderer(eRendererType renderType, uint platf
 		else if (renderType == OPENCL_RENDERER)
 		{
 			s = "OpenCL";
-			renderer = unique_ptr<Renderer<T, bucketT>>(new RendererCL<T>(platform, device, shared, texId));
+			renderer = unique_ptr<Renderer<T, bucketT>>(new RendererCL<T, bucketT>(platform, device, shared, texId));
 
 			if (!renderer.get() || !renderer->Ok())
 			{

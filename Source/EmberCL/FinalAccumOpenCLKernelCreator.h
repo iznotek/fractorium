@@ -19,13 +19,11 @@ namespace EmberCLns
 /// Early clip/late clip
 /// Alpha channel, no alpha channel
 /// Alpha with/without transparency
-/// Template argument expected to be float or double.
 /// </summary>
-template <typename T>
 class EMBERCL_API FinalAccumOpenCLKernelCreator
 {
 public:
-	FinalAccumOpenCLKernelCreator();
+	FinalAccumOpenCLKernelCreator(bool doublePrecision);
 
 	string GammaCorrectionWithAlphaCalcKernel();
 	string GammaCorrectionWithAlphaCalcEntryPoint();
@@ -48,7 +46,7 @@ public:
 	string FinalAccumLateClipWithoutAlphaCalcWithAlphaAccumEntryPoint();
 	string GammaCorrectionEntryPoint(size_t channels, bool transparency);
 	string GammaCorrectionKernel(size_t channels, bool transparency);
-	string FinalAccumEntryPoint(bool earlyClip, size_t channels, bool transparency, T& alphaBase, T& alphaScale);
+	string FinalAccumEntryPoint(bool earlyClip, size_t channels, bool transparency, double& alphaBase, double& alphaScale);
 	string FinalAccumKernel(bool earlyClip, size_t channels, bool transparency);
 
 private:
@@ -77,5 +75,7 @@ private:
 	string m_FinalAccumLateClipWithAlphaCalcWithAlphaAccumEntryPoint;
 	string m_FinalAccumLateClipWithoutAlphaCalcWithAlphaAccumKernel;//False, true.
 	string m_FinalAccumLateClipWithoutAlphaCalcWithAlphaAccumEntryPoint;
+
+	bool m_DoublePrecision;
 };
 }

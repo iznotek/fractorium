@@ -302,7 +302,15 @@ bool EmberRender(EmberOptions& opt)
 		});
 
 		if (opt.EmberCL() && opt.DumpKernel())
-			cout << "Iteration kernel: \n" << reinterpret_cast<RendererCL<T>*>(renderer.get())->IterKernel() << endl;
+		{
+			if (auto rendererCL = dynamic_cast<RendererCL<T, bucketT>*>(renderer.get()))
+			{
+				cout << "Iteration kernel: \n" <<
+				rendererCL->IterKernel() << "\n\n" <<
+				rendererCL->DEKernel() << "\n\n" <<
+				rendererCL->FinalAccumKernel() << endl;
+			}
+		}
 
 		VerbosePrint("Done.");
 	}
@@ -339,7 +347,7 @@ int _tmain(int argc, _TCHAR* argv[])
 #ifdef DO_DOUBLE
 		if (opt.Bits() == 64)
 		{
-			b = EmberRender<double, double>(opt);
+			b = EmberRender<double, float>(opt);
 		}
 		else
 #endif

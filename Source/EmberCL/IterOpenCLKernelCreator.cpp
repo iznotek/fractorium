@@ -7,19 +7,10 @@
 namespace EmberCLns
 {
 /// <summary>
-/// Empty constructor that does nothing. The user must call the one which takes a bool
-/// argument before using this class.
-/// This constructor only exists so the class can be a member of a class.
-/// </summary>
-template <typename T>
-IterOpenCLKernelCreator<T>::IterOpenCLKernelCreator()
-{
-}
-
-/// <summary>
 /// Constructor that sets up some basic entry point strings and creates
 /// the zeroization kernel string since it requires no conditional inputs.
 /// </summary>
+/// <param name="nVidia">True if running on an nVidia card, else false.</param>
 template <typename T>
 IterOpenCLKernelCreator<T>::IterOpenCLKernelCreator(bool nVidia)
 {
@@ -242,7 +233,7 @@ string IterOpenCLKernelCreator<T>::CreateIterKernelString(Ember<T>& ember, strin
 		"	__constant real_t* parVars,\n"
 		"	__global uchar* xformDistributions,\n"//Using uchar is quicker than uint. Can't be constant because the size can be too large to fit when using xaos.//FINALOPT
 		"	__constant CarToRasCL* carToRas,\n"
-		"	__global real4reals* histogram,\n"
+		"	__global real4reals_bucket* histogram,\n"
 		"	uint histSize,\n"
 		"	__read_only image2d_t palette,\n"
 		"	__global Point* points\n"
@@ -506,41 +497,16 @@ string IterOpenCLKernelCreator<T>::CreateIterKernelString(Ember<T>& ember, strin
 
 			if (lockAccum)
 			{
-				if (typeid(T) == typeid(double))
-				{
-					os <<
-		"				AtomicAdd(&(histogram[histIndex].m_Reals[0]), (real_t)palColor1.x * xforms[secondPoint.m_LastXfUsed].m_VizAdjusted);\n"//Always apply opacity, even though it's usually 1.
-		"				AtomicAdd(&(histogram[histIndex].m_Reals[1]), (real_t)palColor1.y * xforms[secondPoint.m_LastXfUsed].m_VizAdjusted);\n"
-		"				AtomicAdd(&(histogram[histIndex].m_Reals[2]), (real_t)palColor1.z * xforms[secondPoint.m_LastXfUsed].m_VizAdjusted);\n"
-		"				AtomicAdd(&(histogram[histIndex].m_Reals[3]), (real_t)palColor1.w * xforms[secondPoint.m_LastXfUsed].m_VizAdjusted);\n";
-				}
-				else
-				{
-					os <<
-		"				AtomicAdd(&(histogram[histIndex].m_Reals[0]), palColor1.x * xforms[secondPoint.m_LastXfUsed].m_VizAdjusted);\n"//Always apply opacity, even though it's usually 1.
-		"				AtomicAdd(&(histogram[histIndex].m_Reals[1]), palColor1.y * xforms[secondPoint.m_LastXfUsed].m_VizAdjusted);\n"
-		"				AtomicAdd(&(histogram[histIndex].m_Reals[2]), palColor1.z * xforms[secondPoint.m_LastXfUsed].m_VizAdjusted);\n"
-		"				AtomicAdd(&(histogram[histIndex].m_Reals[3]), palColor1.w * xforms[secondPoint.m_LastXfUsed].m_VizAdjusted);\n";
-				}
+				os <<
+		"				AtomicAdd(&(histogram[histIndex].m_Reals[0]), palColor1.x * (real_bucket_t)xforms[secondPoint.m_LastXfUsed].m_VizAdjusted);\n"//Always apply opacity, even though it's usually 1.
+		"				AtomicAdd(&(histogram[histIndex].m_Reals[1]), palColor1.y * (real_bucket_t)xforms[secondPoint.m_LastXfUsed].m_VizAdjusted);\n"
+		"				AtomicAdd(&(histogram[histIndex].m_Reals[2]), palColor1.z * (real_bucket_t)xforms[secondPoint.m_LastXfUsed].m_VizAdjusted);\n"
+		"				AtomicAdd(&(histogram[histIndex].m_Reals[3]), palColor1.w * (real_bucket_t)xforms[secondPoint.m_LastXfUsed].m_VizAdjusted);\n";
 			}
 			else
 			{
-				if (typeid(T) == typeid(double))
-				{
-					os <<
-		"				real4 realColor;\n"
-		"\n"
-		"				realColor.x = (real_t)palColor1.x;\n"
-		"				realColor.y = (real_t)palColor1.y;\n"
-		"				realColor.z = (real_t)palColor1.z;\n"
-		"				realColor.w = (real_t)palColor1.w;\n"
-		"				histogram[histIndex].m_Real4 += (realColor * xforms[secondPoint.m_LastXfUsed].m_VizAdjusted);\n";
-				}
-				else
-				{
-					os <<
-		"				histogram[histIndex].m_Real4 += (palColor1 * xforms[secondPoint.m_LastXfUsed].m_VizAdjusted);\n";
-				}
+				os <<
+		"				histogram[histIndex].m_Real4 += (palColor1 * (real_bucket_t)xforms[secondPoint.m_LastXfUsed].m_VizAdjusted);\n";//real_bucket_t should always be float.
 			}
 
 			os <<

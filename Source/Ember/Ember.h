@@ -121,7 +121,6 @@ public:
 		m_CenterY			  = T(ember.m_CenterY);
 		m_RotCenterY		  = T(ember.m_RotCenterY);
 		m_Rotate			  = T(ember.m_Rotate);
-		m_Hue				  = T(ember.m_Hue);
 		m_Brightness		  = T(ember.m_Brightness);
 		m_Gamma				  = T(ember.m_Gamma);
 		m_Vibrancy			  = T(ember.m_Vibrancy);
@@ -219,7 +218,6 @@ public:
 		m_CenterY = 0;
 		m_RotCenterY = 0;
 		m_Rotate = 0;
-		m_Hue = 0;
 		m_Brightness = 4;
 		m_Gamma = 4;
 		m_Vibrancy = 1;
@@ -793,7 +791,6 @@ public:
 		InterpT<&Ember<T>::m_CenterY>(embers, coefs, size);
 		InterpT<&Ember<T>::m_RotCenterY>(embers, coefs, size);
 		InterpT<&Ember<T>::m_Rotate>(embers, coefs, size);
-		InterpT<&Ember<T>::m_Hue>(embers, coefs, size);
 		InterpT<&Ember<T>::m_Brightness>(embers, coefs, size);
 		InterpT<&Ember<T>::m_Gamma>(embers, coefs, size);
 		InterpT<&Ember<T>::m_Vibrancy>(embers, coefs, size);
@@ -1335,9 +1332,6 @@ public:
 				case FLAME_MOTION_ROTATE:
 					APP_FMP(m_Rotate);
 					break;
-				case FLAME_MOTION_HUE:
-					APP_FMP(m_Hue);
-					break;
 				case FLAME_MOTION_BRIGHTNESS:
 					APP_FMP(m_Brightness);
 					break;
@@ -1381,7 +1375,6 @@ public:
 		m_Vibrancy = 1;
 		m_Brightness = 4;
 		m_Symmetry = 0;
-		m_Hue = 0;
 		m_Rotate = 0;
 		m_PixelsPerUnit = 50;
 		m_Interp = EMBER_INTERP_LINEAR;
@@ -1502,7 +1495,6 @@ public:
 		   << "CenterY: " << m_CenterY << endl
 		   << "RotCenterY: " << m_RotCenterY << endl
 		   << "Rotate: " << m_Rotate << endl
-		   << "Hue: " << m_Hue << endl
 		   << "Brightness: " << m_Brightness << endl
 		   << "Gamma: " << m_Gamma << endl
 		   << "Vibrancy: " << m_Vibrancy << endl
@@ -1645,11 +1637,6 @@ public:
 	//Rotate the camera by this many degrees. Since this is a camera rotation, the final output image will be rotated counter-clockwise.
 	//Xml field: "rotate".
 	T m_Rotate;
-
-	//When specifying the palette as an index in the palette file, rather than inserted in the Xml, it can optionally have its hue
-	//rotated by this amount.
-	//Xml field: "hue".
-	T m_Hue;
 
 	//Determine how bright to make the image during final accumulation.
 	//Xml field: "brightness".

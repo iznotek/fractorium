@@ -117,6 +117,7 @@ Fractorium::Fractorium(QWidget* p)
 		m_Controller = unique_ptr<FractoriumEmberControllerBase>(new FractoriumEmberController<float>(this));
 
 	m_Controller->SetupVariationTree();
+	m_Controller->FilteredVariations();
 
 	if (m_Wrapper.CheckOpenCL() && m_Settings->OpenCL() && m_QualitySpin->value() < 30)
 		m_QualitySpin->setValue(30);

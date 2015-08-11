@@ -23,7 +23,6 @@ template <typename T>
 class EMBERCL_API IterOpenCLKernelCreator
 {
 public:
-	IterOpenCLKernelCreator();
 	IterOpenCLKernelCreator(bool nVidia);
 	string ZeroizeKernel();
 	string ZeroizeEntryPoint();
@@ -41,22 +40,6 @@ private:
 	string m_ZeroizeEntryPoint;
 	bool m_NVidia;
 };
-//
-//template EMBERCL_API class IterOpenCLKernelCreator<float>;
-//
-//#ifdef DO_DOUBLE
-//	template EMBERCL_API class IterOpenCLKernelCreator<double>;
-//#endif
-
-//
-//template EMBERCL_API string IterOpenCLKernelCreator::CreateIterKernelString<float>(Ember<float>& ember, string& parVarDefines, bool lockAccum, bool doAccum);
-//template EMBERCL_API string IterOpenCLKernelCreator::CreateIterKernelString<double>(Ember<double>& ember, string& parVarDefines, bool lockAccum, bool doAccum);
-//
-//template EMBERCL_API void IterOpenCLKernelCreator::ParVarIndexDefines<float>(Ember<float>& ember, pair<string, vector<float>>& params, bool doVals, bool doString);
-//template EMBERCL_API void IterOpenCLKernelCreator::ParVarIndexDefines<double>(Ember<double>& ember, pair<string, vector<double>>& params, bool doVals, bool doString);
-//
-//template EMBERCL_API bool IterOpenCLKernelCreator::IsBuildRequired<float>(Ember<float>& ember1, Ember<float>& ember2);
-//template EMBERCL_API bool IterOpenCLKernelCreator::IsBuildRequired<double>(Ember<double>& ember1, Ember<double>& ember2);
 
 #ifdef OPEN_CL_TEST_AREA
 typedef void (*KernelFuncPointer) (uint gridWidth, uint gridHeight, uint blockWidth, uint blockHeight,

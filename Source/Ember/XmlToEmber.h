@@ -522,10 +522,10 @@ private:
 
 				if (currentEmber.PaletteIndex() != -1)
 				{
-					if (!m_PaletteList.GetHueAdjustedPalette(PaletteList<T>::m_DefaultFilename, currentEmber.PaletteIndex(), currentEmber.m_Hue, currentEmber.m_Palette))
-					{
+					if (auto pal = m_PaletteList.GetPalette(PaletteList<T>::m_DefaultFilename, currentEmber.PaletteIndex()))
+						currentEmber.m_Palette = *pal;
+					else
 						m_ErrorReport.push_back(string(loc) + " : Error assigning palette with index " + Itos(currentEmber.PaletteIndex()));
-					}
 				}
 
 				//if (!Interpolater<T>::InterpMissingColors(currentEmber.m_Palette.m_Entries))
@@ -711,11 +711,6 @@ private:
 				currentEmber.m_Background[0] = T(vals[0]);//[0..1]
 				currentEmber.m_Background[1] = T(vals[1]);
 				currentEmber.m_Background[2] = T(vals[2]);
-			}
-			else if (!Compare(curAtt->name, "hue"))
-			{
-				Atof(attStr, currentEmber.m_Hue);
-				currentEmber.m_Hue = fmod(currentEmber.m_Hue, T(0.5));//Orig did fmod 1, but want it in the range -0.5 - 0.5.
 			}
 			else if (!Compare(curAtt->name, "curves"))
 			{
@@ -1055,8 +1050,6 @@ private:
 						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_DEPTH_BLUR, motion);
 					else if (!Compare(curAtt->name, "rotate"))
 						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_ROTATE, motion);
-					else if (!Compare(curAtt->name, "hue"))
-						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_HUE, motion);
 					else if (!Compare(curAtt->name, "brightness"))
 						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_BRIGHTNESS, motion);
 					else if (!Compare(curAtt->name, "gamma"))

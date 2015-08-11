@@ -277,7 +277,7 @@ bool FractoriumEmberController<T>::SyncSizes()
 {
 	bool changed = false;
 	GLWidget* gl = m_Fractorium->ui.GLDisplay;
-	RendererCL<T>* rendererCL = nullptr;
+	RendererCL<T, float>* rendererCL = nullptr;
 
 	if (!m_GLController->SizesMatch())
 	{
@@ -286,7 +286,7 @@ bool FractoriumEmberController<T>::SyncSizes()
 		gl->Allocate();
 		gl->SetViewport();
 
-		if (m_Renderer->RendererType() == OPENCL_RENDERER && (rendererCL = dynamic_cast<RendererCL<T>*>(m_Renderer.get())))
+		if (m_Renderer->RendererType() == OPENCL_RENDERER && (rendererCL = dynamic_cast<RendererCL<T, float>*>(m_Renderer.get())))
 			rendererCL->SetOutputTexture(gl->OutputTexID());
 
 		m_Fractorium->CenterScrollbars();
@@ -308,11 +308,11 @@ bool FractoriumEmberController<T>::Render()
 
 	bool success = true;
 	GLWidget* gl = m_Fractorium->ui.GLDisplay;
-	RendererCL<T>* rendererCL = nullptr;
+	RendererCL<T, float>* rendererCL = nullptr;
 	eProcessAction action = CondenseAndClearProcessActions();
 
 	if (m_Renderer->RendererType() == OPENCL_RENDERER)
-		rendererCL = dynamic_cast<RendererCL<T>*>(m_Renderer.get());
+		rendererCL = dynamic_cast<RendererCL<T, float>*>(m_Renderer.get());
 
 	//Force temporal samples to always be 1. Perhaps change later when animation is implemented.
 	m_Ember.m_TemporalSamples = 1;
@@ -524,7 +524,7 @@ bool FractoriumEmberController<T>::CreateRenderer(eRendererType renderType, uint
 		DeleteRenderer();//Delete the renderer and refresh the textures.
 		//Before starting, must take care of allocations.
 		gl->Allocate(true);//Forcing a realloc of the texture is necessary on AMD, but not on nVidia.
-		m_Renderer = unique_ptr<EmberNs::RendererBase>(::CreateRenderer<T, T>(renderType, platform, device, shared, gl->OutputTexID(), emberReport));
+		m_Renderer = unique_ptr<EmberNs::RendererBase>(::CreateRenderer<T, float>(renderType, platform, device, shared, gl->OutputTexID(), emberReport));//Always make bucket type float.
 		errorReport = emberReport.ErrorReport();
 
 		if (errorReport.empty())
@@ -699,20 +699,26 @@ bool Fractorium::CreateControllerFromOptions()
 		//Restore the ember and ember file.
 		if (m_Controller.get())
 		{
-			m_Controller->SetEmber(ed);//Convert float to double or set double verbatim;
+			ed.m_Palette = tempPalette;//Restore base temp palette. Adjustments will be then be applied and stored back in in m_Ember.m_Palette below.
+			m_Controller->SetEmber(ed);//Convert float to double or set double verbatim. This will assign m_Ember.m_Palette (which was just tempPalette) to m_TempPalette.
 			m_Controller->SetEmberFile(efd);
 
-			//Template specific palette table and variations tree setup in controller constructor, but
-			//must manually setup the library tree here because it's after the embers were assigned.
-			m_Controller->FillLibraryTree(index.row());//Passing row re-selects the item that was previously selected.
-			m_Controller->SetTempPalette(tempPalette);//Restore palette.
+			//Setting these and updating the GUI overwrites the work of clearing them done in SetEmber() above.
+			//It's a corner case, but doesn't seem to matter.
 			m_PaletteHueSpin->SetValueStealth(hue);
 			m_PaletteSaturationSpin->SetValueStealth(sat);
 			m_PaletteBrightnessSpin->SetValueStealth(bright);
 			m_PaletteContrastSpin->SetValueStealth(con);
 			m_PaletteBlurSpin->SetValueStealth(blur);
 			m_PaletteFrequencySpin->SetValueStealth(freq);
-			m_Controller->PaletteAdjust();//Fills in the palette.
+			m_Controller->PaletteAdjust();//Applies the adjustments to temp and saves in m_Ember.m_Palette, then fills in the palette preview widget.
+
+			//Template specific palette table and variations tree setup in controller constructor, but
+			//must manually setup the library tree here because it's after the embers were assigned.
+			//Passing row re-selects the item that was previously selected.
+			//This will eventually call FillParamTablesAndPalette(), which in addition to filling in various fields,
+			//will apply the palette adjustments.
+			m_Controller->FillLibraryTree(index.row());
 		}
 	}
 

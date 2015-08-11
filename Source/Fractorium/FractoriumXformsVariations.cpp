@@ -27,7 +27,10 @@ void Fractorium::InitXformsVariationsUI()
 void Fractorium::OnActionVariationsDialog(bool checked)
 {
 	if (m_VarDialog->exec())
+	{
+		m_Controller->FilteredVariations();
 		Filter();
+	}
 }
 
 /// <summary>
@@ -75,6 +78,20 @@ void FractoriumEmberController<T>::Filter(const QString& text)
 void Fractorium::Filter()
 {
 	m_Controller->Filter(ui.VariationsFilterLineEdit->text());
+}
+
+template <typename T>
+void FractoriumEmberController<T>::FilteredVariations()
+{
+	auto& map = m_Fractorium->m_VarDialog->Map();
+
+	m_FilteredVariations.clear();
+	m_FilteredVariations.reserve(map.size());
+
+	for (auto i = 0; i < m_VariationList.Size(); i++)
+		if (auto var = m_VariationList.GetVariation(i))
+			if (map.contains(var->Name().c_str()) && map[var->Name().c_str()].toBool())
+				m_FilteredVariations.push_back(var->VariationId());
 }
 
 /// <summary>
@@ -222,6 +239,7 @@ void FractoriumEmberController<T>::VariationSpinBoxValueChanged(double d)//Would
 				if (xformVar)
 					xform->DeleteVariationById(var->VariationId());
 
+				//widgetItem->setBackgroundColor(0, Qt::darkGray);//Ensure background is always white if weight goes to zero.
 				widgetItem->setBackgroundColor(0, QColor(255, 255, 255));//Ensure background is always white if weight goes to zero.
 			}
 			else
@@ -238,6 +256,7 @@ void FractoriumEmberController<T>::VariationSpinBoxValueChanged(double d)//Would
 
 					newVar->m_Weight = d;
 					xform->AddVariation(newVar);
+					//widgetItem->setBackgroundColor(0, Qt::darkGray);//Set background to gray when a variation has non-zero weight in this xform.
 					widgetItem->setBackgroundColor(0, QColor(200, 200, 200));//Set background to gray when a variation has non-zero weight in this xform.
 
 					//If they've added a new parametric variation, then grab the values currently in the spinners
@@ -295,6 +314,7 @@ void FractoriumEmberController<T>::FillVariationTreeWithXform(Xform<T>* xform)
 				item->setHidden(false);
 
 			spinBox->SetValueStealth(var ? var->m_Weight : 0);//If the variation was present, set the spin box to its weight, else zero.
+			//item->setBackgroundColor(0, var ? Qt::darkGray : Qt::lightGray);//Ensure background is always white if the value goes to zero, else gray if var present.
 			item->setBackgroundColor(0, var ? QColor(200, 200, 200) : QColor(255, 255, 255));//Ensure background is always white if the value goes to zero, else gray if var present.
 
 			for (uint j = 0; j < item->childCount(); j++)//Iterate through all of the children, which will be the params if it was a parametric variation.

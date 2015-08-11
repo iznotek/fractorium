@@ -33,55 +33,55 @@ public:
 /// It does not support different types for T and bucketT, so it only has one template argument
 /// and uses both for the base.
 /// </summary>
-template <typename T>
-class EMBERCL_API RendererCL : public Renderer<T, T>, public RendererCLBase
+template <typename T, typename bucketT>
+class EMBERCL_API RendererCL : public Renderer<T, bucketT>, public RendererCLBase
 {
-using EmberNs::Renderer<T, T>::RendererBase::Abort;
-using EmberNs::Renderer<T, T>::RendererBase::EarlyClip;
-using EmberNs::Renderer<T, T>::RendererBase::Transparency;
-using EmberNs::Renderer<T, T>::RendererBase::EnterResize;
-using EmberNs::Renderer<T, T>::RendererBase::LeaveResize;
-using EmberNs::Renderer<T, T>::RendererBase::FinalRasW;
-using EmberNs::Renderer<T, T>::RendererBase::FinalRasH;
-using EmberNs::Renderer<T, T>::RendererBase::SuperRasW;
-using EmberNs::Renderer<T, T>::RendererBase::SuperRasH;
-using EmberNs::Renderer<T, T>::RendererBase::SuperSize;
-using EmberNs::Renderer<T, T>::RendererBase::BytesPerChannel;
-using EmberNs::Renderer<T, T>::RendererBase::TemporalSamples;
-using EmberNs::Renderer<T, T>::RendererBase::ItersPerTemporalSample;
-using EmberNs::Renderer<T, T>::RendererBase::FuseCount;
-using EmberNs::Renderer<T, T>::RendererBase::DensityFilterOffset;
-using EmberNs::Renderer<T, T>::RendererBase::m_ProgressParameter;
-using EmberNs::Renderer<T, T>::RendererBase::m_YAxisUp;
-using EmberNs::Renderer<T, T>::RendererBase::m_LockAccum;
-using EmberNs::Renderer<T, T>::RendererBase::m_Abort;
-using EmberNs::Renderer<T, T>::RendererBase::m_NumChannels;
-using EmberNs::Renderer<T, T>::RendererBase::m_LastIter;
-using EmberNs::Renderer<T, T>::RendererBase::m_LastIterPercent;
-using EmberNs::Renderer<T, T>::RendererBase::m_Stats;
-using EmberNs::Renderer<T, T>::RendererBase::m_Callback;
-using EmberNs::Renderer<T, T>::RendererBase::m_Rand;
-using EmberNs::Renderer<T, T>::RendererBase::m_RenderTimer;
-using EmberNs::Renderer<T, T>::RendererBase::m_IterTimer;
-using EmberNs::Renderer<T, T>::RendererBase::m_ProgressTimer;
-using EmberNs::Renderer<T, T>::RendererBase::EmberReport::m_ErrorReport;
-using EmberNs::Renderer<T, T>::m_RotMat;
-using EmberNs::Renderer<T, T>::m_Ember;
-using EmberNs::Renderer<T, T>::m_Csa;
-using EmberNs::Renderer<T, T>::m_CurvesSet;
-using EmberNs::Renderer<T, T>::CenterX;
-using EmberNs::Renderer<T, T>::CenterY;
-using EmberNs::Renderer<T, T>::K1;
-using EmberNs::Renderer<T, T>::K2;
-using EmberNs::Renderer<T, T>::Supersample;
-using EmberNs::Renderer<T, T>::HighlightPower;
-using EmberNs::Renderer<T, T>::HistBuckets;
-using EmberNs::Renderer<T, T>::AccumulatorBuckets;
-using EmberNs::Renderer<T, T>::GetDensityFilter;
-using EmberNs::Renderer<T, T>::GetSpatialFilter;
-using EmberNs::Renderer<T, T>::CoordMap;
-using EmberNs::Renderer<T, T>::XformDistributions;
-using EmberNs::Renderer<T, T>::XformDistributionsSize;
+using EmberNs::Renderer<T, bucketT>::RendererBase::Abort;
+using EmberNs::Renderer<T, bucketT>::RendererBase::EarlyClip;
+using EmberNs::Renderer<T, bucketT>::RendererBase::Transparency;
+using EmberNs::Renderer<T, bucketT>::RendererBase::EnterResize;
+using EmberNs::Renderer<T, bucketT>::RendererBase::LeaveResize;
+using EmberNs::Renderer<T, bucketT>::RendererBase::FinalRasW;
+using EmberNs::Renderer<T, bucketT>::RendererBase::FinalRasH;
+using EmberNs::Renderer<T, bucketT>::RendererBase::SuperRasW;
+using EmberNs::Renderer<T, bucketT>::RendererBase::SuperRasH;
+using EmberNs::Renderer<T, bucketT>::RendererBase::SuperSize;
+using EmberNs::Renderer<T, bucketT>::RendererBase::BytesPerChannel;
+using EmberNs::Renderer<T, bucketT>::RendererBase::TemporalSamples;
+using EmberNs::Renderer<T, bucketT>::RendererBase::ItersPerTemporalSample;
+using EmberNs::Renderer<T, bucketT>::RendererBase::FuseCount;
+using EmberNs::Renderer<T, bucketT>::RendererBase::DensityFilterOffset;
+using EmberNs::Renderer<T, bucketT>::RendererBase::m_ProgressParameter;
+using EmberNs::Renderer<T, bucketT>::RendererBase::m_YAxisUp;
+using EmberNs::Renderer<T, bucketT>::RendererBase::m_LockAccum;
+using EmberNs::Renderer<T, bucketT>::RendererBase::m_Abort;
+using EmberNs::Renderer<T, bucketT>::RendererBase::m_NumChannels;
+using EmberNs::Renderer<T, bucketT>::RendererBase::m_LastIter;
+using EmberNs::Renderer<T, bucketT>::RendererBase::m_LastIterPercent;
+using EmberNs::Renderer<T, bucketT>::RendererBase::m_Stats;
+using EmberNs::Renderer<T, bucketT>::RendererBase::m_Callback;
+using EmberNs::Renderer<T, bucketT>::RendererBase::m_Rand;
+using EmberNs::Renderer<T, bucketT>::RendererBase::m_RenderTimer;
+using EmberNs::Renderer<T, bucketT>::RendererBase::m_IterTimer;
+using EmberNs::Renderer<T, bucketT>::RendererBase::m_ProgressTimer;
+using EmberNs::Renderer<T, bucketT>::RendererBase::EmberReport::m_ErrorReport;
+using EmberNs::Renderer<T, bucketT>::m_RotMat;
+using EmberNs::Renderer<T, bucketT>::m_Ember;
+using EmberNs::Renderer<T, bucketT>::m_Csa;
+using EmberNs::Renderer<T, bucketT>::m_CurvesSet;
+using EmberNs::Renderer<T, bucketT>::CenterX;
+using EmberNs::Renderer<T, bucketT>::CenterY;
+using EmberNs::Renderer<T, bucketT>::K1;
+using EmberNs::Renderer<T, bucketT>::K2;
+using EmberNs::Renderer<T, bucketT>::Supersample;
+using EmberNs::Renderer<T, bucketT>::HighlightPower;
+using EmberNs::Renderer<T, bucketT>::HistBuckets;
+using EmberNs::Renderer<T, bucketT>::AccumulatorBuckets;
+using EmberNs::Renderer<T, bucketT>::GetDensityFilter;
+using EmberNs::Renderer<T, bucketT>::GetSpatialFilter;
+using EmberNs::Renderer<T, bucketT>::CoordMap;
+using EmberNs::Renderer<T, bucketT>::XformDistributions;
+using EmberNs::Renderer<T, bucketT>::XformDistributionsSize;
 
 public:
 	RendererCL(uint platform = 0, uint device = 0, bool shared = false, GLuint outputTexID = 0);
@@ -169,13 +169,13 @@ private:
 	bool ClearBuffer(const string& bufferName, uint width, uint height, uint elementSize);
 	bool RunDensityFilterPrivate(uint kernelIndex, uint gridW, uint gridH, uint blockW, uint blockH, uint chunkSizeW, uint chunkSizeH, uint chunkW, uint chunkH);
 	int MakeAndGetDensityFilterProgram(size_t ss, uint filterWidth);
-	int MakeAndGetFinalAccumProgram(T& alphaBase, T& alphaScale);
+	int MakeAndGetFinalAccumProgram(double& alphaBase, double& alphaScale);
 	int MakeAndGetGammaCorrectionProgram();
 	void FillSeeds();
 
 	//Private functions passing data to OpenCL programs.
-	DensityFilterCL<T> ConvertDensityFilter();
-	SpatialFilterCL<T> ConvertSpatialFilter();
+	void ConvertDensityFilter();
+	void ConvertSpatialFilter();
 	void ConvertEmber(Ember<T>& ember, EmberCL<T>& emberCL, vector<XformCL<T>>& xformsCL);
 	static CarToRasCL<T> ConvertCarToRas(const CarToRas<T>& carToRas);
 
@@ -221,13 +221,13 @@ private:
 	EmberCL<T> m_EmberCL;
 	vector<XformCL<T>> m_XformsCL;
 	vector<glm::highp_uvec2> m_Seeds;
-	Palette<float> m_DmapCL;//Used instead of the base class' m_Dmap because OpenCL only supports float textures.
+	Palette<float> m_DmapCL;//Used instead of the base class' m_Dmap because OpenCL only supports float textures. Likely not needed if we switch to float only hist.
 	CarToRasCL<T> m_CarToRasCL;
-	DensityFilterCL<T> m_DensityFilterCL;
-	SpatialFilterCL<T> m_SpatialFilterCL;
+	DensityFilterCL<bucketT> m_DensityFilterCL;
+	SpatialFilterCL<bucketT> m_SpatialFilterCL;
 	IterOpenCLKernelCreator<T> m_IterOpenCLKernelCreator;
-	DEOpenCLKernelCreator<T> m_DEOpenCLKernelCreator;
-	FinalAccumOpenCLKernelCreator<T> m_FinalAccumOpenCLKernelCreator;
+	DEOpenCLKernelCreator m_DEOpenCLKernelCreator;
+	FinalAccumOpenCLKernelCreator m_FinalAccumOpenCLKernelCreator;
 	pair<string, vector<T>> m_Params;
 	Ember<T> m_LastBuiltEmber;
 };

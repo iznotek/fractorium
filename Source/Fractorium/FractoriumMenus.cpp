@@ -65,7 +65,7 @@ void FractoriumEmberController<T>::NewFlock(uint count)
 
 	for (uint i = 0; i < count; i++)
 	{
-		m_SheepTools->Random(ember);
+		m_SheepTools->Random(ember, m_FilteredVariations, static_cast<int>(QTIsaac<ISAAC_SIZE, ISAAC_INT>::GlobalRand->Frand<T>(-2, 2)), 0);
 		ParamsToEmber(ember);
 		ember.m_Index = i;
 		ember.m_Name = m_EmberFile.m_Filename.toStdString() + "-" + ToString(i + 1).toStdString();
@@ -126,7 +126,7 @@ void FractoriumEmberController<T>::NewRandomFlameInCurrentFile()
 	Ember<T> ember;
 
 	StopPreviewRender();
-	m_SheepTools->Random(ember);
+	m_SheepTools->Random(ember, m_FilteredVariations, static_cast<int>(QTIsaac<ISAAC_SIZE, ISAAC_INT>::GlobalRand->Frand<T>(-2, 2)), 0);
 	ParamsToEmber(ember);
 	ember.m_Name = EmberFile<T>::DefaultEmberName(m_EmberFile.Size() + 1).toStdString();
 	ember.m_Index = m_EmberFile.Size();

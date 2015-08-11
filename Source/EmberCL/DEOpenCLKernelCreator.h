@@ -27,14 +27,11 @@ namespace EmberCLns
 /// ends up being not much faster than doing it on the CPU.
 /// String members are kept for the program source and entry points
 /// for each version of the program.
-/// Template argument expected to be float or double.
 /// </summary>
-template <typename T>
 class EMBERCL_API DEOpenCLKernelCreator
 {
 public:
-	DEOpenCLKernelCreator();
-	DEOpenCLKernelCreator(bool nVidia);
+	DEOpenCLKernelCreator(bool doublePrecision, bool nVidia);
 
 	//Accessors.
 	string LogScaleAssignDEKernel();
@@ -44,7 +41,7 @@ public:
 
 	//Miscellaneous static functions.
 	static uint MaxDEFilterSize();
-	static T SolveMaxDERad(uint maxBoxSize, T desiredFilterSize, T ss);
+	static double SolveMaxDERad(uint maxBoxSize, double desiredFilterSize, double ss);
 	static uint SolveMaxBoxSize(uint localMem);
 
 private:
@@ -74,6 +71,7 @@ private:
 	string m_GaussianDESsWithoutScfNoCacheKernel;
 	string m_GaussianDESsWithoutScfNoCacheEntryPoint;
 
+	bool m_DoublePrecision;
 	bool m_NVidia;
 };
 }

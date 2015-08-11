@@ -138,6 +138,6 @@ protected:
 	Ember<T> m_PreviewEmber;
 	EmberFile<T> m_EmberFile;
 	EmberToXml<T> m_XmlWriter;
-	unique_ptr<EmberNs::Renderer<T, T>> m_FinalPreviewRenderer;
+	unique_ptr<EmberNs::Renderer<T, float>> m_FinalPreviewRenderer;
 };
 

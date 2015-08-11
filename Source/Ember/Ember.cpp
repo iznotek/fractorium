@@ -412,6 +412,6 @@ EXPORT_TWO_TYPE_EMBER(float, float)
 
 #ifdef DO_DOUBLE
 	EXPORT_SINGLE_TYPE_EMBER(double)
-	EXPORT_TWO_TYPE_EMBER(double, double)
+	EXPORT_TWO_TYPE_EMBER(double, float)
 #endif
 }

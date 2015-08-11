@@ -72,11 +72,11 @@ FractoriumEmberController<T>::FractoriumEmberController(Fractorium* fractorium)
 {
 	m_PreviewRun = false;
 	m_PreviewRunning = false;
-	m_SheepTools = unique_ptr<SheepTools<T, T>>(new SheepTools<T, T>(
+	m_SheepTools = unique_ptr<SheepTools<T, float>>(new SheepTools<T, float>(
 													QString(QApplication::applicationDirPath() + "flam3-palettes.xml").toLocal8Bit().data(),
-													new EmberNs::Renderer<T, T>()));
+													new EmberNs::Renderer<T, float>()));
 	m_GLController = unique_ptr<GLEmberController<T>>(new GLEmberController<T>(fractorium, fractorium->ui.GLDisplay, this));
-	m_PreviewRenderer = unique_ptr<EmberNs::Renderer<T, T>>(new EmberNs::Renderer<T, T>());
+	m_PreviewRenderer = unique_ptr<EmberNs::Renderer<T, float>>(new EmberNs::Renderer<T, float>());
 
 	//Initial combo change event to fill the palette table will be called automatically later.
 	if (!InitPaletteList(QCoreApplication::applicationDirPath().toLocal8Bit().data()))

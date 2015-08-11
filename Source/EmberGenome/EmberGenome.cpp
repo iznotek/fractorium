@@ -787,7 +787,7 @@ int _tmain(int argc, _TCHAR* argv[])
 #ifdef DO_DOUBLE
 		if (opt.Bits() == 64)
 		{
-			b = EmberGenome<double, double>(opt);
+			b = EmberGenome<double, float>(opt);
 		}
 		else
 #endif

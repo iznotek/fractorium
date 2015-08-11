@@ -4,58 +4,22 @@
 namespace EmberCLns
 {
 /// <summary>
-/// Empty constructor that does nothing. The user must call the one which takes a bool
-/// argument before using this class.
-/// This constructor only exists so the class can be a member of a class.
-/// </summary>
-template <typename T>
-DEOpenCLKernelCreator<T>::DEOpenCLKernelCreator()
-{
-}
-
-/// <summary>
-/// Constructor for float template type that sets all kernel entry points as well as composes
-/// all kernel source strings.
-/// No program compilation is done here, the user must explicitly do it.
-/// The caller must specify whether they are using an nVidia or AMD card because it changes
-/// the amount of local memory available.
-/// </summary>
-/// <param name="nVidia">True if running on an nVidia card, else false.</param>
-template <>
-DEOpenCLKernelCreator<float>::DEOpenCLKernelCreator(bool nVidia)
-{
-	m_NVidia = nVidia;
-	m_LogScaleAssignDEEntryPoint              = "LogScaleAssignDensityFilterKernel";
-	m_GaussianDEWithoutSsEntryPoint           = "GaussianDEWithoutSsKernel";
-	m_GaussianDESsWithScfEntryPoint           = "GaussianDESsWithScfKernel";
-	m_GaussianDESsWithoutScfEntryPoint        = "GaussianDESsWithoutScfKernel";
-	m_GaussianDEWithoutSsNoCacheEntryPoint    = "GaussianDEWithoutSsNoCacheKernel";
-	m_GaussianDESsWithScfNoCacheEntryPoint    = "GaussianDESsWithScfNoCacheKernel";
-	m_GaussianDESsWithoutScfNoCacheEntryPoint = "GaussianDESsWithoutScfNoCacheKernel";
-	m_LogScaleAssignDEKernel                  = CreateLogScaleAssignDEKernelString();
-	m_GaussianDEWithoutSsKernel               = CreateGaussianDEKernel(1);
-	m_GaussianDESsWithScfKernel               = CreateGaussianDEKernel(2);
-	m_GaussianDESsWithoutScfKernel            = CreateGaussianDEKernel(3);
-	m_GaussianDEWithoutSsNoCacheKernel        = CreateGaussianDEKernelNoLocalCache(1);
-	m_GaussianDESsWithScfNoCacheKernel        = CreateGaussianDEKernelNoLocalCache(2);
-	m_GaussianDESsWithoutScfNoCacheKernel     = CreateGaussianDEKernelNoLocalCache(3);
-}
-
-/// <summary>
-/// Constructor for double template type that sets all kernel entry points as well as composes
+/// Constructor that sets all kernel entry points as well as composes
 /// all kernel source strings.
 /// Note that no versions of kernels that use the cache are compiled because
 /// the cache is not big enough to hold double4.
 /// No program compilation is done here, the user must explicitly do it.
-/// Specifying true or false for the bool parameter has no effect since no local memory
-/// is used when instantiated with type double.
+/// The caller must specify whether they are using an nVidia or AMD card because it changes
+/// the amount of local memory available.
 /// </summary>
-/// <param name="nVidia">True if running on an nVidia card, else false. Ignored.</param>
-template <>
-DEOpenCLKernelCreator<double>::DEOpenCLKernelCreator(bool nVidia)
+/// <param name="doublePrecision">True if double precision, else false for float.</param>
+/// <param name="nVidia">True if running on an nVidia card, else false.</param>
+DEOpenCLKernelCreator::DEOpenCLKernelCreator(bool doublePrecision, bool nVidia)
 {
-#ifdef ROW_ONLY_DE
+	m_DoublePrecision = doublePrecision;
 	m_NVidia = nVidia;
+	
+#ifdef ROW_ONLY_DE
 	m_LogScaleAssignDEEntryPoint = "LogScaleAssignDensityFilterKernel";
 	m_GaussianDEWithoutSsEntryPoint = "GaussianDEWithoutSsKernel";
 	m_GaussianDESsWithScfEntryPoint = "GaussianDESsWithScfKernel";
@@ -71,24 +35,29 @@ DEOpenCLKernelCreator<double>::DEOpenCLKernelCreator(bool nVidia)
 	m_GaussianDESsWithScfNoCacheKernel = CreateGaussianDEKernelNoLocalCache(2);
 	m_GaussianDESsWithoutScfNoCacheKernel = CreateGaussianDEKernelNoLocalCache(3);
 #else
-	m_NVidia = nVidia;
-	m_LogScaleAssignDEEntryPoint              = "LogScaleAssignDensityFilterKernel";
-	m_GaussianDEWithoutSsNoCacheEntryPoint    = "GaussianDEWithoutSsNoCacheKernel";
-	m_GaussianDESsWithScfNoCacheEntryPoint    = "GaussianDESsWithScfNoCacheKernel";
+	m_LogScaleAssignDEEntryPoint = "LogScaleAssignDensityFilterKernel";
+	m_GaussianDEWithoutSsEntryPoint = "GaussianDEWithoutSsKernel";
+	m_GaussianDESsWithScfEntryPoint = "GaussianDESsWithScfKernel";
+	m_GaussianDESsWithoutScfEntryPoint = "GaussianDESsWithoutScfKernel";
+	m_GaussianDEWithoutSsNoCacheEntryPoint = "GaussianDEWithoutSsNoCacheKernel";
+	m_GaussianDESsWithScfNoCacheEntryPoint = "GaussianDESsWithScfNoCacheKernel";
 	m_GaussianDESsWithoutScfNoCacheEntryPoint = "GaussianDESsWithoutScfNoCacheKernel";
-	m_LogScaleAssignDEKernel                  = CreateLogScaleAssignDEKernelString();
-	m_GaussianDEWithoutSsNoCacheKernel        = CreateGaussianDEKernelNoLocalCache(1);
-	m_GaussianDESsWithScfNoCacheKernel        = CreateGaussianDEKernelNoLocalCache(2);
-	m_GaussianDESsWithoutScfNoCacheKernel     = CreateGaussianDEKernelNoLocalCache(3);
-#endif
+	m_LogScaleAssignDEKernel = CreateLogScaleAssignDEKernelString();
+	m_GaussianDEWithoutSsKernel = CreateGaussianDEKernel(1);
+	m_GaussianDESsWithScfKernel = CreateGaussianDEKernel(2);
+	m_GaussianDESsWithoutScfKernel = CreateGaussianDEKernel(3);
+	m_GaussianDEWithoutSsNoCacheKernel = CreateGaussianDEKernelNoLocalCache(1);
+	m_GaussianDESsWithScfNoCacheKernel = CreateGaussianDEKernelNoLocalCache(2);
+	m_GaussianDESsWithoutScfNoCacheKernel = CreateGaussianDEKernelNoLocalCache(3);
+#endif	
 }
 
 /// <summary>
 /// Kernel source and entry point properties, getters only.
 /// </summary>
 
-template <typename T> string DEOpenCLKernelCreator<T>::LogScaleAssignDEKernel() { return m_LogScaleAssignDEKernel; }
-template <typename T> string DEOpenCLKernelCreator<T>::LogScaleAssignDEEntryPoint() { return m_LogScaleAssignDEEntryPoint; }
+string DEOpenCLKernelCreator::LogScaleAssignDEKernel() { return m_LogScaleAssignDEKernel; }
+string DEOpenCLKernelCreator::LogScaleAssignDEEntryPoint() { return m_LogScaleAssignDEEntryPoint; }
 
 /// <summary>
 /// Get the kernel source for the specified supersample and filterWidth.
@@ -96,11 +65,10 @@ template <typename T> string DEOpenCLKernelCreator<T>::LogScaleAssignDEEntryPoin
 /// <param name="ss">The supersample being used</param>
 /// <param name="filterWidth">Filter width</param>
 /// <returns>The kernel source</returns>
-template <typename T>
-string DEOpenCLKernelCreator<T>::GaussianDEKernel(size_t ss, uint filterWidth)
+string DEOpenCLKernelCreator::GaussianDEKernel(size_t ss, uint filterWidth)
 {
 #ifndef ROW_ONLY_DE
-	if ((typeid(T) == typeid(double)) || (filterWidth > MaxDEFilterSize()))//Type double does not use cache.
+	if (filterWidth > MaxDEFilterSize())
 	{
 		if (ss > 1)
 		{
@@ -133,11 +101,10 @@ string DEOpenCLKernelCreator<T>::GaussianDEKernel(size_t ss, uint filterWidth)
 /// <param name="ss">The supersample being used</param>
 /// <param name="filterWidth">Filter width</param>
 /// <returns>The name of the density estimation filtering entry point kernel function</returns>
-template <typename T>
-string DEOpenCLKernelCreator<T>::GaussianDEEntryPoint(size_t ss, uint filterWidth)
+string DEOpenCLKernelCreator::GaussianDEEntryPoint(size_t ss, uint filterWidth)
 {
 #ifndef ROW_ONLY_DE
-	if ((typeid(T) == typeid(double)) || (filterWidth > MaxDEFilterSize()))//Type double does not use cache.
+	if (filterWidth > MaxDEFilterSize())
 	{
 		if (ss > 1)
 		{
@@ -169,8 +136,7 @@ string DEOpenCLKernelCreator<T>::GaussianDEEntryPoint(size_t ss, uint filterWidt
 /// Filters larger than this value will run the version without local memory caching.
 /// </summary>
 /// <returns>The maximum filter size allowed for running the local memory version of density filtering</returns>
-template <typename T>
-uint DEOpenCLKernelCreator<T>::MaxDEFilterSize() { return 9; }//The true max would be (maxBoxSize - 1) / 2, but that's impractical because it can give us a tiny block size.
+uint DEOpenCLKernelCreator::MaxDEFilterSize() { return 9; }//The true max would be (maxBoxSize - 1) / 2, but that's impractical because it can give us a tiny block size.
 
 /// <summary>
 /// Solve for the maximum filter radius.
@@ -185,8 +151,7 @@ uint DEOpenCLKernelCreator<T>::MaxDEFilterSize() { return 9; }//The true max wou
 /// <param name="desiredFilterSize">Size of the desired filter.</param>
 /// <param name="ss">The supersample being used</param>
 /// <returns>The maximum filter radius allowed</returns>
-template <typename T>
-T DEOpenCLKernelCreator<T>::SolveMaxDERad(uint maxBoxSize, T desiredFilterSize, T ss)
+double DEOpenCLKernelCreator::SolveMaxDERad(uint maxBoxSize, double desiredFilterSize, double ss)
 {
 	uint finalFilterSize = uint((ceil(desiredFilterSize) * ss) + (ss - 1.0));
 
@@ -195,7 +160,7 @@ T DEOpenCLKernelCreator<T>::SolveMaxDERad(uint maxBoxSize, T desiredFilterSize, 
 		return desiredFilterSize;
 
 	//The final size doesn't fit, so scale the original down until it fits.
-	return T(floor((MaxDEFilterSize() - (ss - 1.0)) / ss));
+	return floor((MaxDEFilterSize() - (ss - 1.0)) / ss);
 }
 
 /// <summary>
@@ -204,10 +169,9 @@ T DEOpenCLKernelCreator<T>::SolveMaxDERad(uint maxBoxSize, T desiredFilterSize, 
 /// </summary>
 /// <param name="localMem">The local memory available to a block</param>
 /// <returns>The maximum filter box size allowed</returns>
-template <typename T>
-uint DEOpenCLKernelCreator<T>::SolveMaxBoxSize(uint localMem)
+uint DEOpenCLKernelCreator::SolveMaxBoxSize(uint localMem)
 {
-	return uint(floor(std::sqrt(floor(T(localMem) / 16.0))));//Divide by 16 because each element is float4.
+	return uint(floor(std::sqrt(floor(localMem / 16.0))));//Divide by 16 because each element is float4.
 }
 
 /// <summary>
@@ -215,17 +179,16 @@ uint DEOpenCLKernelCreator<T>::SolveMaxBoxSize(uint localMem)
 /// Use this when Passes == 1.
 /// </summary>
 /// <returns>The kernel string</returns>
-template <typename T>
-string DEOpenCLKernelCreator<T>::CreateLogScaleAssignDEKernelString()
+string DEOpenCLKernelCreator::CreateLogScaleAssignDEKernelString()
 {
 	ostringstream os;
 
 	os	<<
-		ConstantDefinesString(typeid(T) == typeid(double)) <<
+		ConstantDefinesString(m_DoublePrecision) <<
 		DensityFilterCLStructString <<
 		"__kernel void " << m_LogScaleAssignDEEntryPoint << "(\n"
-		"	const __global real4* histogram,\n"
-		"	__global real4* accumulator,\n"
+		"	const __global real4_bucket* histogram,\n"
+		"	__global real4_bucket* accumulator,\n"
 		"	__constant DensityFilterCL* logFilter\n"
 		"\t)\n"
 		"{\n"
@@ -235,7 +198,7 @@ string DEOpenCLKernelCreator<T>::CreateLogScaleAssignDEKernelString()
 		"\n"
 		"		if (histogram[index].w != 0)\n"
 		"		{\n"
-		"			real_t logScale = (logFilter->m_K1 * log(1.0 + histogram[index].w * logFilter->m_K2)) / histogram[index].w;\n"
+		"			real_bucket_t logScale = (logFilter->m_K1 * log(1.0 + histogram[index].w * logFilter->m_K2)) / histogram[index].w;\n"
 		"\n"
 		"			accumulator[index] = histogram[index] * logScale;\n"//Using a single real4 vector operation doubles the speed from doing each component individually.
 		"		}\n"
@@ -248,23 +211,22 @@ string DEOpenCLKernelCreator<T>::CreateLogScaleAssignDEKernelString()
 }
 
 #ifdef ROW_ONLY_DE
-template <typename T>
-string DEOpenCLKernelCreator<T>::CreateGaussianDEKernel(size_t ss)
+string DEOpenCLKernelCreator::CreateGaussianDEKernel(size_t ss)
 {
 	bool doSS = ss > 1;
 	bool doScf = !(ss & 1);
 	ostringstream os;
 
 	os <<
-		ConstantDefinesString(typeid(T) == typeid(double)) <<
+		ConstantDefinesString(m_DoublePrecision) <<
 		DensityFilterCLStructString <<
 		UnionCLStructString <<
 		"__kernel void " << GaussianDEEntryPoint(ss, MaxDEFilterSize()) << "(\n" <<
-		"	const __global real4* histogram,\n"
-		"	__global real4reals* accumulator,\n"
+		"	const __global real4_bucket* histogram,\n"
+		"	__global real4reals_bucket* accumulator,\n"
 		"	__constant DensityFilterCL* densityFilter,\n"
-		"	const __global real_t* filterCoefs,\n"
-		"	const __global real_t* filterWidths,\n"
+		"	const __global real_bucket_t* filterCoefs,\n"
+		"	const __global real_bucket_t* filterWidths,\n"
 		"	const __global uint* coefIndices,\n"
 		"	const uint chunkSizeW,\n"
 		"	const uint chunkSizeH,\n"
@@ -282,7 +244,7 @@ string DEOpenCLKernelCreator<T>::CreateGaussianDEKernel(size_t ss)
 	if (doSS)
 	{
 		os <<
-			"	uint ss = (uint)floor((real_t)densityFilter->m_Supersample / 2.0);\n"
+			"	uint ss = (uint)floor((real_bucket_t)densityFilter->m_Supersample / 2.0);\n"
 			"	int densityBoxLeftX;\n"
 			"	int densityBoxRightX;\n"
 			"	int densityBoxTopY;\n"
@@ -291,7 +253,7 @@ string DEOpenCLKernelCreator<T>::CreateGaussianDEKernel(size_t ss)
 
 		if (doScf)
 			os <<
-			"	real_t scfact = pow(densityFilter->m_Supersample / (densityFilter->m_Supersample + (real_t)1.0), (real_t)2.0);\n";
+			"	real_bucket_t scfact = pow(densityFilter->m_Supersample / (densityFilter->m_Supersample + (real_bucket_t)1.0), (real_bucket_t)2.0);\n";
 	}
 
 	os <<
@@ -320,7 +282,7 @@ string DEOpenCLKernelCreator<T>::CreateGaussianDEKernel(size_t ss)
 		"\n"
 		//Last, the indices in the global accumulator that the local bounds will be writing to.
 		"	accumWriteStartCol = blockHistStartCol - min(densityFilter->m_FilterWidth, blockHistStartCol);\n"//The first column in the accumulator this block will write to.
-		"	colsToWrite = ceil((real_t)(boxReadEndCol - boxReadStartCol) / (real_t)BLOCK_SIZE_X);\n"//Elements per thread to be written to the accumulator.
+		"	colsToWrite = ceil((real_bucket_t)(boxReadEndCol - boxReadStartCol) / (real_bucket_t)BLOCK_SIZE_X);\n"//Elements per thread to be written to the accumulator.
 		"	histCol = blockHistStartCol + THREAD_ID_X;\n"//The histogram column this individual thread will be reading from.
 		"\n"
 		"	if (histCol >= rightBound)\n"
@@ -331,15 +293,15 @@ string DEOpenCLKernelCreator<T>::CreateGaussianDEKernel(size_t ss)
 		//These are the local indices for the local data that are temporarily accumulated to before
 		//writing out to the global accumulator.
 		"	uint boxCol = densityFilter->m_FilterWidth + THREAD_ID_X;\n"
-		"	uint colsToZeroOffset, colsToZero = ceil((real_t)fullTempBoxWidth / (real_t)(BLOCK_SIZE_X));\n"//Usually is 2.
+		"	uint colsToZeroOffset, colsToZero = ceil((real_bucket_t)fullTempBoxWidth / (real_bucket_t)(BLOCK_SIZE_X));\n"//Usually is 2.
 		"	int i, j, k, jmin, jmax;\n"
 		"	uint filterSelectInt, filterCoefIndex;\n"
-		"	real_t cacheLog;\n"
-		"	real_t filterSelect;\n"
-		"	real4 bucket;\n"
+		"	real_bucket_t cacheLog;\n"
+		"	real_bucket_t filterSelect;\n"
+		"	real4_bucket bucket;\n"
 		;
 
-	os << " __local real4reals filterBox[192];\n";//Must be >= fullTempBoxWidth.
+	os << " __local real4reals_bucket filterBox[192];\n";//Must be >= fullTempBoxWidth.
 
 	os <<
 		"\n"
@@ -389,7 +351,7 @@ string DEOpenCLKernelCreator<T>::CreateGaussianDEKernel(size_t ss)
 		"		else if (filterSelect <= DE_THRESH)\n"
 		"			filterSelectInt = (int)ceil(filterSelect) - 1;\n"
 		"		else if (filterSelect != 0)\n"
-		"			filterSelectInt = (int)DE_THRESH + (int)floor(pow((real_t)(filterSelect - DE_THRESH), densityFilter->m_Curve));\n"
+		"			filterSelectInt = (int)DE_THRESH + (int)floor(pow((real_bucket_t)(filterSelect - DE_THRESH), densityFilter->m_Curve));\n"
 		"		else\n"
 		"			filterSelectInt = 0;\n"
 		"\n"
@@ -477,23 +439,22 @@ string DEOpenCLKernelCreator<T>::CreateGaussianDEKernel(size_t ss)
 /// </summary>
 /// <param name="ss">The supersample being used</param>
 /// <returns>The kernel string</returns>
-template <typename T>
-string DEOpenCLKernelCreator<T>::CreateGaussianDEKernel(size_t ss)
+string DEOpenCLKernelCreator::CreateGaussianDEKernel(size_t ss)
 {
 	bool doSS = ss > 1;
 	bool doScf = !(ss & 1);
 	ostringstream os;
 
 	os <<
-		ConstantDefinesString(typeid(T) == typeid(double)) <<
+		ConstantDefinesString(m_DoublePrecision) <<
 		DensityFilterCLStructString <<
 		UnionCLStructString <<
 		"__kernel void " << GaussianDEEntryPoint(ss, MaxDEFilterSize()) << "(\n" <<
-		"	const __global real4* histogram,\n"
-		"	__global real4reals* accumulator,\n"
+		"	const __global real4_bucket* histogram,\n"
+		"	__global real4reals_bucket* accumulator,\n"
 		"	__constant DensityFilterCL* densityFilter,\n"
-		"	const __global real_t* filterCoefs,\n"
-		"	const __global real_t* filterWidths,\n"
+		"	const __global real_bucket_t* filterCoefs,\n"
+		"	const __global real_bucket_t* filterWidths,\n"
 		"	const __global uint* coefIndices,\n"
 		"	const uint chunkSizeW,\n"
 		"	const uint chunkSizeH,\n"
@@ -509,7 +470,7 @@ string DEOpenCLKernelCreator<T>::CreateGaussianDEKernel(size_t ss)
 	if (doSS)
 	{
 		os <<
-		"	uint ss = (uint)floor((real_t)densityFilter->m_Supersample / 2.0);\n"
+		"	uint ss = (uint)floor((real_bucket_t)densityFilter->m_Supersample / 2.0);\n"
 		"	int densityBoxLeftX;\n"
 		"	int densityBoxRightX;\n"
 		"	int densityBoxTopY;\n"
@@ -518,7 +479,7 @@ string DEOpenCLKernelCreator<T>::CreateGaussianDEKernel(size_t ss)
 
 		if (doScf)
 		os <<
-		"	real_t scfact = pow(densityFilter->m_Supersample / (densityFilter->m_Supersample + (real_t)1.0), (real_t)2.0);\n";
+		"	real_bucket_t scfact = pow(densityFilter->m_Supersample / (densityFilter->m_Supersample + (real_bucket_t)1.0), (real_bucket_t)2.0);\n";
 	}
 
 	//Compute the size of the temporary box which is the block width + 2 * filter width x block height + 2 * filter width.
@@ -561,7 +522,7 @@ string DEOpenCLKernelCreator<T>::CreateGaussianDEKernel(size_t ss)
 		//Last, the indices in the global accumulator that the local bounds will be writing to.
 		"	accumWriteStartRow = blockHistStartRow - min(densityFilter->m_FilterWidth,  blockHistStartRow);\n"//Will be fw - 0 except for boundary columns, it will be less.
 		"	accumWriteStartCol = blockHistStartCol - min(densityFilter->m_FilterWidth,  blockHistStartCol);\n"
-		"	colsToWrite = ceil((real_t)(boxReadEndCol - boxReadStartCol) / (real_t)BLOCK_SIZE_X);\n"
+		"	colsToWrite = ceil((real_bucket_t)(boxReadEndCol - boxReadStartCol) / (real_bucket_t)BLOCK_SIZE_X);\n"
 		"\n"
 		"	uint threadHistRow = blockHistStartRow + THREAD_ID_Y;\n"//The histogram row this individual thread will be reading from.
 		"	uint threadHistCol = blockHistStartCol + THREAD_ID_X;\n"//The histogram column this individual thread will be reading from.
@@ -573,19 +534,19 @@ string DEOpenCLKernelCreator<T>::CreateGaussianDEKernel(size_t ss)
 		//writing out to the global accumulator.
 		"	uint boxRow = densityFilter->m_FilterWidth + THREAD_ID_Y;\n"
 		"	uint boxCol = densityFilter->m_FilterWidth + THREAD_ID_X;\n"
-		"	uint colElementsToZero = ceil((real_t)fullTempBoxWidth / (real_t)(BLOCK_SIZE_X));\n"//Usually is 2.
+		"	uint colElementsToZero = ceil((real_bucket_t)fullTempBoxWidth / (real_bucket_t)(BLOCK_SIZE_X));\n"//Usually is 2.
 		"	int i, j, k;\n"
 		"	uint filterSelectInt, filterCoefIndex;\n"
-		"	real_t cacheLog;\n"
-		"	real_t filterSelect;\n"
-		"	real4 bucket;\n"
+		"	real_bucket_t cacheLog;\n"
+		"	real_bucket_t filterSelect;\n"
+		"	real4_bucket bucket;\n"
 		;
 
 		//This will be treated as having dimensions of (BLOCK_SIZE_X + (fw * 2)) x (BLOCK_SIZE_Y + (fw * 2)).
 	if (m_NVidia)
-		os << "	__local real4reals filterBox[3000];\n";
+		os << "	__local real4reals_bucket filterBox[3000];\n";
 	else
-		os << "	__local real4reals filterBox[1200];\n";
+		os << "	__local real4reals_bucket filterBox[1200];\n";
 
 	os <<
 		//Zero the temp buffers first. This splits the zeroization evenly across all threads (columns) in the first block row.
@@ -662,7 +623,7 @@ string DEOpenCLKernelCreator<T>::CreateGaussianDEKernel(size_t ss)
 		"			else if (filterSelect <= DE_THRESH)\n"
 		"				filterSelectInt = (int)ceil(filterSelect) - 1;\n"
 		"			else\n"
-		"				filterSelectInt = (int)DE_THRESH + (int)floor(pow((real_t)(filterSelect - DE_THRESH), densityFilter->m_Curve));\n"
+		"				filterSelectInt = (int)DE_THRESH + (int)floor(pow((real_bucket_t)(filterSelect - DE_THRESH), densityFilter->m_Curve));\n"
 		"\n"
 		"			if (filterSelectInt > densityFilter->m_MaxFilterIndex)\n"
 		"				filterSelectInt = densityFilter->m_MaxFilterIndex;\n"
@@ -736,24 +697,23 @@ string DEOpenCLKernelCreator<T>::CreateGaussianDEKernel(size_t ss)
 /// </summary>
 /// <param name="ss">The supersample being used</param>
 /// <returns>The kernel string</returns>
-template <typename T>
-string DEOpenCLKernelCreator<T>::CreateGaussianDEKernelNoLocalCache(size_t ss)
+string DEOpenCLKernelCreator::CreateGaussianDEKernelNoLocalCache(size_t ss)
 {
 	bool doSS = ss > 1;
 	bool doScf = !(ss & 1);
 	ostringstream os;
 
 	os <<
-		ConstantDefinesString(typeid(T) == typeid(double)) <<
+		ConstantDefinesString(m_DoublePrecision) <<
 		DensityFilterCLStructString <<
 		UnionCLStructString <<
 		AddToAccumWithCheckFunctionString <<
 		"__kernel void " << GaussianDEEntryPoint(ss, MaxDEFilterSize() + 1) << "(\n" <<
-		"	const __global real4* histogram,\n"
-		"	__global real4reals* accumulator,\n"
+		"	const __global real4_bucket* histogram,\n"
+		"	__global real4reals_bucket* accumulator,\n"
 		"	__constant DensityFilterCL* densityFilter,\n"
-		"	const __global real_t* filterCoefs,\n"
-		"	const __global real_t* filterWidths,\n"
+		"	const __global real_bucket_t* filterCoefs,\n"
+		"	const __global real_bucket_t* filterWidths,\n"
 		"	const __global uint* coefIndices,\n"
 		"	const uint chunkSizeW,\n"
 		"	const uint chunkSizeH,\n"
@@ -769,14 +729,14 @@ string DEOpenCLKernelCreator<T>::CreateGaussianDEKernelNoLocalCache(size_t ss)
 	if (doSS)
 	{
 	os <<
-		"	uint ss = (uint)floor((real_t)densityFilter->m_Supersample / 2.0);\n"
+		"	uint ss = (uint)floor((real_bucket_t)densityFilter->m_Supersample / 2.0);\n"
 		"	int densityBoxLeftX;\n"
 		"	int densityBoxRightX;\n"
 		"	int densityBoxTopY;\n"
 		"	int densityBoxBottomY;\n";
 
 	if (doScf)
-	os << "	real_t scfact = pow((real_t)densityFilter->m_Supersample / ((real_t)densityFilter->m_Supersample + (real_t)1.0), (real_t)2.0);\n";
+	os << "	real_bucket_t scfact = pow((real_bucket_t)densityFilter->m_Supersample / ((real_bucket_t)densityFilter->m_Supersample + (real_bucket_t)1.0), (real_bucket_t)2.0);\n";
 	}
 
 	os <<
@@ -796,10 +756,9 @@ string DEOpenCLKernelCreator<T>::CreateGaussianDEKernelNoLocalCache(size_t ss)
 		"\n"
 		"	int i, j;\n"
 		"	uint filterSelectInt, filterCoefIndex;\n"
-		"	real_t cacheLog;\n"
-		"	real_t logScale;\n"
-		"	real_t filterSelect;\n"
-		"	real4 bucket;\n"
+		"	real_bucket_t cacheLog;\n"
+		"	real_bucket_t filterSelect;\n"
+		"	real4_bucket bucket;\n"
 		"\n"
 		"	if (threadHistRow < botBound && threadHistCol < rightBound)\n"
 		"	{\n"
@@ -843,7 +802,7 @@ string DEOpenCLKernelCreator<T>::CreateGaussianDEKernelNoLocalCache(size_t ss)
 		"			else if (filterSelect <= DE_THRESH)\n"
 		"				filterSelectInt = (int)ceil(filterSelect) - 1;\n"
 		"			else\n"
-		"				filterSelectInt = (int)DE_THRESH + (int)floor(pow((real_t)(filterSelect - DE_THRESH), densityFilter->m_Curve));\n"
+		"				filterSelectInt = (int)DE_THRESH + (int)floor(pow((real_bucket_t)(filterSelect - DE_THRESH), densityFilter->m_Curve));\n"
 		"\n"
 		"			if (filterSelectInt > densityFilter->m_MaxFilterIndex)\n"
 		"				filterSelectInt = densityFilter->m_MaxFilterIndex;\n"
@@ -877,10 +836,4 @@ string DEOpenCLKernelCreator<T>::CreateGaussianDEKernelNoLocalCache(size_t ss)
 
 	return os.str();
 }
-
-template EMBERCL_API class DEOpenCLKernelCreator<float>;
-
-#ifdef DO_DOUBLE
-	template EMBERCL_API class DEOpenCLKernelCreator<double>;
-#endif
 }

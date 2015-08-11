@@ -253,6 +253,8 @@ void Fractorium::OnEmberTreeItemChanged(QTreeWidgetItem* item, int col) { m_Cont
 /// Clears the undo state.
 /// Resets the rendering process.
 /// Called when the user double clicks on a library tree item.
+/// This will get called twice for some reason, and there's no way to prevent it.
+/// Doesn't seem to cause any problems.
 /// </summary>
 /// <param name="item">The item double clicked on</param>
 /// <param name="col">The column clicked, ignored.</param>

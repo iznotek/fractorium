@@ -87,12 +87,12 @@ public:
 	inline T                              Scale()               const;
 	inline T                              PixelsPerUnitX()      const;
 	inline T                              PixelsPerUnitY()      const;
-	inline T                              K1()                  const;
-	inline T                              K2()                  const;
+	inline bucketT                        K1()                  const;
+	inline bucketT                        K2()                  const;
 	inline const CarToRas<T>*             CoordMap()            const;
 	inline tvec4<bucketT, glm::defaultp>* HistBuckets();
 	inline tvec4<bucketT, glm::defaultp>* AccumulatorBuckets();
-	inline SpatialFilter<T>*              GetSpatialFilter();
+	inline SpatialFilter<bucketT>*        GetSpatialFilter();
 	inline TemporalFilter<T>*             GetTemporalFilter();
 
 	//Virtual renderer properties overridden from RendererBase, getters only.
@@ -116,12 +116,12 @@ public:
 	inline T                 CenterY()             const;
 	inline T                 Rotate()              const;
 	inline T                 Hue()                 const;
-	inline T                 Brightness()          const;
-	inline T                 Contrast()            const;
-	inline T                 Gamma()               const;
-	inline T                 Vibrancy()            const;
-	inline T                 GammaThresh()         const;
-	inline T                 HighlightPower()      const;
+	inline bucketT           Brightness()          const;
+	inline bucketT           Contrast()            const;
+	inline bucketT           Gamma()               const;
+	inline bucketT           Vibrancy()            const;
+	inline bucketT           GammaThresh()         const;
+	inline bucketT           HighlightPower()      const;
 	inline Color<T>			 Background()          const;
 	inline const Xform<T>*   Xforms()              const;
 	inline Xform<T>*         NonConstXforms();
@@ -146,14 +146,14 @@ public:
 
 protected:
 	//Non-virtual functions that might be needed by a derived class.
-	void PrepFinalAccumVals(Color<T>& background, T& g, T& linRange, T& vibrancy);
+	void PrepFinalAccumVals(Color<bucketT>& background, bucketT& g, bucketT& linRange, bucketT& vibrancy);
 
 	private:
 	//Miscellaneous non-virtual functions used only in this class.
 	void Accumulate(QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand, Point<T>* samples, size_t sampleCount, const Palette<bucketT>* palette);
 	/*inline*/ void AddToAccum(const tvec4<bucketT, glm::defaultp>& bucket, intmax_t i, intmax_t ii, intmax_t j, intmax_t jj);
-	template <typename accumT> void GammaCorrection(tvec4<bucketT, glm::defaultp>& bucket, Color<T>& background, T g, T linRange, T vibrancy, bool doAlpha, bool scale, accumT* correctedChannels);
-	void CurveAdjust(T& a, const glm::length_t& index);
+	template <typename accumT> void GammaCorrection(tvec4<bucketT, glm::defaultp>& bucket, Color<bucketT>& background, bucketT g, bucketT linRange, bucketT vibrancy, bool doAlpha, bool scale, accumT* correctedChannels);
+	void CurveAdjust(bucketT& a, const glm::length_t& index);
 
 protected:
 	T m_Scale;
@@ -164,12 +164,12 @@ protected:
 	T m_LowerLeftY;
 	T m_UpperRightX;
 	T m_UpperRightY;
-	T m_K1;
-	T m_K2;
-	T m_Vibrancy;//Accumulate these after each temporal sample.
-	T m_Gamma;
+	bucketT m_K1;
+	bucketT m_K2;
+	bucketT m_Vibrancy;//Accumulate these after each temporal sample.
+	bucketT m_Gamma;
 	T m_ScaledQuality;
-	Color<T> m_Background;
+	Color<bucketT> m_Background;//This is a scaled copy of the m_Background member of m_Ember, but with a type of bucketT.
 	Affine2D<T> m_RotMat;
 	Ember<T> m_Ember;
 	Ember<T> m_TempEmber;
@@ -182,9 +182,9 @@ protected:
 	Palette<bucketT> m_Dmap, m_Csa;
 	vector<tvec4<bucketT, glm::defaultp>> m_HistBuckets;
 	vector<tvec4<bucketT, glm::defaultp>> m_AccumulatorBuckets;
-	unique_ptr<SpatialFilter<T>> m_SpatialFilter;
+	unique_ptr<SpatialFilter<bucketT>> m_SpatialFilter;
 	unique_ptr<TemporalFilter<T>> m_TemporalFilter;
-	unique_ptr<DensityFilter<T>> m_DensityFilter;
+	unique_ptr<DensityFilter<bucketT>> m_DensityFilter;
 	vector<vector<Point<T>>> m_Samples;
 	EmberToXml<T> m_EmberToXml;
 };
@@ -192,9 +192,4 @@ protected:
 //This class had to be implemented in a cpp file because the compiler was breaking.
 //So the explicit instantiation must be declared here rather than in Ember.cpp where
 //all of the other classes are done.
-//template EMBER_API class Renderer<float, float>;
-
-//#ifdef DO_DOUBLE
-//	template EMBER_API class Renderer<double, double>;
-//#endif
 }

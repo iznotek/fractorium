@@ -185,6 +185,7 @@ public:
 	virtual void SetupVariationTree() { }
 	virtual void ClearVariationsTree() { }
 	virtual void VariationSpinBoxValueChanged(double d) { }
+	virtual void FilteredVariations() { }
 
 	//Xforms Selection.
 
@@ -230,7 +231,7 @@ protected:
 	void AddProcessAction(eProcessAction action);
 	eProcessAction CondenseAndClearProcessActions();
 	eProcessState ProcessState() { return m_Renderer.get() ? m_Renderer->ProcessState() : NONE; }
-
+	
 	//Non-templated members.
 	bool m_Rendering;
 	bool m_Shared;
@@ -255,6 +256,7 @@ protected:
 	vector<byte> m_FinalImage[2];
 	vector<byte> m_PreviewFinalImage;
 	vector<eProcessAction> m_ProcessActions;
+	vector<eVariationId> m_FilteredVariations;
 	unique_ptr<EmberNs::RendererBase> m_Renderer;
 	QTIsaac<ISAAC_SIZE, ISAAC_INT> m_Rand;
 	Fractorium* m_Fractorium;
@@ -423,6 +425,7 @@ public:
 	virtual void SetupVariationTree() override;
 	virtual void ClearVariationsTree() override;
 	virtual void VariationSpinBoxValueChanged(double d) override;
+	virtual void FilteredVariations() override;
 	void FillVariationTreeWithXform(Xform<T>* xform);
 
 	//Xforms Xaos.
@@ -492,9 +495,9 @@ private:
 	Palette<T> m_TempPalette;
 	PaletteList<T> m_PaletteList;
 	VariationList<T> m_VariationList;
-	unique_ptr<SheepTools<T, T>> m_SheepTools;
+	unique_ptr<SheepTools<T, float>> m_SheepTools;
 	unique_ptr<GLEmberController<T>> m_GLController;
-	unique_ptr<EmberNs::Renderer<T, T>> m_PreviewRenderer;
+	unique_ptr<EmberNs::Renderer<T, float>> m_PreviewRenderer;
 	QFuture<void> m_PreviewResult;
 	std::function<void (uint, uint)> m_PreviewRenderFunc;
 };

@@ -276,7 +276,7 @@ public:
 		}
 
 		Isaac(ctx);      //Fill in the first set of results.
-		ctx->randcnt = N;//TODO//0;//Prepare to use the first set of results.
+		ctx->randcnt = N;//0;//Prepare to use the first set of results.
 	}
 
 	/// <summary>

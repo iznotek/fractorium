@@ -15,9 +15,9 @@ namespace EmberCLns
 static const char* RgbToHsvFunctionString = 
 	//rgb 0 - 1,
 	//h 0 - 6, s 0 - 1, v 0 - 1
-	"static inline void RgbToHsv(real4* rgb, real4* hsv)\n"
+	"static inline void RgbToHsv(real4_bucket* rgb, real4_bucket* hsv)\n"
 	"{\n"
-	"	real_t max, min, del, rc, gc, bc;\n"
+	"	real_bucket_t max, min, del, rc, gc, bc;\n"
 	"\n"
 	//Compute maximum of r, g, b.
 	"	if ((*rgb).x >= (*rgb).y)\n"
@@ -85,10 +85,10 @@ static const char* RgbToHsvFunctionString =
 static const char* HsvToRgbFunctionString = 
 	//h 0 - 6, s 0 - 1, v 0 - 1
 	//rgb 0 - 1 
-	"static inline void HsvToRgb(real4* hsv, real4* rgb)\n"
+	"static inline void HsvToRgb(real4_bucket* hsv, real4_bucket* rgb)\n"
 	"{\n"
 	"	int j;\n"
-	"	real_t f, p, q, t;\n"
+	"	real_bucket_t f, p, q, t;\n"
 	"\n"
 	"	while ((*hsv).x >= 6)\n"
 	"		(*hsv).x = (*hsv).x - 6;\n"
@@ -119,9 +119,9 @@ static const char* HsvToRgbFunctionString =
 /// OpenCL equivalent of Palette::CalcAlpha().
 /// </summary>
 static const char* CalcAlphaFunctionString = 
-	"static inline real_t CalcAlpha(real_t density, real_t gamma, real_t linrange)\n"//Not the slightest clue what this is doing.//DOC
+	"static inline real_t CalcAlpha(real_bucket_t density, real_bucket_t gamma, real_bucket_t linrange)\n"//Not the slightest clue what this is doing.//DOC
 	"{\n"
-	"	real_t frac, alpha, funcval = pow(linrange, gamma);\n"
+	"	real_bucket_t frac, alpha, funcval = pow(linrange, gamma);\n"
 		"\n"
 	"	if (density > 0)\n"
 	"	{\n"
@@ -147,7 +147,7 @@ static const char* CalcAlphaFunctionString =
 /// during final accumulation, which only takes floats.
 /// </summary>
 static const char* CurveAdjustFunctionString =
-"static inline void CurveAdjust(__constant real4reals* csa, float* a, uint index)\n"
+"static inline void CurveAdjust(__constant real4reals_bucket* csa, float* a, uint index)\n"
 "{\n"
 "	uint tempIndex = (uint)Clamp(*a, 0.0, (float)COLORMAP_LENGTH_MINUS_1);\n"
 "	uint tempIndex2 = (uint)Clamp(csa[tempIndex].m_Real4.x, 0.0, (real_t)COLORMAP_LENGTH_MINUS_1);\n"
@@ -359,18 +359,18 @@ static string AtomicString(bool doublePrecision, bool dp64AtomicSupport)
 	if (!doublePrecision || dp64AtomicSupport)
 	{
 		os <<
-		"void AtomicAdd(volatile __global real_t* source, const real_t operand)\n"
+		"void AtomicAdd(volatile __global real_bucket_t* source, const real_bucket_t operand)\n"
 		"{\n"
 		"	union\n"
 		"	{\n"
 		"		atomi intVal;\n"
-		"		real_t realVal;\n"
+		"		real_bucket_t realVal;\n"
 		"	} newVal;\n"
 		"\n"
 		"	union\n"
 		"	{\n"
 		"		atomi intVal;\n"
-		"		real_t realVal;\n"
+		"		real_bucket_t realVal;\n"
 		"	} prevVal;\n"
 		"\n"
 		"	do\n"
@@ -383,18 +383,18 @@ static string AtomicString(bool doublePrecision, bool dp64AtomicSupport)
 	else//They want double precision and do not have dp atomic support.
 	{
 		os <<
-		"void AtomicAdd(volatile __global real_t* source, const real_t operand)\n"
+		"void AtomicAdd(volatile __global double* source, const double operand)\n"
 		"{\n"
 		"	union\n"
 		"	{\n"
 		"		uint intVal[2];\n"
-		"		real_t realVal;\n"
+		"		double realVal;\n"
 		"	} newVal;\n"
 		"\n"
 		"	union\n"
 		"	{\n"
 		"		uint intVal[2];\n"
-		"		real_t realVal;\n"
+		"		double realVal;\n"
 		"	} prevVal;\n"
 		"\n"
 		"	do\n"
@@ -408,27 +408,4 @@ static string AtomicString(bool doublePrecision, bool dp64AtomicSupport)
 
 	return os.str();
 }
-
-#ifdef GRAVEYARD
-/*"void AtomicLocalAdd(volatile __local real_t* source, const real_t operand)\n"
-	"{\n"
-	"	union\n"
-	"	{\n"
-	"		atomi intVal;\n"
-	"		real_t realVal;\n"
-	"	} newVal;\n"
-	"\n"
-	"	union\n"
-	"	{\n"
-	"		atomi intVal;\n"
-	"		real_t realVal;\n"
-	"	} prevVal;\n"
-	"\n"
-	"	do\n"
-	"	{\n"
-	"		prevVal.realVal = *source;\n"
-	"		newVal.realVal = prevVal.realVal + operand;\n"
-	"	} while (atomic_cmpxchg((volatile __local atomi*)source, prevVal.intVal, newVal.intVal) != prevVal.intVal);\n"
-	"}\n"*/
-#endif
 }

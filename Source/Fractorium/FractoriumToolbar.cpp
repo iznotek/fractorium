@@ -15,7 +15,7 @@ void Fractorium::InitToolbarUI()
 	spGroup->addAction(ui.ActionDP);
 
 	SyncOptionsToToolbar();
-	connect(ui.ActionCpu, SIGNAL(triggered(bool)), this, SLOT(OnActionCpu(bool)), Qt::QueuedConnection);//Need to sync these with options dialog.//TODO
+	connect(ui.ActionCpu, SIGNAL(triggered(bool)), this, SLOT(OnActionCpu(bool)), Qt::QueuedConnection);
 	connect(ui.ActionCL,  SIGNAL(triggered(bool)), this, SLOT(OnActionCL(bool)),  Qt::QueuedConnection);
 	connect(ui.ActionSP,  SIGNAL(triggered(bool)), this, SLOT(OnActionSP(bool)),  Qt::QueuedConnection);
 	connect(ui.ActionDP,  SIGNAL(triggered(bool)), this, SLOT(OnActionDP(bool)),  Qt::QueuedConnection);

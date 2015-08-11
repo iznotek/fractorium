@@ -792,9 +792,6 @@ private:
 			case FLAME_MOTION_ROTATE:
 				os << " rotate=\"" << motion.m_MotionParams[i].second << "\"";
 				break;
-			case FLAME_MOTION_HUE:
-				os << " hue=\"" << motion.m_MotionParams[i].second << "\"";
-				break;
 			case FLAME_MOTION_BRIGHTNESS:
 				os << " brightness=\"" << motion.m_MotionParams[i].second << "\"";
 				break;

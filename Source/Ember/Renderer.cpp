@@ -212,7 +212,7 @@ bool Renderer<T, bucketT>::CreateDEFilter(bool& newAlloc)
 			(m_Ember.m_CurveDE != m_DensityFilter->Curve()) ||
 			(m_Ember.m_Supersample != m_DensityFilter->Supersample()))
 		{
-			m_DensityFilter = unique_ptr<DensityFilter<T>>(new DensityFilter<T>(m_Ember.m_MinRadDE, m_Ember.m_MaxRadDE, m_Ember.m_CurveDE, m_Ember.m_Supersample));
+			m_DensityFilter = unique_ptr<DensityFilter<bucketT>>(new DensityFilter<bucketT>(bucketT(m_Ember.m_MinRadDE), bucketT(m_Ember.m_MaxRadDE), bucketT(m_Ember.m_CurveDE), m_Ember.m_Supersample));
 			newAlloc = true;
 		}
 
@@ -251,8 +251,8 @@ bool Renderer<T, bucketT>::CreateSpatialFilter(bool& newAlloc)
 		(m_Ember.m_Supersample != m_SpatialFilter->Supersample()) ||
 		(m_PixelAspectRatio != m_SpatialFilter->PixelAspectRatio()))
 	{
-		m_SpatialFilter = unique_ptr<SpatialFilter<T>>(
-			SpatialFilterCreator<T>::Create(m_Ember.m_SpatialFilterType, m_Ember.m_SpatialFilterRadius, m_Ember.m_Supersample, m_PixelAspectRatio));
+		m_SpatialFilter = unique_ptr<SpatialFilter<bucketT>>(
+			SpatialFilterCreator<bucketT>::Create(m_Ember.m_SpatialFilterType, bucketT(m_Ember.m_SpatialFilterRadius), m_Ember.m_Supersample, bucketT(m_PixelAspectRatio)));
 
 		m_Ember.m_SpatialFilterRadius = m_SpatialFilter->FilterRadius();//It may have been changed internally if it was too small, so ensure they're synced.
 		newAlloc = true;
@@ -386,8 +386,8 @@ eRenderStatus Renderer<T, bucketT>::Run(vector<byte>& finalImage, double time, s
 	if ((filterAndAccumOnly || accumOnly) && TemporalSamples() == 1)//Disallow jumping when temporal samples > 1.
 	{
 		m_Ember = m_Embers[0];
-		m_Vibrancy = m_Ember.m_Vibrancy;
-		m_Gamma = m_Ember.m_Gamma;
+		m_Vibrancy = Vibrancy();
+		m_Gamma = Gamma();
 		m_Background = m_Ember.m_Background;
 
 		if (filterAndAccumOnly)
@@ -517,11 +517,11 @@ eRenderStatus Renderer<T, bucketT>::Run(vector<byte>& finalImage, double time, s
 		//Allow for incremental rendering by only taking action if the iter loop for this temporal sample is completely done.
 		if (m_LastIter >= itersPerTemporalSample)
 		{
-			m_Vibrancy += m_Ember.m_Vibrancy;
-			m_Gamma += m_Ember.m_Gamma;
-			m_Background.r += m_Ember.m_Background.r;
-			m_Background.g += m_Ember.m_Background.g;
-			m_Background.b += m_Ember.m_Background.b;
+			m_Vibrancy += Vibrancy();
+			m_Gamma += Gamma();
+			m_Background.r += bucketT(m_Ember.m_Background.r);
+			m_Background.g += bucketT(m_Ember.m_Background.g);
+			m_Background.b += bucketT(m_Ember.m_Background.b);
 			m_VibGamCount++;
 			m_LastIter = 0;
 			temporalSample++;
@@ -554,7 +554,7 @@ FilterAndAccum:
 		eRenderStatus fullRun = RENDER_OK;//Whether density filtering was run to completion without aborting prematurely or triggering an error.
 
 		T area = FinalRasW() * FinalRasH() / (m_PixelsPerUnitX * m_PixelsPerUnitY);//Need to use temps from field if ever implemented.
-		m_K1 = (Brightness() * T(268.0)) / 256;
+		m_K1 = bucketT((Brightness() * 268) / 256);
 
 		//When doing an interactive render, force output early on in the render process, before all iterations are done.
 		//This presents a problem with the normal calculation of K2 since it relies on the quality value; it will scale the colors
@@ -562,10 +562,10 @@ FilterAndAccum:
 		if (forceOutput)
 		{
 			T quality = (T(m_Stats.m_Iters) / T(FinalDimensions())) * (m_Scale * m_Scale);
-			m_K2 = (Supersample() * Supersample()) / (area * quality * m_TemporalFilter->SumFilt());
+			m_K2 = bucketT((Supersample() * Supersample()) / (area * quality * m_TemporalFilter->SumFilt()));
 		}
 		else
-			m_K2 = (Supersample() * Supersample()) / (area * m_ScaledQuality * m_TemporalFilter->SumFilt());
+			m_K2 = bucketT((Supersample() * Supersample()) / (area * m_ScaledQuality * m_TemporalFilter->SumFilt()));
 
 		ResetBuckets(false, true);//Only the histogram was reset above, now reset the density filtering buffer.
 		//t.Tic();
@@ -824,11 +824,11 @@ eRenderStatus Renderer<T, bucketT>::LogScaleDensityFilter()
 			//Check for visibility first before doing anything else to avoid all possible unnecessary calculations.
 			if (m_HistBuckets[index].a != 0)
 			{
-				T logScale = (m_K1 * log(1 + m_HistBuckets[index].a * m_K2)) / m_HistBuckets[index].a;
+				bucketT logScale = (m_K1 * log(1 + m_HistBuckets[index].a * m_K2)) / m_HistBuckets[index].a;
 
 				//Original did a temporary assignment, then *= logScale, then passed the result to bump_no_overflow().
 				//Combine here into one operation for a slight speedup.
-				m_AccumulatorBuckets[index] = m_HistBuckets[index] * bucketT(logScale);
+				m_AccumulatorBuckets[index] = m_HistBuckets[index] * logScale;
 			}
 		}
 	});
@@ -850,7 +850,7 @@ eRenderStatus Renderer<T, bucketT>::GaussianDensityFilter()
 	Timing totalTime, localTime;
 	bool scf = !(Supersample() & 1);
 	intmax_t ss = Floor<T>(Supersample() / T(2));
-	T scfact = pow(Supersample() / (Supersample() + T(1.0)), T(2.0));
+	T scfact = pow(Supersample() / (Supersample() + T(1)), T(2));
 
 	size_t threads = m_ThreadsToUse;
 	size_t startRow = Supersample() - 1;
@@ -874,8 +874,8 @@ eRenderStatus Renderer<T, bucketT>::GaussianDensityFilter()
 			size_t bucketRowStart = j * m_SuperRasW;//Pull out of inner loop for optimization.
 			const tvec4<bucketT, glm::defaultp>* bucket;
 			const tvec4<bucketT, glm::defaultp>* buckets = m_HistBuckets.data();
-			const T* filterCoefs = m_DensityFilter->Coefs();
-			const T* filterWidths = m_DensityFilter->Widths();
+			const bucketT* filterCoefs = m_DensityFilter->Coefs();
+			const bucketT* filterWidths = m_DensityFilter->Widths();
 
 			for (intmax_t i = startCol; i < endCol; i++)
 			{
@@ -888,7 +888,7 @@ eRenderStatus Renderer<T, bucketT>::GaussianDensityFilter()
 				if (bucket->a == 0)
 					continue;
 
-				T cacheLog = (m_K1 * log(T(1.0) + bucket->a * m_K2)) / bucket->a;//Caching this calculation gives a 30% speedup.
+				bucketT cacheLog = (m_K1 * log(1 + bucket->a * m_K2)) / bucket->a;//Caching this calculation gives a 30% speedup.
 
 				if (ss == 0)
 				{
@@ -938,10 +938,10 @@ eRenderStatus Renderer<T, bucketT>::GaussianDensityFilter()
 						if (filterCoefs[filterCoefIndex] == 0)
 							continue;
 
-						T logScale = filterCoefs[filterCoefIndex] * cacheLog;
+						bucketT logScale = filterCoefs[filterCoefIndex] * cacheLog;
 
 						//Original first assigned the fields, then scaled them. Combine into a single step for a 1% optimization.
-						logScaleBucket = (*bucket * bucketT(logScale));
+						logScaleBucket = (*bucket * logScale);
 
 						if (jj == 0 && ii == 0)
 						{
@@ -1036,8 +1036,8 @@ eRenderStatus Renderer<T, bucketT>::AccumulatorToFinalImage(byte* pixels, size_t
 	EnterFinalAccum();
 	//Timing t(4);
 	size_t filterWidth = m_SpatialFilter->FinalFilterWidth();
-	T g, linRange, vibrancy;
-	Color<T> background;
+	bucketT g, linRange, vibrancy;
+	Color<bucketT> background;
 
 	pixels += finalOffset;
 	PrepFinalAccumVals(background, g, linRange, vibrancy);
@@ -1090,7 +1090,7 @@ eRenderStatus Renderer<T, bucketT>::AccumulatorToFinalImage(byte* pixels, size_t
 				for (ii = 0; ii < filterWidth; ii++)
 				{
 					//Need to dereference the spatial filter pointer object to use the [] operator. Makes no speed difference.
-					bucketT k = bucketT((*m_SpatialFilter)[ii + filterKRowIndex]);
+					bucketT k = ((*m_SpatialFilter)[ii + filterKRowIndex]);
 
 					newBucket += (m_AccumulatorBuckets[(x + ii) + accumRowIndex] * k);
 				}
@@ -1340,12 +1340,12 @@ void Renderer<T, bucketT>::PixelAspectRatio(T pixelAspectRatio)
 template <typename T, typename bucketT> T							   Renderer<T, bucketT>::Scale()			   const { return m_Scale; }
 template <typename T, typename bucketT> T							   Renderer<T, bucketT>::PixelsPerUnitX()	   const { return m_PixelsPerUnitX; }
 template <typename T, typename bucketT> T							   Renderer<T, bucketT>::PixelsPerUnitY()	   const { return m_PixelsPerUnitY; }
-template <typename T, typename bucketT> T							   Renderer<T, bucketT>::K1()				   const { return m_K1; }
-template <typename T, typename bucketT> T							   Renderer<T, bucketT>::K2()				   const { return m_K2; }
+template <typename T, typename bucketT> bucketT						   Renderer<T, bucketT>::K1()				   const { return m_K1; }
+template <typename T, typename bucketT> bucketT						   Renderer<T, bucketT>::K2()				   const { return m_K2; }
 template <typename T, typename bucketT> const CarToRas<T>*			   Renderer<T, bucketT>::CoordMap()			   const { return &m_CarToRas; }
 template <typename T, typename bucketT> tvec4<bucketT, glm::defaultp>* Renderer<T, bucketT>::HistBuckets()				 { return m_HistBuckets.data(); }
 template <typename T, typename bucketT> tvec4<bucketT, glm::defaultp>* Renderer<T, bucketT>::AccumulatorBuckets()		 { return m_AccumulatorBuckets.data(); }
-template <typename T, typename bucketT> SpatialFilter<T>*			   Renderer<T, bucketT>::GetSpatialFilter()			 { return m_SpatialFilter.get(); }
+template <typename T, typename bucketT> SpatialFilter<bucketT>*		   Renderer<T, bucketT>::GetSpatialFilter()			 { return m_SpatialFilter.get(); }
 template <typename T, typename bucketT> TemporalFilter<T>*			   Renderer<T, bucketT>::GetTemporalFilter()		 { return m_TemporalFilter.get(); }
 
 /// <summary>
@@ -1374,12 +1374,11 @@ template <typename T, typename bucketT> T                 Renderer<T, bucketT>::
 template <typename T, typename bucketT> T                 Renderer<T, bucketT>::CenterX()             const { return m_Ember.m_CenterX; }
 template <typename T, typename bucketT> T                 Renderer<T, bucketT>::CenterY()             const { return m_Ember.m_CenterY; }
 template <typename T, typename bucketT> T                 Renderer<T, bucketT>::Rotate()              const { return m_Ember.m_Rotate; }
-template <typename T, typename bucketT> T                 Renderer<T, bucketT>::Hue()				  const { return m_Ember.m_Hue; }
-template <typename T, typename bucketT> T                 Renderer<T, bucketT>::Brightness()		  const { return m_Ember.m_Brightness; }
-template <typename T, typename bucketT> T                 Renderer<T, bucketT>::Gamma()				  const { return m_Ember.m_Gamma; }
-template <typename T, typename bucketT> T                 Renderer<T, bucketT>::Vibrancy()			  const { return m_Ember.m_Vibrancy; }
-template <typename T, typename bucketT> T                 Renderer<T, bucketT>::GammaThresh()		  const { return m_Ember.m_GammaThresh; }
-template <typename T, typename bucketT> T                 Renderer<T, bucketT>::HighlightPower()	  const { return m_Ember.m_HighlightPower; }
+template <typename T, typename bucketT> bucketT           Renderer<T, bucketT>::Brightness()		  const { return bucketT(m_Ember.m_Brightness); }
+template <typename T, typename bucketT> bucketT           Renderer<T, bucketT>::Gamma()				  const { return bucketT(m_Ember.m_Gamma); }
+template <typename T, typename bucketT> bucketT           Renderer<T, bucketT>::Vibrancy()			  const { return bucketT(m_Ember.m_Vibrancy); }
+template <typename T, typename bucketT> bucketT           Renderer<T, bucketT>::GammaThresh()		  const { return bucketT(m_Ember.m_GammaThresh); }
+template <typename T, typename bucketT> bucketT           Renderer<T, bucketT>::HighlightPower()	  const { return bucketT(m_Ember.m_HighlightPower); }
 template <typename T, typename bucketT> Color<T>		  Renderer<T, bucketT>::Background()		  const { return m_Ember.m_Background; }
 template <typename T, typename bucketT> const Xform<T>*   Renderer<T, bucketT>::Xforms()			  const { return m_Ember.Xforms(); }
 template <typename T, typename bucketT> Xform<T>*         Renderer<T, bucketT>::NonConstXforms()			{ return m_Ember.NonConstXforms(); }
@@ -1420,20 +1419,20 @@ template <typename T, typename bucketT> Point<T>*   Renderer<T, bucketT>::Sample
 /// <param name="linRange">The computed linear range</param>
 /// <param name="vibrancy">The computed vibrancy</param>
 template <typename T, typename bucketT>
-void Renderer<T, bucketT>::PrepFinalAccumVals(Color<T>& background, T& g, T& linRange, T& vibrancy)
+void Renderer<T, bucketT>::PrepFinalAccumVals(Color<bucketT>& background, bucketT& g, bucketT& linRange, bucketT& vibrancy)
 {
 	//If they are doing incremental rendering, they can get here without doing a full temporal
 	//sample, which means the values will be zero.
-	vibrancy = m_Vibrancy == 0 ? m_Ember.m_Vibrancy : m_Vibrancy;
+	vibrancy = m_Vibrancy == 0 ? Vibrancy() : m_Vibrancy;
 	size_t vibGamCount = m_VibGamCount == 0 ? 1 : m_VibGamCount;
-	T gamma = m_Gamma == 0 ? m_Ember.m_Gamma : m_Gamma;
-	g = T(1.0) / ClampGte<T>(gamma / vibGamCount, T(0.01));//Ensure a divide by zero doesn't occur.
+	bucketT gamma = m_Gamma == 0 ? Gamma() : m_Gamma;
+	g = 1 / ClampGte<bucketT>(gamma / vibGamCount, bucketT(0.01));//Ensure a divide by zero doesn't occur.
 	linRange = GammaThresh();
 	vibrancy /= vibGamCount;
 
-	background.x = (IsNearZero(m_Background.r) ? m_Ember.m_Background.r : m_Background.r) / (vibGamCount / T(256.0));//Background is [0, 1].
-	background.y = (IsNearZero(m_Background.g) ? m_Ember.m_Background.g : m_Background.g) / (vibGamCount / T(256.0));
-	background.z = (IsNearZero(m_Background.b) ? m_Ember.m_Background.b : m_Background.b) / (vibGamCount / T(256.0));
+	background.x = (IsNearZero(m_Background.r) ? bucketT(m_Ember.m_Background.r) : m_Background.r) / (vibGamCount / bucketT(256.0));//Background is [0, 1].
+	background.y = (IsNearZero(m_Background.g) ? bucketT(m_Ember.m_Background.g) : m_Background.g) / (vibGamCount / bucketT(256.0));
+	background.z = (IsNearZero(m_Background.b) ? bucketT(m_Ember.m_Background.b) : m_Background.b) / (vibGamCount / bucketT(256.0));
 }
 
 /// <summary>
@@ -1570,7 +1569,7 @@ void Renderer<T, bucketT>::AddToAccum(const tvec4<bucketT, glm::defaultp>& bucke
 /// Because this code is used in both early and late clipping, a few extra arguments are passed
 /// to specify what actions to take. Coupled with an additional template argument, this allows
 /// using one function to perform all color clipping, gamma correction and final accumulation.
-/// Template argument accumT is expected to match T for the case of early clipping, byte for late clip for
+/// Template argument accumT is expected to match bucketT for the case of early clipping, byte for late clip for
 /// images with one byte per channel and unsigned short for images with two bytes per channel.
 /// </summary>
 /// <param name="bucket">The pixel to correct</param>
@@ -1583,11 +1582,10 @@ void Renderer<T, bucketT>::AddToAccum(const tvec4<bucketT, glm::defaultp>& bucke
 /// <param name="correctedChannels">The storage space for the corrected values to be written to</param>
 template <typename T, typename bucketT>
 template <typename accumT>
-void Renderer<T, bucketT>::GammaCorrection(tvec4<bucketT, glm::defaultp>& bucket, Color<T>& background, T g, T linRange, T vibrancy, bool doAlpha, bool scale, accumT* correctedChannels)
+void Renderer<T, bucketT>::GammaCorrection(tvec4<bucketT, glm::defaultp>& bucket, Color<bucketT>& background, bucketT g, bucketT linRange, bucketT vibrancy, bool doAlpha, bool scale, accumT* correctedChannels)
 {
-	T alpha, ls, a;
-	bucketT newRgb[3];//Would normally use a Color<bucketT>, but don't want to call a needless constructor every time this function is called, which is once per pixel.
-	static T scaleVal = (numeric_limits<accumT>::max() + 1) / T(256.0);
+	bucketT alpha, ls, a, newRgb[3];//Would normally use a Color<bucketT>, but don't want to call a needless constructor every time this function is called, which is once per pixel.
+	static bucketT scaleVal = (numeric_limits<accumT>::max() + 1) / bucketT(256.0);
 
 	if (bucket.a <= 0)
 	{
@@ -1596,20 +1594,20 @@ void Renderer<T, bucketT>::GammaCorrection(tvec4<bucketT, glm::defaultp>& bucket
 	}
 	else
 	{
-		alpha = Palette<T>::CalcAlpha(bucket.a, g, linRange);
-		ls = vibrancy * T(255) * alpha / bucket.a;
-		ClampRef<T>(alpha, 0, 1);
+		alpha = Palette<bucketT>::CalcAlpha(bucket.a, g, linRange);
+		ls = vibrancy * 255 * alpha / bucket.a;
+		ClampRef<bucketT>(alpha, 0, 1);
 	}
 
-	Palette<T>::template CalcNewRgb<bucketT>(&bucket[0], ls, HighlightPower(), newRgb);
+	Palette<bucketT>::template CalcNewRgb<bucketT>(&bucket[0], ls, HighlightPower(), newRgb);
 
 	for (glm::length_t rgbi = 0; rgbi < 3; rgbi++)
 	{
-		a = newRgb[rgbi] + ((T(1.0) - vibrancy) * T(255) * pow(T(bucket[rgbi]), g));
+		a = newRgb[rgbi] + ((1 - vibrancy) * 255 * pow(bucket[rgbi], g));
 
 		if (NumChannels() <= 3 || !Transparency())
 		{
-			a += ((T(1.0) - alpha) * background[rgbi]);
+			a += (1 - alpha) * background[rgbi];
 		}
 		else
 		{
@@ -1621,14 +1619,14 @@ void Renderer<T, bucketT>::GammaCorrection(tvec4<bucketT, glm::defaultp>& bucket
 
 		if (!scale)
 		{
-			correctedChannels[rgbi] = accumT(Clamp<T>(a, 0, 255));//Early clip, just assign directly.
+			correctedChannels[rgbi] = accumT(Clamp<bucketT>(a, 0, 255));//Early clip, just assign directly.
 		}
 		else
 		{
 			if (m_CurvesSet)
 				CurveAdjust(a, rgbi + 1);
 
-			correctedChannels[rgbi] = accumT(Clamp<T>(a, 0, 255) * scaleVal);//Final accum, multiply by 1 for 8 bpc, or 256 for 16 bpc.
+			correctedChannels[rgbi] = accumT(Clamp<bucketT>(a, 0, 255) * scaleVal);//Final accum, multiply by 1 for 8 bpc, or 256 for 16 bpc.
 		}
 	}
 
@@ -1644,10 +1642,10 @@ void Renderer<T, bucketT>::GammaCorrection(tvec4<bucketT, glm::defaultp>& bucket
 }
 
 template <typename T, typename bucketT>
-void Renderer<T, bucketT>::CurveAdjust(T& a, const glm::length_t& index)
+void Renderer<T, bucketT>::CurveAdjust(bucketT& a, const glm::length_t& index)
 {
-	size_t tempIndex = size_t(Clamp<T>(a, 0, COLORMAP_LENGTH_MINUS_1));
-	size_t tempIndex2 = size_t(Clamp<T>(m_Csa[tempIndex].x, 0, COLORMAP_LENGTH_MINUS_1));
+	size_t tempIndex = size_t(Clamp<bucketT>(a, 0, COLORMAP_LENGTH_MINUS_1));
+	size_t tempIndex2 = size_t(Clamp<bucketT>(m_Csa[tempIndex].x, 0, COLORMAP_LENGTH_MINUS_1));
 
 	a = std::round(m_Csa[tempIndex2][index]);
 }
@@ -1658,6 +1656,6 @@ void Renderer<T, bucketT>::CurveAdjust(T& a, const glm::length_t& index)
 template EMBER_API class Renderer<float, float>;
 
 #ifdef DO_DOUBLE
-	template EMBER_API class Renderer<double, double>;
+	template EMBER_API class Renderer<double, float>;
 #endif
 }

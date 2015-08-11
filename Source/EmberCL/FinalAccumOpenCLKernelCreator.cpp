@@ -7,9 +7,9 @@ namespace EmberCLns
 /// Constructor that creates all kernel strings.
 /// The caller will access these strings through the accessor functions.
 /// </summary>
-template <typename T>
-FinalAccumOpenCLKernelCreator<T>::FinalAccumOpenCLKernelCreator()
+FinalAccumOpenCLKernelCreator::FinalAccumOpenCLKernelCreator(bool doublePrecision)
 {
+	m_DoublePrecision = doublePrecision;
 	m_GammaCorrectionWithAlphaCalcEntryPoint    = "GammaCorrectionWithAlphaCalcKernel";
 	m_GammaCorrectionWithoutAlphaCalcEntryPoint = "GammaCorrectionWithoutAlphaCalcKernel";
 
@@ -37,24 +37,24 @@ FinalAccumOpenCLKernelCreator<T>::FinalAccumOpenCLKernelCreator()
 /// Kernel source and entry point properties, getters only.
 /// </summary>
 
-template <typename T> string FinalAccumOpenCLKernelCreator<T>::GammaCorrectionWithAlphaCalcKernel()        { return m_GammaCorrectionWithAlphaCalcKernel;	    }
-template <typename T> string FinalAccumOpenCLKernelCreator<T>::GammaCorrectionWithAlphaCalcEntryPoint()    { return m_GammaCorrectionWithAlphaCalcEntryPoint;    }
-template <typename T> string FinalAccumOpenCLKernelCreator<T>::GammaCorrectionWithoutAlphaCalcKernel()     { return m_GammaCorrectionWithoutAlphaCalcKernel;     }
-template <typename T> string FinalAccumOpenCLKernelCreator<T>::GammaCorrectionWithoutAlphaCalcEntryPoint() { return m_GammaCorrectionWithoutAlphaCalcEntryPoint; }
+string FinalAccumOpenCLKernelCreator::GammaCorrectionWithAlphaCalcKernel()        { return m_GammaCorrectionWithAlphaCalcKernel;	    }
+string FinalAccumOpenCLKernelCreator::GammaCorrectionWithAlphaCalcEntryPoint()    { return m_GammaCorrectionWithAlphaCalcEntryPoint;    }
+string FinalAccumOpenCLKernelCreator::GammaCorrectionWithoutAlphaCalcKernel()     { return m_GammaCorrectionWithoutAlphaCalcKernel;     }
+string FinalAccumOpenCLKernelCreator::GammaCorrectionWithoutAlphaCalcEntryPoint() { return m_GammaCorrectionWithoutAlphaCalcEntryPoint; }
 
-template <typename T> string FinalAccumOpenCLKernelCreator<T>::FinalAccumEarlyClipKernel()                                   { return m_FinalAccumEarlyClipKernel;                                   }
-template <typename T> string FinalAccumOpenCLKernelCreator<T>::FinalAccumEarlyClipEntryPoint()                               { return m_FinalAccumEarlyClipEntryPoint;                               }
-template <typename T> string FinalAccumOpenCLKernelCreator<T>::FinalAccumEarlyClipWithAlphaCalcWithAlphaAccumKernel()        { return m_FinalAccumEarlyClipWithAlphaCalcWithAlphaAccumKernel;        }
-template <typename T> string FinalAccumOpenCLKernelCreator<T>::FinalAccumEarlyClipWithAlphaCalcWithAlphaAccumEntryPoint()    { return m_FinalAccumEarlyClipWithAlphaCalcWithAlphaAccumEntryPoint;    }
-template <typename T> string FinalAccumOpenCLKernelCreator<T>::FinalAccumEarlyClipWithoutAlphaCalcWithAlphaAccumKernel()     { return m_FinalAccumEarlyClipWithoutAlphaCalcWithAlphaAccumKernel;     }
-template <typename T> string FinalAccumOpenCLKernelCreator<T>::FinalAccumEarlyClipWithoutAlphaCalcWithAlphaAccumEntryPoint() { return m_FinalAccumEarlyClipWithoutAlphaCalcWithAlphaAccumEntryPoint; }
+string FinalAccumOpenCLKernelCreator::FinalAccumEarlyClipKernel()                                   { return m_FinalAccumEarlyClipKernel;                                   }
+string FinalAccumOpenCLKernelCreator::FinalAccumEarlyClipEntryPoint()                               { return m_FinalAccumEarlyClipEntryPoint;                               }
+string FinalAccumOpenCLKernelCreator::FinalAccumEarlyClipWithAlphaCalcWithAlphaAccumKernel()        { return m_FinalAccumEarlyClipWithAlphaCalcWithAlphaAccumKernel;        }
+string FinalAccumOpenCLKernelCreator::FinalAccumEarlyClipWithAlphaCalcWithAlphaAccumEntryPoint()    { return m_FinalAccumEarlyClipWithAlphaCalcWithAlphaAccumEntryPoint;    }
+string FinalAccumOpenCLKernelCreator::FinalAccumEarlyClipWithoutAlphaCalcWithAlphaAccumKernel()     { return m_FinalAccumEarlyClipWithoutAlphaCalcWithAlphaAccumKernel;     }
+string FinalAccumOpenCLKernelCreator::FinalAccumEarlyClipWithoutAlphaCalcWithAlphaAccumEntryPoint() { return m_FinalAccumEarlyClipWithoutAlphaCalcWithAlphaAccumEntryPoint; }
 
-template <typename T> string FinalAccumOpenCLKernelCreator<T>::FinalAccumLateClipKernel()                                   { return m_FinalAccumLateClipKernel;                                   }
-template <typename T> string FinalAccumOpenCLKernelCreator<T>::FinalAccumLateClipEntryPoint()                               { return m_FinalAccumLateClipEntryPoint;                               }
-template <typename T> string FinalAccumOpenCLKernelCreator<T>::FinalAccumLateClipWithAlphaCalcWithAlphaAccumKernel()        { return m_FinalAccumLateClipWithAlphaCalcWithAlphaAccumKernel;        }
-template <typename T> string FinalAccumOpenCLKernelCreator<T>::FinalAccumLateClipWithAlphaCalcWithAlphaAccumEntryPoint()    { return m_FinalAccumLateClipWithAlphaCalcWithAlphaAccumEntryPoint;    }
-template <typename T> string FinalAccumOpenCLKernelCreator<T>::FinalAccumLateClipWithoutAlphaCalcWithAlphaAccumKernel()     { return m_FinalAccumLateClipWithoutAlphaCalcWithAlphaAccumKernel;     }
-template <typename T> string FinalAccumOpenCLKernelCreator<T>::FinalAccumLateClipWithoutAlphaCalcWithAlphaAccumEntryPoint() { return m_FinalAccumLateClipWithoutAlphaCalcWithAlphaAccumEntryPoint; }
+string FinalAccumOpenCLKernelCreator::FinalAccumLateClipKernel()                                   { return m_FinalAccumLateClipKernel;                                   }
+string FinalAccumOpenCLKernelCreator::FinalAccumLateClipEntryPoint()                               { return m_FinalAccumLateClipEntryPoint;                               }
+string FinalAccumOpenCLKernelCreator::FinalAccumLateClipWithAlphaCalcWithAlphaAccumKernel()        { return m_FinalAccumLateClipWithAlphaCalcWithAlphaAccumKernel;        }
+string FinalAccumOpenCLKernelCreator::FinalAccumLateClipWithAlphaCalcWithAlphaAccumEntryPoint()    { return m_FinalAccumLateClipWithAlphaCalcWithAlphaAccumEntryPoint;    }
+string FinalAccumOpenCLKernelCreator::FinalAccumLateClipWithoutAlphaCalcWithAlphaAccumKernel()     { return m_FinalAccumLateClipWithoutAlphaCalcWithAlphaAccumKernel;     }
+string FinalAccumOpenCLKernelCreator::FinalAccumLateClipWithoutAlphaCalcWithAlphaAccumEntryPoint() { return m_FinalAccumLateClipWithoutAlphaCalcWithAlphaAccumEntryPoint; }
 
 /// <summary>
 /// Get the gamma correction entry point.
@@ -62,8 +62,7 @@ template <typename T> string FinalAccumOpenCLKernelCreator<T>::FinalAccumLateCli
 /// <param name="channels">The number of channels used, 3 or 4.</param>
 /// <param name="transparency">True if channels equals 4 and using transparency, else false.</param>
 /// <returns>The name of the gamma correction entry point kernel function</returns>
-template <typename T>
-string FinalAccumOpenCLKernelCreator<T>::GammaCorrectionEntryPoint(size_t channels, bool transparency)
+string FinalAccumOpenCLKernelCreator::GammaCorrectionEntryPoint(size_t channels, bool transparency)
 {
 	bool alphaCalc = ((channels > 3) && transparency);
 	return alphaCalc ? m_GammaCorrectionWithAlphaCalcEntryPoint : m_GammaCorrectionWithoutAlphaCalcEntryPoint;
@@ -75,8 +74,7 @@ string FinalAccumOpenCLKernelCreator<T>::GammaCorrectionEntryPoint(size_t channe
 /// <param name="channels">The number of channels used, 3 or 4.</param>
 /// <param name="transparency">True if channels equals 4 and using transparency, else false.</param>
 /// <returns>The gamma correction kernel string</returns>
-template <typename T>
-string FinalAccumOpenCLKernelCreator<T>::GammaCorrectionKernel(size_t channels, bool transparency)
+string FinalAccumOpenCLKernelCreator::GammaCorrectionKernel(size_t channels, bool transparency)
 {
 	bool alphaCalc = ((channels > 3) && transparency);
 	return alphaCalc ? m_GammaCorrectionWithAlphaCalcKernel : m_GammaCorrectionWithoutAlphaCalcKernel;
@@ -91,16 +89,15 @@ string FinalAccumOpenCLKernelCreator<T>::GammaCorrectionKernel(size_t channels, 
 /// <param name="alphaBase">Storage for the alpha base value used in the kernel. 0 if transparency is true, else 255.</param>
 /// <param name="alphaScale">Storage for the alpha scale value used in the kernel. 255 if transparency is true, else 0.</param>
 /// <returns>The name of the final accumulation entry point kernel function</returns>
-template <typename T>
-string FinalAccumOpenCLKernelCreator<T>::FinalAccumEntryPoint(bool earlyClip, size_t channels, bool transparency, T& alphaBase, T& alphaScale)
+string FinalAccumOpenCLKernelCreator::FinalAccumEntryPoint(bool earlyClip, size_t channels, bool transparency, double& alphaBase, double& alphaScale)
 {
 	bool alphaCalc = ((channels > 3) && transparency);
 	bool alphaAccum = channels > 3;
 
 	if (alphaAccum)
 	{
-		alphaBase = transparency ? 0.0f : 255.0f;//See the table below.
-		alphaScale = transparency ? 255.0f : 0.0f;
+		alphaBase = transparency ? 0 : 255;//See the table below.
+		alphaScale = transparency ? 255 : 0;
 	}
 
 	if (earlyClip)
@@ -134,8 +131,7 @@ string FinalAccumOpenCLKernelCreator<T>::FinalAccumEntryPoint(bool earlyClip, si
 /// <param name="channels">The number of channels used, 3 or 4.</param>
 /// <param name="transparency">True if channels equals 4 and using transparency, else false.</param>
 /// <returns>The final accumulation kernel string</returns>
-template <typename T>
-string FinalAccumOpenCLKernelCreator<T>::FinalAccumKernel(bool earlyClip, size_t channels, bool transparency)
+string FinalAccumOpenCLKernelCreator::FinalAccumKernel(bool earlyClip, size_t channels, bool transparency)
 {
 	bool alphaCalc = (channels > 3 && transparency);
 	bool alphaAccum = channels > 3;
@@ -171,8 +167,7 @@ string FinalAccumOpenCLKernelCreator<T>::FinalAccumKernel(bool earlyClip, size_t
 /// <param name="channels">The number of channels used, 3 or 4.</param>
 /// <param name="transparency">True if channels equals 4 and using transparency, else false.</param>
 /// <returns>The final accumulation kernel string</returns>
-template <typename T>
-string FinalAccumOpenCLKernelCreator<T>::CreateFinalAccumKernelString(bool earlyClip, size_t channels, bool transparency)
+string FinalAccumOpenCLKernelCreator::CreateFinalAccumKernelString(bool earlyClip, size_t channels, bool transparency)
 {
 	return CreateFinalAccumKernelString(earlyClip, (channels > 3 && transparency), channels > 3);
 }
@@ -184,14 +179,13 @@ string FinalAccumOpenCLKernelCreator<T>::CreateFinalAccumKernelString(bool early
 /// <param name="alphaCalc">True if channels equals 4 and transparency is desired, else false.</param>
 /// <param name="alphaAccum">True if channels equals 4</param>
 /// <returns>The final accumulation kernel string</returns>
-template <typename T>
-string FinalAccumOpenCLKernelCreator<T>::CreateFinalAccumKernelString(bool earlyClip, bool alphaCalc, bool alphaAccum)
+string FinalAccumOpenCLKernelCreator::CreateFinalAccumKernelString(bool earlyClip, bool alphaCalc, bool alphaAccum)
 {
 	ostringstream os;
 	string channels = alphaAccum ? "4" : "3";
 
 	os <<
-		ConstantDefinesString(typeid(T) == typeid(double)) <<
+		ConstantDefinesString(m_DoublePrecision) <<
 		ClampRealFunctionString <<
 		UnionCLStructString <<
 		RgbToHsvFunctionString <<
@@ -228,14 +222,14 @@ string FinalAccumOpenCLKernelCreator<T>::CreateFinalAccumKernelString(bool early
 	}
 
 	os <<
-		"	const __global real4reals* accumulator,\n"
+		"	const __global real4reals_bucket* accumulator,\n"
 		"	__write_only image2d_t pixels,\n"
 		"	__constant SpatialFilterCL* spatialFilter,\n"
-		"	__constant real_t* filterCoefs,\n"
-		"	__constant real4reals* csa,\n"
+		"	__constant real_bucket_t* filterCoefs,\n"
+		"	__constant real4reals_bucket* csa,\n"
 		"	const uint doCurves,\n"
-		"	const real_t alphaBase,\n"
-		"	const real_t alphaScale\n"
+		"	const real_bucket_t alphaBase,\n"
+		"	const real_bucket_t alphaScale\n"
 		"\t)\n"
 		"{\n"
 		"\n"
@@ -250,8 +244,8 @@ string FinalAccumOpenCLKernelCreator<T>::CreateFinalAccumKernelString(bool early
 		"	float4floats finalColor;\n"
 		"	int ii, jj;\n"
 		"	uint filterKRowIndex;\n"
-		"	const __global real4reals* accumBucket;\n"
-		"	real4reals newBucket;\n"
+		"	const __global real4reals_bucket* accumBucket;\n"
+		"	real4reals_bucket newBucket;\n"
 		"	newBucket.m_Real4 = 0;\n"
 		"\n"
 		"	for (jj = 0; jj < spatialFilter->m_FilterWidth; jj++)\n"
@@ -260,7 +254,7 @@ string FinalAccumOpenCLKernelCreator<T>::CreateFinalAccumKernelString(bool early
 		"\n"
 		"		for (ii = 0; ii < spatialFilter->m_FilterWidth; ii++)\n"
 		"		{\n"
-		"			real_t k = filterCoefs[ii + filterKRowIndex];\n"
+		"			real_bucket_t k = filterCoefs[ii + filterKRowIndex];\n"
 		"\n"
 		"			accumBucket = accumulator + (accumX + ii) + ((accumY + jj) * spatialFilter->m_SuperRasW);\n"
 		"			newBucket.m_Real4 += (k * accumBucket->m_Real4);\n"
@@ -287,10 +281,10 @@ string FinalAccumOpenCLKernelCreator<T>::CreateFinalAccumKernelString(bool early
 	else
 	{
 		//Late clip, so must gamma correct from the temp new bucket to temp float4.
-		if (typeid(T) == typeid(double))
+		if (m_DoublePrecision)
 		{
 			os <<
-		"	real4reals realFinal;\n"
+		"	real4reals_bucket realFinal;\n"
 		"\n"
 		"	GammaCorrectionFloats(&newBucket, &(spatialFilter->m_Background[0]), spatialFilter->m_Gamma, spatialFilter->m_LinRange, spatialFilter->m_Vibrancy, spatialFilter->m_HighlightPower, alphaBase, alphaScale, &(realFinal.m_Reals[0]));\n"
 		"	finalColor.m_Float4.x = (float)realFinal.m_Real4.x;\n"
@@ -333,21 +327,20 @@ string FinalAccumOpenCLKernelCreator<T>::CreateFinalAccumKernelString(bool early
 /// <param name="alphaAccum">True if channels equals 4</param>
 /// <param name="finalOut">True if writing to global buffer (late clip), else false (early clip).</param>
 /// <returns>The gamma correction function string</returns>
-template <typename T>
-string FinalAccumOpenCLKernelCreator<T>::CreateGammaCorrectionFunctionString(bool globalBucket, bool alphaCalc, bool alphaAccum, bool finalOut)
+string FinalAccumOpenCLKernelCreator::CreateGammaCorrectionFunctionString(bool globalBucket, bool alphaCalc, bool alphaAccum, bool finalOut)
 {
 	ostringstream os;
 	string dataType;
 	string unionMember;
-	dataType = "real_t";
+	dataType = "real_bucket_t";
 
 	//Use real_t for all cases, early clip and final accum.
-	os << "void GammaCorrectionFloats(" << (globalBucket ? "__global " : "") << "real4reals* bucket, __constant real_t* background, real_t g, real_t linRange, real_t vibrancy, real_t highlightPower, real_t alphaBase, real_t alphaScale, " << (finalOut ? "" : "__global") << " real_t* correctedChannels)\n";
+	os << "void GammaCorrectionFloats(" << (globalBucket ? "__global " : "") << "real4reals_bucket* bucket, __constant real_bucket_t* background, real_bucket_t g, real_bucket_t linRange, real_bucket_t vibrancy, real_bucket_t highlightPower, real_bucket_t alphaBase, real_bucket_t alphaScale, " << (finalOut ? "" : "__global") << " real_bucket_t* correctedChannels)\n";
 
 	os
 	<< "{\n"
-	<< "	real_t alpha, ls, tmp, a;\n"
-	<< "	real4reals newRgb;\n"
+	<< "	real_bucket_t alpha, ls, tmp, a;\n"
+	<< "	real4reals_bucket newRgb;\n"
 	<< "\n"
 	<< "	if (bucket->m_Reals[3] <= 0)\n"
 	<< "	{\n"
@@ -359,7 +352,7 @@ string FinalAccumOpenCLKernelCreator<T>::CreateGammaCorrectionFunctionString(boo
 	<< "		tmp = bucket->m_Reals[3];\n"
 	<< "		alpha = CalcAlpha(tmp, g, linRange);\n"
 	<< "		ls = vibrancy * 256.0 * alpha / tmp;\n"
-	<< "		ClampRef(&alpha, 0.0, 1.0);\n"
+	<< "		alpha = clamp(alpha, (real_bucket_t)0.0, (real_bucket_t)1.0);\n"
 	<< "	}\n"
 	<< "\n"
 	<< "	CalcNewRgb(bucket, ls, highlightPower, &newRgb);\n"
@@ -385,7 +378,7 @@ string FinalAccumOpenCLKernelCreator<T>::CreateGammaCorrectionFunctionString(boo
 
 	os <<
 	"\n"
-	"			correctedChannels[rgbi] = (" << dataType << ")clamp(a, (real_t)0.0, (real_t)255.0);\n"
+	"			correctedChannels[rgbi] = (" << dataType << ")clamp(a, (real_bucket_t)0.0, (real_bucket_t)255.0);\n"
 	"		}\n"
 	"\n";
 
@@ -416,19 +409,18 @@ string FinalAccumOpenCLKernelCreator<T>::CreateGammaCorrectionFunctionString(boo
 /// </summary>
 /// <param name="globalBucket">True if writing the corrected value to a global buffer (early clip), else false (late clip).</param>
 /// <returns>The CalcNewRgb function string</returns>
-template <typename T>
-string FinalAccumOpenCLKernelCreator<T>::CreateCalcNewRgbFunctionString(bool globalBucket)
+string FinalAccumOpenCLKernelCreator::CreateCalcNewRgbFunctionString(bool globalBucket)
 {
 	ostringstream os;
 
 	os <<
-	"static void CalcNewRgb(" << (globalBucket ? "__global " : "") << "real4reals* oldRgb, real_t ls, real_t highPow, real4reals* newRgb)\n"
+	"static void CalcNewRgb(" << (globalBucket ? "__global " : "") << "real4reals_bucket* oldRgb, real_bucket_t ls, real_bucket_t highPow, real4reals_bucket* newRgb)\n"
 	"{\n"
 	"	int rgbi;\n"
-	"	real_t newls, lsratio;\n"
-	"	real4reals newHsv;\n"
-	"	real_t maxa, maxc;\n"
-	"	real_t adjhlp;\n"
+	"	real_bucket_t newls, lsratio;\n"
+	"	real4reals_bucket newHsv;\n"
+	"	real_bucket_t maxa, maxc;\n"
+	"	real_bucket_t adjhlp;\n"
 	"\n"
 	"	if (ls == 0 || (oldRgb->m_Real4.x == 0 && oldRgb->m_Real4.y == 0 && oldRgb->m_Real4.z == 0))\n"//Can't do a vector compare to zero.
 	"	{\n"
@@ -485,14 +477,13 @@ string FinalAccumOpenCLKernelCreator<T>::CreateCalcNewRgbFunctionString(bool glo
 /// </summary>
 /// <param name="alphaCalc">True if channels equals 4 and transparency is desired, else false.</param>
 /// <returns>The gamma correction kernel string used for early clipping</returns>
-template <typename T>
-string FinalAccumOpenCLKernelCreator<T>::CreateGammaCorrectionKernelString(bool alphaCalc)
+string FinalAccumOpenCLKernelCreator::CreateGammaCorrectionKernelString(bool alphaCalc)
 {
 	ostringstream os;
 	string dataType;
 
 	os <<
-		ConstantDefinesString(typeid(T) == typeid(double)) <<
+		ConstantDefinesString(m_DoublePrecision) <<
 		ClampRealFunctionString <<
 		UnionCLStructString <<
 		RgbToHsvFunctionString <<
@@ -503,7 +494,7 @@ string FinalAccumOpenCLKernelCreator<T>::CreateGammaCorrectionKernelString(bool 
 		CreateGammaCorrectionFunctionString(true, alphaCalc, true, false);//Will only be used with float in this case, early clip. Will always alpha accum.
 
 		os << "__kernel void " << (alphaCalc ? m_GammaCorrectionWithAlphaCalcEntryPoint : m_GammaCorrectionWithoutAlphaCalcEntryPoint) << "(\n" <<
-			"	__global real4reals* accumulator,\n"
+			"	__global real4reals_bucket* accumulator,\n"
 			"	__constant SpatialFilterCL* spatialFilter\n"
 			")\n"
 			"{\n"
@@ -513,7 +504,7 @@ string FinalAccumOpenCLKernelCreator<T>::CreateGammaCorrectionKernelString(bool 
 			"		return;\n"
 			"\n"
 			"	uint superIndex = (GLOBAL_ID_Y * spatialFilter->m_SuperRasW) + GLOBAL_ID_X;\n"
-			"	__global real4reals* bucket = accumulator + superIndex;\n"
+			"	__global real4reals_bucket* bucket = accumulator + superIndex;\n"
 			//Pass in an alphaBase and alphaScale of 0, 1 which means to just directly assign the computed alpha value.
 			"	GammaCorrectionFloats(bucket, &(spatialFilter->m_Background[0]), spatialFilter->m_Gamma, spatialFilter->m_LinRange, spatialFilter->m_Vibrancy, spatialFilter->m_HighlightPower, 0.0, 1.0, &(bucket->m_Reals[0]));\n"
 			"}\n"
@@ -521,10 +512,4 @@ string FinalAccumOpenCLKernelCreator<T>::CreateGammaCorrectionKernelString(bool 
 
 	return os.str();
 }
-
-template EMBERCL_API class FinalAccumOpenCLKernelCreator<float>;
-
-#ifdef DO_DOUBLE
-	template EMBERCL_API class FinalAccumOpenCLKernelCreator<double>;
-#endif
 }

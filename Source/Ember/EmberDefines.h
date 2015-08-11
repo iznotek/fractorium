@@ -96,6 +96,7 @@ static inline size_t NowMs()
 	#define v2T  glm::tvec2<T, glm::defaultp>
 	#define v3T  glm::tvec3<T, glm::defaultp>
 	#define v4T  glm::tvec4<T, glm::defaultp>
+	#define v4bT glm::tvec4<bucketT, glm::defaultp>
 	#define m2T  glm::tmat2x2<T, glm::defaultp>
 	#define m3T  glm::tmat3x3<T, glm::defaultp>
 	#define m4T  glm::tmat4x4<T, glm::defaultp>
@@ -104,6 +105,7 @@ static inline size_t NowMs()
 	#define v2T  glm::detail::tvec2<T, glm::defaultp>
 	#define v3T  glm::detail::tvec3<T, glm::defaultp>
 	#define v4T  glm::detail::tvec4<T, glm::defaultp>
+	#define v4bT glm::detail::tvec4<bucketT, glm::defaultp>
 	#define m2T  glm::detail::tmat2x2<T, glm::defaultp>
 	#define m3T  glm::detail::tmat3x3<T, glm::defaultp>
 	#define m4T  glm::detail::tmat4x4<T, glm::defaultp>
@@ -132,14 +134,13 @@ enum eEmberMotionParam : uint
 	FLAME_MOTION_CENTER_X = 7,
 	FLAME_MOTION_CENTER_Y = 8,
 	FLAME_MOTION_ROTATE = 9,
-	FLAME_MOTION_HUE = 10,
-	FLAME_MOTION_BRIGHTNESS = 11,
-	FLAME_MOTION_GAMMA = 12,
-	FLAME_MOTION_GAMMA_THRESH = 13,
-	FLAME_MOTION_HIGHLIGHT_POWER = 14,
-	FLAME_MOTION_BACKGROUND_R = 15,
-	FLAME_MOTION_BACKGROUND_G = 16,
-	FLAME_MOTION_BACKGROUND_B = 17,
-	FLAME_MOTION_VIBRANCY = 18
+	FLAME_MOTION_BRIGHTNESS = 10,
+	FLAME_MOTION_GAMMA = 11,
+	FLAME_MOTION_GAMMA_THRESH = 12,
+	FLAME_MOTION_HIGHLIGHT_POWER = 13,
+	FLAME_MOTION_BACKGROUND_R = 14,
+	FLAME_MOTION_BACKGROUND_G = 15,
+	FLAME_MOTION_BACKGROUND_B = 16,
+	FLAME_MOTION_VIBRANCY = 17
 };
 }

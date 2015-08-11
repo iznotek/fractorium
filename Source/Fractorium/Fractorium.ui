@@ -75,7 +75,7 @@
       <x>0</x>
       <y>0</y>
       <width>1175</width>
-      <height>861</height>
+      <height>859</height>
      </rect>
     </property>
     <property name="sizePolicy">
@@ -2484,6 +2484,9 @@
          <property name="autoFillBackground">
           <bool>false</bool>
          </property>
+         <property name="styleSheet">
+          <string notr="true"/>
+         </property>
          <property name="frameShape">
           <enum>QFrame::Panel</enum>
          </property>
@@ -2596,7 +2599,7 @@
           <string/>
          </property>
          <property name="autoFillBackground">
-          <bool>true</bool>
+          <bool>false</bool>
          </property>
          <property name="styleSheet">
           <string notr="true">QTabWidget::pane
@@ -3262,7 +3265,7 @@ SpinBox
            <string/>
           </property>
           <property name="autoFillBackground">
-           <bool>true</bool>
+           <bool>false</bool>
           </property>
           <attribute name="title">
            <string>Affine</string>
@@ -3289,7 +3292,7 @@ SpinBox
            <item>
             <widget class="QScrollArea" name="AffineTabScrollArea">
              <property name="autoFillBackground">
-              <bool>true</bool>
+              <bool>false</bool>
              </property>
              <property name="frameShape">
               <enum>QFrame::NoFrame</enum>
@@ -3305,8 +3308,8 @@ SpinBox
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>243</width>
-                <height>745</height>
+                <width>118</width>
+                <height>618</height>
                </rect>
               </property>
               <property name="autoFillBackground">
@@ -3349,7 +3352,7 @@ SpinBox
                   </size>
                  </property>
                  <property name="autoFillBackground">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                  <property name="title">
                   <string>Pre Affine Transform</string>
@@ -3864,7 +3867,7 @@ SpinBox
                   <item>
                    <widget class="QGroupBox" name="PreAffineShowGroupBox">
                     <property name="autoFillBackground">
-                     <bool>true</bool>
+                     <bool>false</bool>
                     </property>
                     <property name="title">
                      <string>Show</string>
@@ -3938,7 +3941,7 @@ SpinBox
                   </size>
                  </property>
                  <property name="autoFillBackground">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                  <property name="title">
                   <string>Post Affine Transform</string>
@@ -4498,7 +4501,7 @@ SpinBox
                      <bool>true</bool>
                     </property>
                     <property name="autoFillBackground">
-                     <bool>true</bool>
+                     <bool>false</bool>
                     </property>
                     <property name="title">
                      <string>Show</string>
@@ -4555,7 +4558,7 @@ SpinBox
                <item>
                 <widget class="QGroupBox" name="PivotGroupBox">
                  <property name="autoFillBackground">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                  <property name="title">
                   <string>Pivot</string>
@@ -4907,7 +4910,7 @@ SpinBox
               </sizepolicy>
              </property>
              <property name="autoFillBackground">
-              <bool>true</bool>
+              <bool>false</bool>
              </property>
              <property name="title">
               <string>Select Xforms</string>
@@ -4920,16 +4923,16 @@ SpinBox
                <number>0</number>
               </property>
               <property name="leftMargin">
-               <number>0</number>
+               <number>2</number>
               </property>
               <property name="topMargin">
-               <number>0</number>
+               <number>2</number>
               </property>
               <property name="rightMargin">
-               <number>0</number>
+               <number>2</number>
               </property>
               <property name="bottomMargin">
-               <number>0</number>
+               <number>2</number>
               </property>
               <item>
                <widget class="QScrollArea" name="XformsSelectGroupBoxScrollArea">
@@ -4962,8 +4965,8 @@ SpinBox
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>243</width>
-                   <height>680</height>
+                   <width>133</width>
+                   <height>52</height>
                   </rect>
                  </property>
                  <property name="sizePolicy">
@@ -5095,6 +5098,9 @@ SpinBox
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="autoFillBackground">
+           <bool>true</bool>
+          </property>
           <layout class="QGridLayout" name="gridLayout_2">
            <property name="leftMargin">
             <number>0</number>
@@ -5118,6 +5124,9 @@ SpinBox
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
+             </property>
+             <property name="autoFillBackground">
+              <bool>false</bool>
              </property>
              <property name="tabShape">
               <enum>QTabWidget::Triangular</enum>
@@ -5350,12 +5359,12 @@ SpinBox
                  </attribute>
                  <column>
                   <property name="text">
-                   <string/>
+                   <string>Collapse</string>
                   </property>
                  </column>
                  <column>
                   <property name="text">
-                   <string/>
+                   <string>Expand</string>
                   </property>
                  </column>
                  <item>
@@ -6107,7 +6116,7 @@ SpinBox
           <x>0</x>
           <y>0</y>
           <width>256</width>
-          <height>830</height>
+          <height>828</height>
          </rect>
         </property>
         <layout class="QGridLayout" name="gridLayout_11">
@@ -6585,7 +6594,7 @@ SpinBox
     <string>DP</string>
    </property>
    <property name="toolTip">
-    <string>Use DP to render</string>
+    <string>Use double precision to render</string>
    </property>
   </action>
  </widget>

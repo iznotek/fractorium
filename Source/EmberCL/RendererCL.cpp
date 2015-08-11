@@ -6,13 +6,18 @@ namespace EmberCLns
 /// <summary>
 /// Constructor that inintializes various buffer names, block dimensions, image formats
 /// and finally initializes OpenCL using the passed in parameters.
+/// Kernel creators are set to be non-nvidia by default. Will be properly set in Init().
 /// </summary>
 /// <param name="platform">The index platform of the platform to use. Default: 0.</param>
 /// <param name="device">The index device of the device to use. Default: 0.</param>
 /// <param name="shared">True if shared with OpenGL, else false. Default: false.</param>
 /// <param name="outputTexID">The texture ID of the shared OpenGL texture if shared. Default: 0.</param>
-template <typename T>
-RendererCL<T>::RendererCL(uint platform, uint device, bool shared, GLuint outputTexID)
+template <typename T, typename bucketT>
+RendererCL<T, bucketT>::RendererCL(uint platform, uint device, bool shared, GLuint outputTexID)
+	:
+	m_IterOpenCLKernelCreator(false),
+	m_DEOpenCLKernelCreator(typeid(T) == typeid(double), false),
+	m_FinalAccumOpenCLKernelCreator(typeid(T) == typeid(double))
 {
 	m_Init = false;
 	m_NVidia = false;
@@ -61,8 +66,8 @@ RendererCL<T>::RendererCL(uint platform, uint device, bool shared, GLuint output
 /// <summary>
 /// Virtual destructor.
 /// </summary>
-template <typename T>
-RendererCL<T>::~RendererCL()
+template <typename T, typename bucketT>
+RendererCL<T, bucketT>::~RendererCL()
 {
 }
 
@@ -82,8 +87,8 @@ RendererCL<T>::~RendererCL()
 /// <param name="shared">True if shared with OpenGL, else false.</param>
 /// <param name="outputTexID">The texture ID of the shared OpenGL texture if shared</param>
 /// <returns>True if success, else false.</returns>
-template <typename T>
-bool RendererCL<T>::Init(uint platform, uint device, bool shared, GLuint outputTexID)
+template <typename T, typename bucketT>
+bool RendererCL<T, bucketT>::Init(uint platform, uint device, bool shared, GLuint outputTexID)
 {
 	//Timing t;
 	bool b = true;
@@ -101,12 +106,12 @@ bool RendererCL<T>::Init(uint platform, uint device, bool shared, GLuint outputT
 		m_NVidia = ToLower(m_Wrapper.DeviceAndPlatformNames()).find_first_of("nvidia") != string::npos && m_Wrapper.LocalMemSize() > (32 * 1024);
 		m_WarpSize = m_NVidia ? 32 : 64;
 		m_IterOpenCLKernelCreator = IterOpenCLKernelCreator<T>(m_NVidia);
-		m_DEOpenCLKernelCreator = DEOpenCLKernelCreator<T>(m_NVidia);
+		m_DEOpenCLKernelCreator = DEOpenCLKernelCreator(m_DoublePrecision, m_NVidia);
 
 		string zeroizeProgram = m_IterOpenCLKernelCreator.ZeroizeKernel();
 		string logAssignProgram = m_DEOpenCLKernelCreator.LogScaleAssignDEKernel();//Build a couple of simple programs to ensure OpenCL is working right.
 
-		if (b && !(b = m_Wrapper.AddProgram(m_IterOpenCLKernelCreator.ZeroizeEntryPoint(),		  zeroizeProgram,	m_IterOpenCLKernelCreator.ZeroizeEntryPoint(),        m_DoublePrecision))) { m_ErrorReport.push_back(loc); }
+        if (b && !(b = m_Wrapper.AddProgram(m_IterOpenCLKernelCreator.ZeroizeEntryPoint(),		  zeroizeProgram,	m_IterOpenCLKernelCreator.ZeroizeEntryPoint(),		  m_DoublePrecision))) { m_ErrorReport.push_back(loc); }
 		if (b && !(b = m_Wrapper.AddProgram(m_DEOpenCLKernelCreator.LogScaleAssignDEEntryPoint(), logAssignProgram, m_DEOpenCLKernelCreator.LogScaleAssignDEEntryPoint(), m_DoublePrecision))) { m_ErrorReport.push_back(loc); }
 		if (b && !(b = m_Wrapper.AddAndWriteImage("Palette", CL_MEM_READ_ONLY, m_PaletteFormat, 256, 1, 0, nullptr))) { m_ErrorReport.push_back(loc); }
 		if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_SeedsBufferName, reinterpret_cast<void*>(m_Seeds.data()), SizeOf(m_Seeds)))) { m_ErrorReport.push_back(loc); }
@@ -130,8 +135,8 @@ bool RendererCL<T>::Init(uint platform, uint device, bool shared, GLuint outputT
 /// </summary>
 /// <param name="outputTexID">The texture ID of the shared OpenGL texture if shared</param>
 /// <returns>True if success, else false.</returns>
-template <typename T>
-bool RendererCL<T>::SetOutputTexture(GLuint outputTexID)
+template <typename T, typename bucketT>
+bool RendererCL<T, bucketT>::SetOutputTexture(GLuint outputTexID)
 {
 	bool success = true;
 	const char* loc = __FUNCTION__;
@@ -157,38 +162,38 @@ bool RendererCL<T>::SetOutputTexture(GLuint outputTexID)
 /// </summary>
 
 //Iters per kernel/block/grid.
-template <typename T> uint RendererCL<T>::IterCountPerKernel() const { return m_IterCountPerKernel; }
-template <typename T> uint RendererCL<T>::IterCountPerBlock()  const { return IterCountPerKernel() * IterBlockKernelCount(); }
-template <typename T> uint RendererCL<T>::IterCountPerGrid()   const { return IterCountPerKernel() * IterGridKernelCount();  }
+template <typename T, typename bucketT> uint RendererCL<T, bucketT>::IterCountPerKernel() const { return m_IterCountPerKernel; }
+template <typename T, typename bucketT> uint RendererCL<T, bucketT>::IterCountPerBlock()  const { return IterCountPerKernel() * IterBlockKernelCount(); }
+template <typename T, typename bucketT> uint RendererCL<T, bucketT>::IterCountPerGrid()   const { return IterCountPerKernel() * IterGridKernelCount();  }
 
 //Kernels per block.
-template <typename T> uint RendererCL<T>::IterBlockKernelWidth()  const { return m_IterBlockWidth;								 }
-template <typename T> uint RendererCL<T>::IterBlockKernelHeight() const { return m_IterBlockHeight;								 }
-template <typename T> uint RendererCL<T>::IterBlockKernelCount()  const { return IterBlockKernelWidth() * IterBlockKernelHeight(); }
+template <typename T, typename bucketT> uint RendererCL<T, bucketT>::IterBlockKernelWidth()  const { return m_IterBlockWidth;								 }
+template <typename T, typename bucketT> uint RendererCL<T, bucketT>::IterBlockKernelHeight() const { return m_IterBlockHeight;								 }
+template <typename T, typename bucketT> uint RendererCL<T, bucketT>::IterBlockKernelCount()  const { return IterBlockKernelWidth() * IterBlockKernelHeight(); }
 
 //Kernels per grid.
-template <typename T> uint RendererCL<T>::IterGridKernelWidth()  const { return IterGridBlockWidth() * IterBlockKernelWidth();   }
-template <typename T> uint RendererCL<T>::IterGridKernelHeight() const { return IterGridBlockHeight() * IterBlockKernelHeight(); }
-template <typename T> uint RendererCL<T>::IterGridKernelCount()	 const { return IterGridKernelWidth() * IterGridKernelHeight();  }
+template <typename T, typename bucketT> uint RendererCL<T, bucketT>::IterGridKernelWidth()  const { return IterGridBlockWidth() * IterBlockKernelWidth();   }
+template <typename T, typename bucketT> uint RendererCL<T, bucketT>::IterGridKernelHeight() const { return IterGridBlockHeight() * IterBlockKernelHeight(); }
+template <typename T, typename bucketT> uint RendererCL<T, bucketT>::IterGridKernelCount()	 const { return IterGridKernelWidth() * IterGridKernelHeight();  }
 
 //Blocks per grid.
-template <typename T> uint RendererCL<T>::IterGridBlockWidth()  const { return m_IterBlocksWide;							   }
-template <typename T> uint RendererCL<T>::IterGridBlockHeight() const { return m_IterBlocksHigh;							   }
-template <typename T> uint RendererCL<T>::IterGridBlockCount()  const { return IterGridBlockWidth() * IterGridBlockHeight(); }
+template <typename T, typename bucketT> uint RendererCL<T, bucketT>::IterGridBlockWidth()  const { return m_IterBlocksWide;							   }
+template <typename T, typename bucketT> uint RendererCL<T, bucketT>::IterGridBlockHeight() const { return m_IterBlocksHigh;							   }
+template <typename T, typename bucketT> uint RendererCL<T, bucketT>::IterGridBlockCount()  const { return IterGridBlockWidth() * IterGridBlockHeight(); }
 
-template <typename T> uint RendererCL<T>::PlatformIndex() { return m_Wrapper.PlatformIndex(); }
-template <typename T> uint RendererCL<T>::DeviceIndex()   { return m_Wrapper.DeviceIndex();   }
+template <typename T, typename bucketT> uint RendererCL<T, bucketT>::PlatformIndex() { return m_Wrapper.PlatformIndex(); }
+template <typename T, typename bucketT> uint RendererCL<T, bucketT>::DeviceIndex()   { return m_Wrapper.DeviceIndex();   }
 
 /// <summary>
 /// Read the histogram into the host side CPU buffer.
 /// Used for debugging.
 /// </summary>
 /// <returns>True if success, else false.</returns>
-template <typename T>
-bool RendererCL<T>::ReadHist()
+template <typename T, typename bucketT>
+bool RendererCL<T, bucketT>::ReadHist()
 {
-	if (Renderer<T, T>::Alloc())//Allocate the memory to read into.
-		return m_Wrapper.ReadBuffer(m_HistBufferName, reinterpret_cast<void*>(HistBuckets()), SuperSize() * sizeof(v4T));
+	if (Renderer<T, bucketT>::Alloc())//Allocate the memory to read into.
+		return m_Wrapper.ReadBuffer(m_HistBufferName, reinterpret_cast<void*>(HistBuckets()), SuperSize() * sizeof(v4bT));
 
 	return false;
 }
@@ -198,11 +203,11 @@ bool RendererCL<T>::ReadHist()
 /// Used for debugging.
 /// </summary>
 /// <returns>True if success, else false.</returns>
-template <typename T>
-bool RendererCL<T>::ReadAccum()
+template <typename T, typename bucketT>
+bool RendererCL<T, bucketT>::ReadAccum()
 {
-	if (Renderer<T, T>::Alloc())//Allocate the memory to read into.
-		return m_Wrapper.ReadBuffer(m_AccumBufferName, reinterpret_cast<void*>(AccumulatorBuckets()), SuperSize() * sizeof(v4T));
+	if (Renderer<T, bucketT>::Alloc())//Allocate the memory to read into.
+		return m_Wrapper.ReadBuffer(m_AccumBufferName, reinterpret_cast<void*>(AccumulatorBuckets()), SuperSize() * sizeof(v4bT));
 
 	return false;
 }
@@ -213,8 +218,8 @@ bool RendererCL<T>::ReadAccum()
 /// </summary>
 /// <param name="vec">The host side buffer to read into</param>
 /// <returns>True if success, else false.</returns>
-template <typename T>
-bool RendererCL<T>::ReadPoints(vector<PointCL<T>>& vec)
+template <typename T, typename bucketT>
+bool RendererCL<T, bucketT>::ReadPoints(vector<PointCL<T>>& vec)
 {
 	vec.resize(IterGridKernelCount());//Allocate the memory to read into.
 
@@ -228,20 +233,20 @@ bool RendererCL<T>::ReadPoints(vector<PointCL<T>>& vec)
 /// Clear the histogram buffer with all zeroes.
 /// </summary>
 /// <returns>True if success, else false.</returns>
-template <typename T>
-bool RendererCL<T>::ClearHist()
+template <typename T, typename bucketT>
+bool RendererCL<T, bucketT>::ClearHist()
 {
-	return ClearBuffer(m_HistBufferName, uint(SuperRasW()), uint(SuperRasH()), sizeof(v4T));
+	return ClearBuffer(m_HistBufferName, uint(SuperRasW()), uint(SuperRasH()), sizeof(v4bT));
 }
 
 /// <summary>
 /// Clear the desnity filtering buffer with all zeroes.
 /// </summary>
 /// <returns>True if success, else false.</returns>
-template <typename T>
-bool RendererCL<T>::ClearAccum()
+template <typename T, typename bucketT>
+bool RendererCL<T, bucketT>::ClearAccum()
 {
-	return ClearBuffer(m_AccumBufferName, uint(SuperRasW()), uint(SuperRasH()), sizeof(v4T));
+	return ClearBuffer(m_AccumBufferName, uint(SuperRasW()), uint(SuperRasH()), sizeof(v4bT));
 }
 
 /// <summary>
@@ -250,15 +255,15 @@ bool RendererCL<T>::ClearAccum()
 /// </summary>
 /// <param name="vec">The host side buffer whose values to write</param>
 /// <returns>True if success, else false.</returns>
-template <typename T>
-bool RendererCL<T>::WritePoints(vector<PointCL<T>>& vec)
+template <typename T, typename bucketT>
+bool RendererCL<T, bucketT>::WritePoints(vector<PointCL<T>>& vec)
 {
 	return m_Wrapper.WriteBuffer(m_PointsBufferName, reinterpret_cast<void*>(vec.data()), SizeOf(vec));
 }
 
 #ifdef TEST_CL
-template <typename T>
-bool RendererCL<T>::WriteRandomPoints()
+template <typename T, typename bucketT>
+bool RendererCL<T, bucketT>::WriteRandomPoints()
 {
 	size_t size = IterGridKernelCount();
 	vector<PointCL<T>> vec(size);
@@ -280,23 +285,23 @@ bool RendererCL<T>::WriteRandomPoints()
 /// Get the kernel string for the last built iter program.
 /// </summary>
 /// <returns>The string representation of the kernel for the last built iter program.</returns>
-template <typename T>
-string RendererCL<T>::IterKernel() { return m_IterKernel; }
+template <typename T, typename bucketT>
+string RendererCL<T, bucketT>::IterKernel() { return m_IterKernel; }
 
 
 /// <summary>
 /// Get the kernel string for the last built density filtering program.
 /// </summary>
 /// <returns>The string representation of the kernel for the last built density filtering program.</returns>
-template <typename T>
-string RendererCL<T>::DEKernel() { return m_DEOpenCLKernelCreator.GaussianDEKernel(Supersample(), m_DensityFilterCL.m_FilterWidth); }
+template <typename T, typename bucketT>
+string RendererCL<T, bucketT>::DEKernel() { return m_DEOpenCLKernelCreator.GaussianDEKernel(Supersample(), m_DensityFilterCL.m_FilterWidth); }
 
 /// <summary>
 /// Get the kernel string for the last built final accumulation program.
 /// </summary>
 /// <returns>The string representation of the kernel for the last built final accumulation program.</returns>
-template <typename T>
-string RendererCL<T>::FinalAccumKernel() { return m_FinalAccumOpenCLKernelCreator.FinalAccumKernel(EarlyClip(), Renderer<T, T>::NumChannels(), Transparency()); }
+template <typename T, typename bucketT>
+string RendererCL<T, bucketT>::FinalAccumKernel() { return m_FinalAccumOpenCLKernelCreator.FinalAccumKernel(EarlyClip(), Renderer<T, bucketT>::NumChannels(), Transparency()); }
 
 /// <summary>
 /// Virtual functions overridden from RendererCLBase.
@@ -308,8 +313,8 @@ string RendererCL<T>::FinalAccumKernel() { return m_FinalAccumOpenCLKernelCreato
 /// </summary>
 /// <param name="pixels">The host side buffer to read into</param>
 /// <returns>True if success, else false.</returns>
-template <typename T>
-bool RendererCL<T>::ReadFinal(byte* pixels)
+template <typename T, typename bucketT>
+bool RendererCL<T, bucketT>::ReadFinal(byte* pixels)
 {
 	if (pixels)
 		return m_Wrapper.ReadImage(m_FinalImageName, FinalRasW(), FinalRasH(), 0, m_Wrapper.Shared(), pixels);
@@ -322,8 +327,8 @@ bool RendererCL<T>::ReadFinal(byte* pixels)
 /// Slow, but never used because the final output image is always completely overwritten.
 /// </summary>
 /// <returns>True if success, else false.</returns>
-template <typename T>
-bool RendererCL<T>::ClearFinal()
+template <typename T, typename bucketT>
+bool RendererCL<T, bucketT>::ClearFinal()
 {
 	vector<byte> v;
 	uint index = m_Wrapper.FindImageIndex(m_FinalImageName, m_Wrapper.Shared());
@@ -349,8 +354,8 @@ bool RendererCL<T>::ClearFinal()
 /// The amount of video RAM available on the GPU to render with.
 /// </summary>
 /// <returns>An unsigned 64-bit integer specifying how much video memory is available</returns>
-template <typename T>
-size_t RendererCL<T>::MemoryAvailable()
+template <typename T, typename bucketT>
+size_t RendererCL<T, bucketT>::MemoryAvailable()
 {
 	return Ok() ? m_Wrapper.GlobalMemSize() : 0ULL;
 }
@@ -359,8 +364,8 @@ size_t RendererCL<T>::MemoryAvailable()
 /// Return whether OpenCL has been properly initialized.
 /// </summary>
 /// <returns>True if OpenCL has been properly initialized, else false.</returns>
-template <typename T>
-bool RendererCL<T>::Ok() const
+template <typename T, typename bucketT>
+bool RendererCL<T, bucketT>::Ok() const
 {
 	return m_Init;
 }
@@ -370,8 +375,8 @@ bool RendererCL<T>::Ok() const
 /// since the output is actually an image rather than just a buffer.
 /// </summary>
 /// <param name="numChannels">The number of channels, ignored.</param>
-template <typename T>
-void RendererCL<T>::NumChannels(size_t numChannels)
+template <typename T, typename bucketT>
+void RendererCL<T, bucketT>::NumChannels(size_t numChannels)
 {
 	m_NumChannels = 4;
 }
@@ -379,8 +384,8 @@ void RendererCL<T>::NumChannels(size_t numChannels)
 /// <summary>
 /// Dump the error report for this class as well as the OpenCLWrapper member.
 /// </summary>
-template <typename T>
-void RendererCL<T>::DumpErrorReport()
+template <typename T, typename bucketT>
+void RendererCL<T, bucketT>::DumpErrorReport()
 {
 	EmberReport::DumpErrorReport();
 	m_Wrapper.DumpErrorReport();
@@ -389,8 +394,8 @@ void RendererCL<T>::DumpErrorReport()
 /// <summary>
 /// Clear the error report for this class as well as the OpenCLWrapper member.
 /// </summary>
-template <typename T>
-void RendererCL<T>::ClearErrorReport()
+template <typename T, typename bucketT>
+void RendererCL<T, bucketT>::ClearErrorReport()
 {
 	EmberReport::ClearErrorReport();
 	m_Wrapper.ClearErrorReport();
@@ -402,8 +407,8 @@ void RendererCL<T>::ClearErrorReport()
 /// change this.
 /// </summary>
 /// <returns>The number of iterations ran in a single kernel call</returns>
-template <typename T>
-size_t RendererCL<T>::SubBatchSize() const
+template <typename T, typename bucketT>
+size_t RendererCL<T, bucketT>::SubBatchSize() const
 {
 	return IterCountPerGrid();
 }
@@ -413,8 +418,8 @@ size_t RendererCL<T>::SubBatchSize() const
 /// the kernel internally runs many threads.
 /// </summary>
 /// <returns>1</returns>
-template <typename T>
-size_t RendererCL<T>::ThreadCount() const
+template <typename T, typename bucketT>
+size_t RendererCL<T, bucketT>::ThreadCount() const
 {
 	return 1;
 }
@@ -425,22 +430,21 @@ size_t RendererCL<T>::ThreadCount() const
 /// </summary>
 /// <param name="newAlloc">True if a new filter instance was created, else false.</param>
 /// <returns>True if success, else false.</returns>
-template <typename T>
-bool RendererCL<T>::CreateDEFilter(bool& newAlloc)
+template <typename T, typename bucketT>
+bool RendererCL<T, bucketT>::CreateDEFilter(bool& newAlloc)
 {
 	bool b = true;
 
-	if (Renderer<T, T>::CreateDEFilter(newAlloc))
+	if (Renderer<T, bucketT>::CreateDEFilter(newAlloc))
 	{
 		//Copy coefs and widths here. Convert and copy the other filter params right before calling the filtering kernel.
 		if (newAlloc)
 		{
 			const char* loc = __FUNCTION__;
-			DensityFilter<T>* filter = dynamic_cast<DensityFilter<T>*>(GetDensityFilter());
 
-			if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_DECoefsBufferName, reinterpret_cast<void*>(const_cast<T*>(filter->Coefs())), filter->CoefsSizeBytes())))					   { m_ErrorReport.push_back(loc); }
-			if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_DEWidthsBufferName, reinterpret_cast<void*>(const_cast<T*>(filter->Widths())), filter->WidthsSizeBytes())))				   { m_ErrorReport.push_back(loc); }
-			if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_DECoefIndicesBufferName, reinterpret_cast<void*>(const_cast<uint*>(filter->CoefIndices())), filter->CoefsIndicesSizeBytes()))) { m_ErrorReport.push_back(loc); }
+			if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_DECoefsBufferName,		  reinterpret_cast<void*>(const_cast<bucketT*>(m_DensityFilter->Coefs())),	  m_DensityFilter->CoefsSizeBytes())))		  { m_ErrorReport.push_back(loc); }
+			if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_DEWidthsBufferName,	  reinterpret_cast<void*>(const_cast<bucketT*>(m_DensityFilter->Widths())),	  m_DensityFilter->WidthsSizeBytes())))		  { m_ErrorReport.push_back(loc); }
+			if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_DECoefIndicesBufferName, reinterpret_cast<void*>(const_cast<uint*>(m_DensityFilter->CoefIndices())), m_DensityFilter->CoefsIndicesSizeBytes()))) { m_ErrorReport.push_back(loc); }
 		}
 	}
 	else
@@ -455,15 +459,15 @@ bool RendererCL<T>::CreateDEFilter(bool& newAlloc)
 /// </summary>
 /// <param name="newAlloc">True if a new filter instance was created, else false.</param>
 /// <returns>True if success, else false.</returns>
-template <typename T>
-bool RendererCL<T>::CreateSpatialFilter(bool& newAlloc)
+template <typename T, typename bucketT>
+bool RendererCL<T, bucketT>::CreateSpatialFilter(bool& newAlloc)
 {
 	bool b = true;
 
-	if (Renderer<T, T>::CreateSpatialFilter(newAlloc))
+	if (Renderer<T, bucketT>::CreateSpatialFilter(newAlloc))
 	{
 		if (newAlloc)
-			if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_SpatialFilterCoefsBufferName, reinterpret_cast<void*>(GetSpatialFilter()->Filter()), GetSpatialFilter()->BufferSizeBytes()))) { m_ErrorReport.push_back(__FUNCTION__); }
+			if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_SpatialFilterCoefsBufferName, reinterpret_cast<void*>(m_SpatialFilter->Filter()), m_SpatialFilter->BufferSizeBytes()))) { m_ErrorReport.push_back(__FUNCTION__); }
 
 	}
 	else
@@ -476,8 +480,8 @@ bool RendererCL<T>::CreateSpatialFilter(bool& newAlloc)
 /// Get the renderer type enum.
 /// </summary>
 /// <returns>OPENCL_RENDERER</returns>
-template <typename T>
-eRendererType RendererCL<T>::RendererType() const
+template <typename T, typename bucketT>
+eRendererType RendererCL<T, bucketT>::RendererType() const
 {
 	return OPENCL_RENDERER;
 }
@@ -487,8 +491,8 @@ eRendererType RendererCL<T>::RendererType() const
 /// OpenCLWrapper member as a single string.
 /// </summary>
 /// <returns>The concatenated error report string</returns>
-template <typename T>
-string RendererCL<T>::ErrorReportString()
+template <typename T, typename bucketT>
+string RendererCL<T, bucketT>::ErrorReportString()
 {
 	return EmberReport::ErrorReportString() + m_Wrapper.ErrorReportString();
 }
@@ -498,8 +502,8 @@ string RendererCL<T>::ErrorReportString()
 /// OpenCLWrapper member as a vector of strings.
 /// </summary>
 /// <returns>The concatenated error report vector of strings</returns>
-template <typename T>
-vector<string> RendererCL<T>::ErrorReport()
+template <typename T, typename bucketT>
+vector<string> RendererCL<T, bucketT>::ErrorReport()
 {
 	auto ours = EmberReport::ErrorReport();
 	auto wrappers = m_Wrapper.ErrorReport();
@@ -514,10 +518,10 @@ vector<string> RendererCL<T>::ErrorReport()
 /// </summary>
 /// <param name="randVec">The vector of random contexts to assign</param>
 /// <returns>True if the size of the vector matched the number of threads used for rendering and writing seeds to OpenCL succeeded, else false.</returns>
-template <typename T>
-bool RendererCL<T>::RandVec(vector<QTIsaac<ISAAC_SIZE, ISAAC_INT>>& randVec)
+template <typename T, typename bucketT>
+bool RendererCL<T, bucketT>::RandVec(vector<QTIsaac<ISAAC_SIZE, ISAAC_INT>>& randVec)
 {
-	bool b = Renderer<T, T>::RandVec(randVec);
+	bool b = Renderer<T, bucketT>::RandVec(randVec);
 	const char* loc = __FUNCTION__;
 
 	if (m_Wrapper.Ok())
@@ -540,8 +544,8 @@ bool RendererCL<T>::RandVec(vector<QTIsaac<ISAAC_SIZE, ISAAC_INT>>& randVec)
 /// only supports floats for texture images.
 /// </summary>
 /// <param name="colorScalar">The color scalar to multiply the ember's palette by</param>
-template <typename T>
-void RendererCL<T>::MakeDmap(T colorScalar)
+template <typename T, typename bucketT>
+void RendererCL<T, bucketT>::MakeDmap(T colorScalar)
 {
 	//m_Ember.m_Palette.MakeDmap<float>(m_DmapCL, colorScalar);
 	m_Ember.m_Palette.MakeDmap(m_DmapCL, colorScalar);
@@ -553,8 +557,8 @@ void RendererCL<T>::MakeDmap(T colorScalar)
 /// 2D image.
 /// </summary>
 /// <returns>True if success, else false.</returns>
-template <typename T>
-bool RendererCL<T>::Alloc()
+template <typename T, typename bucketT>
+bool RendererCL<T, bucketT>::Alloc()
 {
 	if (!m_Wrapper.Ok())
 		return false;
@@ -567,17 +571,17 @@ bool RendererCL<T>::Alloc()
 	size_t accumLength = SuperSize() * sizeof(v4T);
 	const char* loc = __FUNCTION__;
 
-	if (b && !(b = m_Wrapper.AddBuffer(m_EmberBufferName,               sizeof(m_EmberCL))))						   { m_ErrorReport.push_back(loc); }
-	if (b && !(b = m_Wrapper.AddBuffer(m_XformsBufferName,				SizeOf(m_XformsCL))))						   { m_ErrorReport.push_back(loc); }
-	if (b && !(b = m_Wrapper.AddBuffer(m_ParVarsBufferName,             128 * sizeof(T))))							   { m_ErrorReport.push_back(loc); }
-	if (b && !(b = m_Wrapper.AddBuffer(m_DistBufferName,                CHOOSE_XFORM_GRAIN)))						   { m_ErrorReport.push_back(loc); }//Will be resized for xaos.
-	if (b && !(b = m_Wrapper.AddBuffer(m_CarToRasBufferName,            sizeof(m_CarToRasCL))))						   { m_ErrorReport.push_back(loc); }
-	if (b && !(b = m_Wrapper.AddBuffer(m_DEFilterParamsBufferName,      sizeof(m_DensityFilterCL))))				   { m_ErrorReport.push_back(loc); }
-	if (b && !(b = m_Wrapper.AddBuffer(m_SpatialFilterParamsBufferName, sizeof(m_SpatialFilterCL))))				   { m_ErrorReport.push_back(loc); }
-	if (b && !(b = m_Wrapper.AddBuffer(m_CurvesCsaName,					SizeOf(m_Csa.m_Entries))))					   { m_ErrorReport.push_back(loc); }
-	if (b && !(b = m_Wrapper.AddBuffer(m_HistBufferName,				histLength)))								   { m_ErrorReport.push_back(loc); }//Histogram. Will memset to zero later.
-	if (b && !(b = m_Wrapper.AddBuffer(m_AccumBufferName,				accumLength)))								   { m_ErrorReport.push_back(loc); }//Accum buffer.
-	if (b && !(b = m_Wrapper.AddBuffer(m_PointsBufferName,				IterGridKernelCount() * sizeof(PointCL<T>))))  { m_ErrorReport.push_back(loc); }//Points between iter calls.
+	if (b && !(b = m_Wrapper.AddBuffer(m_EmberBufferName,               sizeof(m_EmberCL))))						  { m_ErrorReport.push_back(loc); }
+	if (b && !(b = m_Wrapper.AddBuffer(m_XformsBufferName,				SizeOf(m_XformsCL))))						  { m_ErrorReport.push_back(loc); }
+	if (b && !(b = m_Wrapper.AddBuffer(m_ParVarsBufferName,             128 * sizeof(T))))							  { m_ErrorReport.push_back(loc); }
+	if (b && !(b = m_Wrapper.AddBuffer(m_DistBufferName,                CHOOSE_XFORM_GRAIN)))						  { m_ErrorReport.push_back(loc); }//Will be resized for xaos.
+	if (b && !(b = m_Wrapper.AddBuffer(m_CarToRasBufferName,            sizeof(m_CarToRasCL))))						  { m_ErrorReport.push_back(loc); }
+	if (b && !(b = m_Wrapper.AddBuffer(m_DEFilterParamsBufferName,      sizeof(m_DensityFilterCL))))				  { m_ErrorReport.push_back(loc); }
+	if (b && !(b = m_Wrapper.AddBuffer(m_SpatialFilterParamsBufferName, sizeof(m_SpatialFilterCL))))				  { m_ErrorReport.push_back(loc); }
+	if (b && !(b = m_Wrapper.AddBuffer(m_CurvesCsaName,					SizeOf(m_Csa.m_Entries))))					  { m_ErrorReport.push_back(loc); }
+	if (b && !(b = m_Wrapper.AddBuffer(m_HistBufferName,				histLength)))								  { m_ErrorReport.push_back(loc); }//Histogram. Will memset to zero later.
+	if (b && !(b = m_Wrapper.AddBuffer(m_AccumBufferName,				accumLength)))								  { m_ErrorReport.push_back(loc); }//Accum buffer.
+	if (b && !(b = m_Wrapper.AddBuffer(m_PointsBufferName,				IterGridKernelCount() * sizeof(PointCL<T>)))) { m_ErrorReport.push_back(loc); }//Points between iter calls.
 
 	LeaveResize();
 
@@ -592,8 +596,8 @@ bool RendererCL<T>::Alloc()
 /// <param name="resetHist">Clear histogram if true, else don't.</param>
 /// <param name="resetAccum">Clear density filtering buffer if true, else don't.</param>
 /// <returns>True if success, else false.</returns>
-template <typename T>
-bool RendererCL<T>::ResetBuckets(bool resetHist, bool resetAccum)
+template <typename T, typename bucketT>
+bool RendererCL<T, bucketT>::ResetBuckets(bool resetHist, bool resetAccum)
 {
 	bool b = true;
 
@@ -610,8 +614,8 @@ bool RendererCL<T>::ResetBuckets(bool resetHist, bool resetAccum)
 /// Perform log scale density filtering.
 /// </summary>
 /// <returns>True if success and not aborted, else false.</returns>
-template <typename T>
-eRenderStatus RendererCL<T>::LogScaleDensityFilter()
+template <typename T, typename bucketT>
+eRenderStatus RendererCL<T, bucketT>::LogScaleDensityFilter()
 {
 	return RunLogScaleFilter();
 }
@@ -620,8 +624,8 @@ eRenderStatus RendererCL<T>::LogScaleDensityFilter()
 /// Run gaussian density estimation filtering.
 /// </summary>
 /// <returns>True if success and not aborted, else false.</returns>
-template <typename T>
-eRenderStatus RendererCL<T>::GaussianDensityFilter()
+template <typename T, typename bucketT>
+eRenderStatus RendererCL<T, bucketT>::GaussianDensityFilter()
 {
 	//This commented section is for debugging density filtering by making it run on the CPU
 	//then copying the results back to the GPU.
@@ -630,8 +634,8 @@ eRenderStatus RendererCL<T>::GaussianDensityFilter()
 	//	uint accumLength = SuperSize() * sizeof(glm::detail::tvec4<T>);
 	//	const char* loc = __FUNCTION__;
 	//
-	//	Renderer<T, T>::ResetBuckets(false, true);
-	//	Renderer<T, T>::GaussianDensityFilter();
+	//	Renderer<T, bucketT>::ResetBuckets(false, true);
+	//	Renderer<T, bucketT>::GaussianDensityFilter();
 	//
 	//	if (!m_Wrapper.WriteBuffer(m_AccumBufferName, AccumulatorBuckets(), accumLength)) { m_ErrorReport.push_back(loc); return RENDER_ERROR; }
 	//		return RENDER_OK;
@@ -656,8 +660,8 @@ eRenderStatus RendererCL<T>::GaussianDensityFilter()
 /// <param name="pixels">The pixels to copy the final image to if not nullptr</param>
 /// <param name="finalOffset">Offset in the buffer to store the pixels to</param>
 /// <returns>True if success and not aborted, else false.</returns>
-template <typename T>
-eRenderStatus RendererCL<T>::AccumulatorToFinalImage(byte* pixels, size_t finalOffset)
+template <typename T, typename bucketT>
+eRenderStatus RendererCL<T, bucketT>::AccumulatorToFinalImage(byte* pixels, size_t finalOffset)
 {
 	eRenderStatus status = RunFinalAccum();
 
@@ -683,8 +687,8 @@ eRenderStatus RendererCL<T>::AccumulatorToFinalImage(byte* pixels, size_t finalO
 /// <param name="iterCount">The number of iterations to run</param>
 /// <param name="temporalSample">The temporal sample within the current pass this is running for</param>
 /// <returns>Rendering statistics</returns>
-template <typename T>
-EmberStats RendererCL<T>::Iterate(size_t iterCount, size_t temporalSample)
+template <typename T, typename bucketT>
+EmberStats RendererCL<T, bucketT>::Iterate(size_t iterCount, size_t temporalSample)
 {
 	bool b = true;
 	EmberStats stats;//Do not record bad vals with with GPU. If the user needs to investigate bad vals, use the CPU.
@@ -740,8 +744,8 @@ EmberStats RendererCL<T>::Iterate(size_t iterCount, size_t temporalSample)
 /// </summary>
 /// <param name="doAccum">Whether to build in accumulation, only for debugging. Default: true.</param>
 /// <returns>True if success, else false.</returns>
-template <typename T>
-bool RendererCL<T>::BuildIterProgramForEmber(bool doAccum)
+template <typename T, typename bucketT>
+bool RendererCL<T, bucketT>::BuildIterProgramForEmber(bool doAccum)
 {
 	//Timing t;
 	const char* loc = __FUNCTION__;
@@ -777,8 +781,8 @@ bool RendererCL<T>::BuildIterProgramForEmber(bool doAccum)
 /// <param name="temporalSample">The temporal sample this is running for</param>
 /// <param name="itersRan">The storage for the number of iterations ran</param>
 /// <returns>True if success, else false.</returns>
-template <typename T>
-bool RendererCL<T>::RunIter(size_t iterCount, size_t temporalSample, size_t& itersRan)
+template <typename T, typename bucketT>
+bool RendererCL<T, bucketT>::RunIter(size_t iterCount, size_t temporalSample, size_t& itersRan)
 {
 	Timing t;//, t2(4);
 	bool b = true;
@@ -787,7 +791,7 @@ bool RendererCL<T>::RunIter(size_t iterCount, size_t temporalSample, size_t& ite
 	uint iterCountPerBlock = IterCountPerBlock();
 	uint supersize = uint(SuperSize());
 	int kernelIndex = m_Wrapper.FindKernelIndex(m_IterOpenCLKernelCreator.IterEntryPoint());
-	size_t fuseFreq = Renderer<T, T>::SubBatchSize() / m_IterCountPerKernel;//Use the base sbs to determine when to fuse.
+	size_t fuseFreq = Renderer<T, bucketT>::SubBatchSize() / m_IterCountPerKernel;//Use the base sbs to determine when to fuse.
 	size_t itersRemaining;
 	double percent, etaMs;
 	const char* loc = __FUNCTION__;
@@ -802,10 +806,10 @@ bool RendererCL<T>::RunIter(size_t iterCount, size_t temporalSample, size_t& ite
 		ConvertEmber(m_Ember, m_EmberCL, m_XformsCL);
 		m_CarToRasCL = ConvertCarToRas(*CoordMap());
 
-		if (b && !(b = m_Wrapper.WriteBuffer      (m_EmberBufferName,    reinterpret_cast<void*>(&m_EmberCL),           sizeof(m_EmberCL))))						   { m_ErrorReport.push_back(loc); }
-		if (b && !(b = m_Wrapper.WriteBuffer	  (m_XformsBufferName,   reinterpret_cast<void*>(m_XformsCL.data()),    sizeof(m_XformsCL[0]) * m_XformsCL.size()))) { m_ErrorReport.push_back(loc); }
-		if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_DistBufferName,     reinterpret_cast<void*>(const_cast<byte*>(XformDistributions())), XformDistributionsSize())))				   { m_ErrorReport.push_back(loc); }//Will be resized for xaos.
-		if (b && !(b = m_Wrapper.WriteBuffer      (m_CarToRasBufferName, reinterpret_cast<void*>(&m_CarToRasCL),        sizeof(m_CarToRasCL))))					   { m_ErrorReport.push_back(loc); }
+		if (b && !(b = m_Wrapper.WriteBuffer      (m_EmberBufferName,    reinterpret_cast<void*>(&m_EmberCL),							   sizeof(m_EmberCL))))						    { m_ErrorReport.push_back(loc); }
+		if (b && !(b = m_Wrapper.WriteBuffer	  (m_XformsBufferName,   reinterpret_cast<void*>(m_XformsCL.data()),					   sizeof(m_XformsCL[0]) * m_XformsCL.size()))) { m_ErrorReport.push_back(loc); }
+		if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_DistBufferName,     reinterpret_cast<void*>(const_cast<byte*>(XformDistributions())), XformDistributionsSize())))				    { m_ErrorReport.push_back(loc); }//Will be resized for xaos.
+		if (b && !(b = m_Wrapper.WriteBuffer      (m_CarToRasBufferName, reinterpret_cast<void*>(&m_CarToRasCL),						   sizeof(m_CarToRasCL))))					    { m_ErrorReport.push_back(loc); }
 
 		if (b && !(b = m_Wrapper.AddAndWriteImage("Palette", CL_MEM_READ_ONLY, m_PaletteFormat, m_DmapCL.m_Entries.size(), 1, 0, m_DmapCL.m_Entries.data()))) { m_ErrorReport.push_back(loc); }
 
@@ -825,7 +829,7 @@ bool RendererCL<T>::RunIter(size_t iterCount, size_t temporalSample, size_t& ite
 			//fuse = ((m_Calls % 4) == 0 ? 100u : 0u);
 #endif
 			itersRemaining = iterCount - itersRan;
-			uint gridW = uint(std::min(ceil(double(itersRemaining) / double(iterCountPerBlock)), double(IterGridBlockWidth())));
+			uint gridW = uint(std::min(ceil(double(itersRemaining) / double(iterCountPerBlock)),		 double(IterGridBlockWidth())));
 			uint gridH = uint(std::min(ceil(double(itersRemaining) / double(gridW * iterCountPerBlock)), double(IterGridBlockHeight())));
 			uint iterCountThisLaunch = iterCountPerBlock * gridW * gridH;
 
@@ -910,8 +914,8 @@ bool RendererCL<T>::RunIter(size_t iterCount, size_t temporalSample, size_t& ite
 /// Run the log scale filter.
 /// </summary>
 /// <returns>True if success, else false.</returns>
-template <typename T>
-eRenderStatus RendererCL<T>::RunLogScaleFilter()
+template <typename T, typename bucketT>
+eRenderStatus RendererCL<T, bucketT>::RunLogScaleFilter()
 {
 	//Timing t(4);
 	bool b = true;
@@ -920,7 +924,7 @@ eRenderStatus RendererCL<T>::RunLogScaleFilter()
 
 	if (kernelIndex != -1)
 	{
-		m_DensityFilterCL = ConvertDensityFilter();
+		ConvertDensityFilter();
 		uint argIndex = 0;
 		uint blockW = m_WarpSize;
 		uint blockH = 4;//A height of 4 seems to run the fastest.
@@ -953,15 +957,15 @@ eRenderStatus RendererCL<T>::RunLogScaleFilter()
 
 /// <summary>
 /// Run the Gaussian density filter.
-/// Method 7: Each block processes a 32x32 block and exits. No column or row advancements happen.
+/// Method 7: Each block processes a 16x16(AMD) or 32x32(Nvidia) block and exits. No column or row advancements happen.
 /// </summary>
 /// <returns>True if success and not aborted, else false.</returns>
-template <typename T>
-eRenderStatus RendererCL<T>::RunDensityFilter()
+template <typename T, typename bucketT>
+eRenderStatus RendererCL<T, bucketT>::RunDensityFilter()
 {
 	bool b = true;
 	Timing t(4);// , t2(4);
-	m_DensityFilterCL = ConvertDensityFilter();
+	ConvertDensityFilter();
 	int kernelIndex = MakeAndGetDensityFilterProgram(Supersample(), m_DensityFilterCL.m_FilterWidth);
 	const char* loc = __FUNCTION__;
 
@@ -1074,13 +1078,13 @@ eRenderStatus RendererCL<T>::RunDensityFilter()
 /// Run final accumulation to the 2D output image.
 /// </summary>
 /// <returns>True if success and not aborted, else false.</returns>
-template <typename T>
-eRenderStatus RendererCL<T>::RunFinalAccum()
+template <typename T, typename bucketT>
+eRenderStatus RendererCL<T, bucketT>::RunFinalAccum()
 {
 	//Timing t(4);
 	bool b = true;
-	T alphaBase;
-	T alphaScale;
+	double alphaBase;
+	double alphaScale;
 	int accumKernelIndex = MakeAndGetFinalAccumProgram(alphaBase, alphaScale);
 	uint argIndex;
 	uint gridW;
@@ -1093,10 +1097,10 @@ eRenderStatus RendererCL<T>::RunFinalAccum()
 	if (!m_Abort && accumKernelIndex != -1)
 	{
 		//This is needed with or without early clip.
-		m_SpatialFilterCL = ConvertSpatialFilter();
+		ConvertSpatialFilter();
 
 		if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_SpatialFilterParamsBufferName, reinterpret_cast<void*>(&m_SpatialFilterCL), sizeof(m_SpatialFilterCL)))) { m_ErrorReport.push_back(loc); }
-		if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_CurvesCsaName, m_Csa.m_Entries.data(), SizeOf(m_Csa.m_Entries)))) { m_ErrorReport.push_back(loc); }
+		if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_CurvesCsaName,					m_Csa.m_Entries.data(),						 SizeOf(m_Csa.m_Entries))))   { m_ErrorReport.push_back(loc); }
 
 		//Since early clip requires gamma correcting the entire accumulator first,
 		//it can't be done inside of the normal final accumulation kernel, so
@@ -1140,8 +1144,8 @@ eRenderStatus RendererCL<T>::RunFinalAccum()
 		if (b && !(b = m_Wrapper.SetBufferArg(accumKernelIndex, argIndex++, m_CurvesCsaName)))						{ m_ErrorReport.push_back(loc); }//Curve points.
 		
 		if (b && !(b = m_Wrapper.SetArg		 (accumKernelIndex, argIndex++, curvesSet)))                            { m_ErrorReport.push_back(loc); }//Do curves.
-		if (b && !(b = m_Wrapper.SetArg		 (accumKernelIndex, argIndex++, alphaBase)))                            { m_ErrorReport.push_back(loc); }//Alpha base.
-		if (b && !(b = m_Wrapper.SetArg		 (accumKernelIndex, argIndex++, alphaScale)))                           { m_ErrorReport.push_back(loc); }//Alpha scale.
+		if (b && !(b = m_Wrapper.SetArg		 (accumKernelIndex, argIndex++, bucketT(alphaBase))))                   { m_ErrorReport.push_back(loc); }//Alpha base.
+		if (b && !(b = m_Wrapper.SetArg		 (accumKernelIndex, argIndex++, bucketT(alphaScale))))                  { m_ErrorReport.push_back(loc); }//Alpha scale.
 
 		if (b && m_Wrapper.Shared())
 			if (b && !(b = m_Wrapper.EnqueueAcquireGLObjects(m_FinalImageName))) { m_ErrorReport.push_back(loc); }
@@ -1170,8 +1174,8 @@ eRenderStatus RendererCL<T>::RunFinalAccum()
 /// <param name="height">Height in elements</param>
 /// <param name="elementSize">Size of each element</param>
 /// <returns>True if success, else false.</returns>
-template <typename T>
-bool RendererCL<T>::ClearBuffer(const string& bufferName, uint width, uint height, uint elementSize)
+template <typename T, typename bucketT>
+bool RendererCL<T, bucketT>::ClearBuffer(const string& bufferName, uint width, uint height, uint elementSize)
 {
 	bool b = true;
 	int kernelIndex = m_Wrapper.FindKernelIndex(m_IterOpenCLKernelCreator.ZeroizeEntryPoint());
@@ -1215,8 +1219,8 @@ bool RendererCL<T>::ClearBuffer(const string& bufferName, uint width, uint heigh
 /// <param name="rowParity">Row parity</param>
 /// <param name="colParity">Column parity</param>
 /// <returns>True if success, else false.</returns>
-template <typename T>
-bool RendererCL<T>::RunDensityFilterPrivate(uint kernelIndex, uint gridW, uint gridH, uint blockW, uint blockH, uint chunkSizeW, uint chunkSizeH, uint chunkW, uint chunkH)
+template <typename T, typename bucketT>
+bool RendererCL<T, bucketT>::RunDensityFilterPrivate(uint kernelIndex, uint gridW, uint gridH, uint blockW, uint blockH, uint chunkSizeW, uint chunkSizeH, uint chunkW, uint chunkH)
 {
 	//Timing t(4);
 	bool b = true;
@@ -1248,8 +1252,8 @@ bool RendererCL<T>::RunDensityFilterPrivate(uint kernelIndex, uint gridW, uint g
 /// <param name="ss">The supersample being used for the current ember</param>
 /// <param name="filterWidth">Width of the gaussian filter</param>
 /// <returns>The kernel index if successful, else -1.</returns>
-template <typename T>
-int RendererCL<T>::MakeAndGetDensityFilterProgram(size_t ss, uint filterWidth)
+template <typename T, typename bucketT>
+int RendererCL<T, bucketT>::MakeAndGetDensityFilterProgram(size_t ss, uint filterWidth)
 {
 	string deEntryPoint = m_DEOpenCLKernelCreator.GaussianDEEntryPoint(ss, filterWidth);
 	int kernelIndex = m_Wrapper.FindKernelIndex(deEntryPoint);
@@ -1281,16 +1285,16 @@ int RendererCL<T>::MakeAndGetDensityFilterProgram(size_t ss, uint filterWidth)
 /// <param name="alphaBase">Storage for the alpha base value used in the kernel. 0 if transparency is true, else 255.</param>
 /// <param name="alphaScale">Storage for the alpha scale value used in the kernel. 255 if transparency is true, else 0.</param>
 /// <returns>The kernel index if successful, else -1.</returns>
-template <typename T>
-int RendererCL<T>::MakeAndGetFinalAccumProgram(T& alphaBase, T& alphaScale)
+template <typename T, typename bucketT>
+int RendererCL<T, bucketT>::MakeAndGetFinalAccumProgram(double& alphaBase, double& alphaScale)
 {
-	string finalAccumEntryPoint = m_FinalAccumOpenCLKernelCreator.FinalAccumEntryPoint(EarlyClip(), Renderer<T, T>::NumChannels(), Transparency(), alphaBase, alphaScale);
+	string finalAccumEntryPoint = m_FinalAccumOpenCLKernelCreator.FinalAccumEntryPoint(EarlyClip(), Renderer<T, bucketT>::NumChannels(), Transparency(), alphaBase, alphaScale);
 	int kernelIndex = m_Wrapper.FindKernelIndex(finalAccumEntryPoint);
 	const char* loc = __FUNCTION__;
 
 	if (kernelIndex == -1)//Has not been built yet.
 	{
-		string kernel = m_FinalAccumOpenCLKernelCreator.FinalAccumKernel(EarlyClip(), Renderer<T, T>::NumChannels(), Transparency());
+		string kernel = m_FinalAccumOpenCLKernelCreator.FinalAccumKernel(EarlyClip(), Renderer<T, bucketT>::NumChannels(), Transparency());
 		bool b = m_Wrapper.AddProgram(finalAccumEntryPoint, kernel, finalAccumEntryPoint, m_DoublePrecision);
 
 		if (b)
@@ -1306,16 +1310,16 @@ int RendererCL<T>::MakeAndGetFinalAccumProgram(T& alphaBase, T& alphaScale)
 /// Make the gamma correction program for early clipping and return its index.
 /// </summary>
 /// <returns>The kernel index if successful, else -1.</returns>
-template <typename T>
-int RendererCL<T>::MakeAndGetGammaCorrectionProgram()
+template <typename T, typename bucketT>
+int RendererCL<T, bucketT>::MakeAndGetGammaCorrectionProgram()
 {
-	string gammaEntryPoint = m_FinalAccumOpenCLKernelCreator.GammaCorrectionEntryPoint(Renderer<T, T>::NumChannels(), Transparency());
+	string gammaEntryPoint = m_FinalAccumOpenCLKernelCreator.GammaCorrectionEntryPoint(Renderer<T, bucketT>::NumChannels(), Transparency());
 	int kernelIndex = m_Wrapper.FindKernelIndex(gammaEntryPoint);
 	const char* loc = __FUNCTION__;
 
 	if (kernelIndex == -1)//Has not been built yet.
 	{
-		string kernel = m_FinalAccumOpenCLKernelCreator.GammaCorrectionKernel(Renderer<T, T>::NumChannels(), Transparency());
+		string kernel = m_FinalAccumOpenCLKernelCreator.GammaCorrectionKernel(Renderer<T, bucketT>::NumChannels(), Transparency());
 		bool b = m_Wrapper.AddProgram(gammaEntryPoint, kernel, gammaEntryPoint, m_DoublePrecision);
 
 		if (b)
@@ -1336,28 +1340,22 @@ int RendererCL<T>::MakeAndGetGammaCorrectionProgram()
 /// for passing to OpenCL.
 /// </summary>
 /// <returns>The DensityFilterCL object</returns>
-template <typename T>
-DensityFilterCL<T> RendererCL<T>::ConvertDensityFilter()
+template <typename T, typename bucketT>
+void RendererCL<T, bucketT>::ConvertDensityFilter()
 {
-	DensityFilterCL<T> filterCL;
-	DensityFilter<T>* densityFilter = dynamic_cast<DensityFilter<T>*>(GetDensityFilter());
-
-	filterCL.m_Supersample = uint(Supersample());
-	filterCL.m_SuperRasW = uint(SuperRasW());
-	filterCL.m_SuperRasH = uint(SuperRasH());
-	filterCL.m_K1 = K1();
-	filterCL.m_K2 = K2();
-
-	if (densityFilter)
+	if (m_DensityFilter.get())
 	{
-		filterCL.m_Curve = densityFilter->Curve();
-		filterCL.m_KernelSize = uint(densityFilter->KernelSize());
-		filterCL.m_MaxFilterIndex = uint(densityFilter->MaxFilterIndex());
-		filterCL.m_MaxFilteredCounts = uint(densityFilter->MaxFilteredCounts());
-		filterCL.m_FilterWidth = uint(densityFilter->FilterWidth());
+		m_DensityFilterCL.m_Supersample = uint(Supersample());
+		m_DensityFilterCL.m_SuperRasW = uint(SuperRasW());
+		m_DensityFilterCL.m_SuperRasH = uint(SuperRasH());
+		m_DensityFilterCL.m_K1 = K1();
+		m_DensityFilterCL.m_K2 = K2();
+		m_DensityFilterCL.m_Curve = m_DensityFilter->Curve();
+		m_DensityFilterCL.m_KernelSize = uint(m_DensityFilter->KernelSize());
+		m_DensityFilterCL.m_MaxFilterIndex = uint(m_DensityFilter->MaxFilterIndex());
+		m_DensityFilterCL.m_MaxFilteredCounts = uint(m_DensityFilter->MaxFilteredCounts());
+		m_DensityFilterCL.m_FilterWidth = uint(m_DensityFilter->FilterWidth());
 	}
-
-	return filterCL;
 }
 
 /// <summary>
@@ -1365,33 +1363,33 @@ DensityFilterCL<T> RendererCL<T>::ConvertDensityFilter()
 /// for passing to OpenCL.
 /// </summary>
 /// <returns>The SpatialFilterCL object</returns>
-template <typename T>
-SpatialFilterCL<T> RendererCL<T>::ConvertSpatialFilter()
+template <typename T, typename bucketT>
+void RendererCL<T, bucketT>::ConvertSpatialFilter()
 {
-	T g, linRange, vibrancy;
-	Color<T> background;
-	SpatialFilterCL<T> filterCL;
+	bucketT g, linRange, vibrancy;
+	Color<bucketT> background;
 
-	this->PrepFinalAccumVals(background, g, linRange, vibrancy);
+	if (m_SpatialFilter.get())
+	{
+		this->PrepFinalAccumVals(background, g, linRange, vibrancy);
 
-	filterCL.m_SuperRasW = uint(SuperRasW());
-	filterCL.m_SuperRasH = uint(SuperRasH());
-	filterCL.m_FinalRasW = uint(FinalRasW());
-	filterCL.m_FinalRasH = uint(FinalRasH());
-	filterCL.m_Supersample = uint(Supersample());
-	filterCL.m_FilterWidth = uint(GetSpatialFilter()->FinalFilterWidth());
-	filterCL.m_NumChannels = uint(Renderer<T, T>::NumChannels());
-	filterCL.m_BytesPerChannel = uint(BytesPerChannel());
-	filterCL.m_DensityFilterOffset = uint(DensityFilterOffset());
-	filterCL.m_Transparency = Transparency();
-	filterCL.m_YAxisUp = uint(m_YAxisUp);
-	filterCL.m_Vibrancy = vibrancy;
-	filterCL.m_HighlightPower = HighlightPower();
-	filterCL.m_Gamma = g;
-	filterCL.m_LinRange = linRange;
-	filterCL.m_Background = background;
-
-	return filterCL;
+		m_SpatialFilterCL.m_SuperRasW = uint(SuperRasW());
+		m_SpatialFilterCL.m_SuperRasH = uint(SuperRasH());
+		m_SpatialFilterCL.m_FinalRasW = uint(FinalRasW());
+		m_SpatialFilterCL.m_FinalRasH = uint(FinalRasH());
+		m_SpatialFilterCL.m_Supersample = uint(Supersample());
+		m_SpatialFilterCL.m_FilterWidth = uint(m_SpatialFilter->FinalFilterWidth());
+		m_SpatialFilterCL.m_NumChannels = uint(Renderer<T, bucketT>::NumChannels());
+		m_SpatialFilterCL.m_BytesPerChannel = uint(BytesPerChannel());
+		m_SpatialFilterCL.m_DensityFilterOffset = uint(DensityFilterOffset());
+		m_SpatialFilterCL.m_Transparency = Transparency();
+		m_SpatialFilterCL.m_YAxisUp = uint(m_YAxisUp);
+		m_SpatialFilterCL.m_Vibrancy = vibrancy;
+		m_SpatialFilterCL.m_HighlightPower = HighlightPower();
+		m_SpatialFilterCL.m_Gamma = g;
+		m_SpatialFilterCL.m_LinRange = linRange;
+		m_SpatialFilterCL.m_Background = background;
+	}
 }
 
 /// <summary>
@@ -1401,8 +1399,8 @@ SpatialFilterCL<T> RendererCL<T>::ConvertSpatialFilter()
 /// <param name="ember">The Ember object to convert</param>
 /// <param name="emberCL">The converted EmberCL</param>
 /// <param name="xformsCL">The converted vector of XformCL</param>
-template <typename T>
-void RendererCL<T>::ConvertEmber(Ember<T>& ember, EmberCL<T>& emberCL, vector<XformCL<T>>& xformsCL)
+template <typename T, typename bucketT>
+void RendererCL<T, bucketT>::ConvertEmber(Ember<T>& ember, EmberCL<T>& emberCL, vector<XformCL<T>>& xformsCL)
 {
 	memset(&emberCL, 0, sizeof(EmberCL<T>));//Might not really be needed.
 
@@ -1455,8 +1453,8 @@ void RendererCL<T>::ConvertEmber(Ember<T>& ember, EmberCL<T>& emberCL, vector<Xf
 /// </summary>
 /// <param name="carToRas">The CarToRas object to convert</param>
 /// <returns>The CarToRasCL object</returns>
-template <typename T>
-CarToRasCL<T> RendererCL<T>::ConvertCarToRas(const CarToRas<T>& carToRas)
+template <typename T, typename bucketT>
+CarToRasCL<T> RendererCL<T, bucketT>::ConvertCarToRas(const CarToRas<T>& carToRas)
 {
 	CarToRasCL<T> carToRasCL;
 
@@ -1479,8 +1477,8 @@ CarToRasCL<T> RendererCL<T>::ConvertCarToRas(const CarToRas<T>& carToRas)
 /// Note, WriteBuffer() must be called after this to actually copy the
 /// data from the host to the device.
 /// </summary>
-template <typename T>
-void RendererCL<T>::FillSeeds()
+template <typename T, typename bucketT>
+void RendererCL<T, bucketT>::FillSeeds()
 {
 	double start, delta = std::floor((double)std::numeric_limits<uint>::max() / (IterGridKernelCount() * 2));
 	m_Seeds.resize(IterGridKernelCount());
@@ -1495,9 +1493,9 @@ void RendererCL<T>::FillSeeds()
 	}
 }
 
-template EMBERCL_API class RendererCL<float>;
+template EMBERCL_API class RendererCL<float, float>;
 
 #ifdef DO_DOUBLE
-	template EMBERCL_API class RendererCL<double>;
+	template EMBERCL_API class RendererCL<double, float>;
 #endif
 }

@@ -41,7 +41,9 @@ static string ConstantDefinesString(bool doublePrecision)
 		   << "typedef long intPrec;\n"
 		   << "typedef ulong atomi;\n"
 		   << "typedef double real_t;\n"
+		   << "typedef float real_bucket_t;\n"//Assume buckets are always float, even though iter calcs are in double.
 		   << "typedef double4 real4;\n"
+		   << "typedef float4 real4_bucket;\n"//And here too.
 		   << "#define EPS (DBL_EPSILON)\n"
 		   ;
 	}
@@ -50,7 +52,9 @@ static string ConstantDefinesString(bool doublePrecision)
 		os << "typedef int intPrec;\n"
 			  "typedef uint atomi;\n"
 			  "typedef float real_t;\n"
+			  "typedef float real_bucket_t;\n"
 			  "typedef float4 real4;\n"
+			  "typedef float4 real4_bucket;\n"
 			  "#define EPS (FLT_EPSILON)\n"
 			  ;
 	}
@@ -284,9 +288,9 @@ struct ALIGN DensityFilterCL
 static const char* DensityFilterCLStructString =
 "typedef struct __attribute__ " ALIGN_CL " _DensityFilterCL\n"
 "{\n"
-"	real_t m_Curve;\n"
-"	real_t m_K1;\n"
-"	real_t m_K2;\n"
+"	real_bucket_t m_Curve;\n"
+"	real_bucket_t m_K1;\n"
+"	real_bucket_t m_K2;\n"
 "	uint m_Supersample;\n"
 "	uint m_SuperRasW;\n"
 "	uint m_SuperRasH;\n"
@@ -340,11 +344,11 @@ static const char* SpatialFilterCLStructString =
 "	uint m_DensityFilterOffset;\n"
 "	uint m_Transparency;\n"
 "	uint m_YAxisUp;\n"
-"	real_t m_Vibrancy;\n"
-"	real_t m_HighlightPower;\n"
-"	real_t m_Gamma;\n"
-"	real_t m_LinRange;\n"
-"	real_t m_Background[4];\n"//For some reason, using float4/double4 here does not align no matter what. So just use an array of 4.
+"	real_bucket_t m_Vibrancy;\n"
+"	real_bucket_t m_HighlightPower;\n"
+"	real_bucket_t m_Gamma;\n"
+"	real_bucket_t m_LinRange;\n"
+"	real_bucket_t m_Background[4];\n"//For some reason, using float4/double4 here does not align no matter what. So just use an array of 4.
 "} SpatialFilterCL;\n"
 "\n";
 
@@ -383,5 +387,11 @@ static const char* UnionCLStructString =
 "	real4 m_Real4;\n"
 "	real_t m_Reals[4];\n"
 "} real4reals;\n"
+"\n"
+"typedef union\n"//Used to match the bucket template type.
+"{\n"
+"	real4_bucket m_Real4;\n"
+"	real_bucket_t m_Reals[4];\n"
+"} real4reals_bucket;\n"
 "\n";
 }
