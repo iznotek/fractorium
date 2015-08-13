@@ -34,10 +34,10 @@ public:
 	DEOpenCLKernelCreator(bool doublePrecision, bool nVidia);
 
 	//Accessors.
-	string LogScaleAssignDEKernel();
-	string LogScaleAssignDEEntryPoint();
-	string GaussianDEKernel(size_t ss, uint filterWidth);
-	string GaussianDEEntryPoint(size_t ss, uint filterWidth);
+	const string& LogScaleAssignDEKernel() const;
+	const string& LogScaleAssignDEEntryPoint() const;
+	const string& GaussianDEKernel(size_t ss, uint filterWidth) const;
+	const string& GaussianDEEntryPoint(size_t ss, uint filterWidth) const;
 
 	//Miscellaneous static functions.
 	static uint MaxDEFilterSize();

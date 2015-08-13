@@ -39,7 +39,7 @@ static string ConstantDefinesString(bool doublePrecision)
 		   << "#endif\n"
 		   << "#pragma OPENCL EXTENSION cl_khr_int64_base_atomics : enable\n"//Only supported on nVidia.
 		   << "typedef long intPrec;\n"
-		   << "typedef ulong atomi;\n"
+		   << "typedef uint atomi;\n"//Same size as real_bucket_t, always 4 bytes.
 		   << "typedef double real_t;\n"
 		   << "typedef float real_bucket_t;\n"//Assume buckets are always float, even though iter calcs are in double.
 		   << "typedef double4 real4;\n"

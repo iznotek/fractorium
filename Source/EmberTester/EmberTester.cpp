@@ -71,7 +71,7 @@ Ember<T> CreateBasicEmber(uint width, uint height, uint ss, T quality, T centerX
 string GetEmberCLKernelString(Ember<float>& ember, bool iter, bool log, bool de, uint ss, bool accum)
 {
 	ostringstream os;
-	IterOpenCLKernelCreator<float> iterCreator(false);
+	IterOpenCLKernelCreator<float> iterCreator;
 	DEOpenCLKernelCreator deCreator(false, false);
 	FinalAccumOpenCLKernelCreator accumCreator(false);
 	pair<string, vector<float>> pair;

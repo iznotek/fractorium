@@ -124,9 +124,9 @@ public:
 #ifdef TEST_CL
 	bool WriteRandomPoints();
 #endif
-	string IterKernel();
-	string DEKernel();
-	string FinalAccumKernel();
+	const string& IterKernel() const;
+	const string& DEKernel() const;
+	const string& FinalAccumKernel() const;
 
 	//Virtual functions overridden from RendererCLBase.
 	virtual bool ReadFinal(byte* pixels);
@@ -179,7 +179,7 @@ private:
 	void ConvertDensityFilter();
 	void ConvertSpatialFilter();
 	void ConvertEmber(Ember<T>& ember, EmberCL<T>& emberCL, vector<XformCL<T>>& xformsCL);
-	static CarToRasCL<T> ConvertCarToRas(const CarToRas<T>& carToRas);
+	void ConvertCarToRas(const CarToRas<T>& carToRas);
 
 	bool m_Init;
 	bool m_NVidia;

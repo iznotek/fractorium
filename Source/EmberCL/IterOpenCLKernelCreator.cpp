@@ -10,11 +10,9 @@ namespace EmberCLns
 /// Constructor that sets up some basic entry point strings and creates
 /// the zeroization kernel string since it requires no conditional inputs.
 /// </summary>
-/// <param name="nVidia">True if running on an nVidia card, else false.</param>
 template <typename T>
-IterOpenCLKernelCreator<T>::IterOpenCLKernelCreator(bool nVidia)
+IterOpenCLKernelCreator<T>::IterOpenCLKernelCreator()
 {
-	m_NVidia = nVidia;
 	m_IterEntryPoint = "IterateKernel";
 	m_ZeroizeEntryPoint = "ZeroizeKernel";
 	m_ZeroizeKernel = CreateZeroizeKernelString();
@@ -24,9 +22,9 @@ IterOpenCLKernelCreator<T>::IterOpenCLKernelCreator(bool nVidia)
 /// Accessors.
 /// </summary>
 
-template <typename T> string IterOpenCLKernelCreator<T>::ZeroizeKernel() { return m_ZeroizeKernel; }
-template <typename T> string IterOpenCLKernelCreator<T>::ZeroizeEntryPoint() { return m_ZeroizeEntryPoint; }
-template <typename T> string IterOpenCLKernelCreator<T>::IterEntryPoint() { return m_IterEntryPoint; }
+template <typename T> const string& IterOpenCLKernelCreator<T>::ZeroizeKernel() const { return m_ZeroizeKernel; }
+template <typename T> const string& IterOpenCLKernelCreator<T>::ZeroizeEntryPoint() const { return m_ZeroizeEntryPoint; }
+template <typename T> const string& IterOpenCLKernelCreator<T>::IterEntryPoint() const { return m_IterEntryPoint; }
 
 /// <summary>
 /// Create the iteration kernel string using the Cuburn method.
@@ -221,8 +219,12 @@ string IterOpenCLKernelCreator<T>::CreateIterKernelString(Ember<T>& ember, strin
 		EmberCLStructString <<
 		UnionCLStructString <<
 		CarToRasCLStructString <<
-		CarToRasFunctionString <<
-		AtomicString(doublePrecision, m_NVidia) <<
+		CarToRasFunctionString;
+
+	if (lockAccum)
+		os << AtomicString();
+
+	os <<
 		xformFuncs.str() <<
 		"__kernel void " << m_IterEntryPoint << "(\n" <<
 		"	uint iterCount,\n"

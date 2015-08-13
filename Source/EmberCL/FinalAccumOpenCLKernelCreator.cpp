@@ -37,24 +37,24 @@ FinalAccumOpenCLKernelCreator::FinalAccumOpenCLKernelCreator(bool doublePrecisio
 /// Kernel source and entry point properties, getters only.
 /// </summary>
 
-string FinalAccumOpenCLKernelCreator::GammaCorrectionWithAlphaCalcKernel()        { return m_GammaCorrectionWithAlphaCalcKernel;	    }
-string FinalAccumOpenCLKernelCreator::GammaCorrectionWithAlphaCalcEntryPoint()    { return m_GammaCorrectionWithAlphaCalcEntryPoint;    }
-string FinalAccumOpenCLKernelCreator::GammaCorrectionWithoutAlphaCalcKernel()     { return m_GammaCorrectionWithoutAlphaCalcKernel;     }
-string FinalAccumOpenCLKernelCreator::GammaCorrectionWithoutAlphaCalcEntryPoint() { return m_GammaCorrectionWithoutAlphaCalcEntryPoint; }
+const string& FinalAccumOpenCLKernelCreator::GammaCorrectionWithAlphaCalcKernel()        const { return m_GammaCorrectionWithAlphaCalcKernel;	    }
+const string& FinalAccumOpenCLKernelCreator::GammaCorrectionWithAlphaCalcEntryPoint()    const { return m_GammaCorrectionWithAlphaCalcEntryPoint;    }
+const string& FinalAccumOpenCLKernelCreator::GammaCorrectionWithoutAlphaCalcKernel()     const { return m_GammaCorrectionWithoutAlphaCalcKernel;     }
+const string& FinalAccumOpenCLKernelCreator::GammaCorrectionWithoutAlphaCalcEntryPoint() const { return m_GammaCorrectionWithoutAlphaCalcEntryPoint; }
 
-string FinalAccumOpenCLKernelCreator::FinalAccumEarlyClipKernel()                                   { return m_FinalAccumEarlyClipKernel;                                   }
-string FinalAccumOpenCLKernelCreator::FinalAccumEarlyClipEntryPoint()                               { return m_FinalAccumEarlyClipEntryPoint;                               }
-string FinalAccumOpenCLKernelCreator::FinalAccumEarlyClipWithAlphaCalcWithAlphaAccumKernel()        { return m_FinalAccumEarlyClipWithAlphaCalcWithAlphaAccumKernel;        }
-string FinalAccumOpenCLKernelCreator::FinalAccumEarlyClipWithAlphaCalcWithAlphaAccumEntryPoint()    { return m_FinalAccumEarlyClipWithAlphaCalcWithAlphaAccumEntryPoint;    }
-string FinalAccumOpenCLKernelCreator::FinalAccumEarlyClipWithoutAlphaCalcWithAlphaAccumKernel()     { return m_FinalAccumEarlyClipWithoutAlphaCalcWithAlphaAccumKernel;     }
-string FinalAccumOpenCLKernelCreator::FinalAccumEarlyClipWithoutAlphaCalcWithAlphaAccumEntryPoint() { return m_FinalAccumEarlyClipWithoutAlphaCalcWithAlphaAccumEntryPoint; }
+const string& FinalAccumOpenCLKernelCreator::FinalAccumEarlyClipKernel()                                   const { return m_FinalAccumEarlyClipKernel;                                   }
+const string& FinalAccumOpenCLKernelCreator::FinalAccumEarlyClipEntryPoint()                               const { return m_FinalAccumEarlyClipEntryPoint;                               }
+const string& FinalAccumOpenCLKernelCreator::FinalAccumEarlyClipWithAlphaCalcWithAlphaAccumKernel()        const { return m_FinalAccumEarlyClipWithAlphaCalcWithAlphaAccumKernel;        }
+const string& FinalAccumOpenCLKernelCreator::FinalAccumEarlyClipWithAlphaCalcWithAlphaAccumEntryPoint()    const { return m_FinalAccumEarlyClipWithAlphaCalcWithAlphaAccumEntryPoint;    }
+const string& FinalAccumOpenCLKernelCreator::FinalAccumEarlyClipWithoutAlphaCalcWithAlphaAccumKernel()     const { return m_FinalAccumEarlyClipWithoutAlphaCalcWithAlphaAccumKernel;     }
+const string& FinalAccumOpenCLKernelCreator::FinalAccumEarlyClipWithoutAlphaCalcWithAlphaAccumEntryPoint() const { return m_FinalAccumEarlyClipWithoutAlphaCalcWithAlphaAccumEntryPoint; }
 
-string FinalAccumOpenCLKernelCreator::FinalAccumLateClipKernel()                                   { return m_FinalAccumLateClipKernel;                                   }
-string FinalAccumOpenCLKernelCreator::FinalAccumLateClipEntryPoint()                               { return m_FinalAccumLateClipEntryPoint;                               }
-string FinalAccumOpenCLKernelCreator::FinalAccumLateClipWithAlphaCalcWithAlphaAccumKernel()        { return m_FinalAccumLateClipWithAlphaCalcWithAlphaAccumKernel;        }
-string FinalAccumOpenCLKernelCreator::FinalAccumLateClipWithAlphaCalcWithAlphaAccumEntryPoint()    { return m_FinalAccumLateClipWithAlphaCalcWithAlphaAccumEntryPoint;    }
-string FinalAccumOpenCLKernelCreator::FinalAccumLateClipWithoutAlphaCalcWithAlphaAccumKernel()     { return m_FinalAccumLateClipWithoutAlphaCalcWithAlphaAccumKernel;     }
-string FinalAccumOpenCLKernelCreator::FinalAccumLateClipWithoutAlphaCalcWithAlphaAccumEntryPoint() { return m_FinalAccumLateClipWithoutAlphaCalcWithAlphaAccumEntryPoint; }
+const string& FinalAccumOpenCLKernelCreator::FinalAccumLateClipKernel()                                   const { return m_FinalAccumLateClipKernel;                                   }
+const string& FinalAccumOpenCLKernelCreator::FinalAccumLateClipEntryPoint()                               const { return m_FinalAccumLateClipEntryPoint;                               }
+const string& FinalAccumOpenCLKernelCreator::FinalAccumLateClipWithAlphaCalcWithAlphaAccumKernel()        const { return m_FinalAccumLateClipWithAlphaCalcWithAlphaAccumKernel;        }
+const string& FinalAccumOpenCLKernelCreator::FinalAccumLateClipWithAlphaCalcWithAlphaAccumEntryPoint()    const { return m_FinalAccumLateClipWithAlphaCalcWithAlphaAccumEntryPoint;    }
+const string& FinalAccumOpenCLKernelCreator::FinalAccumLateClipWithoutAlphaCalcWithAlphaAccumKernel()     const { return m_FinalAccumLateClipWithoutAlphaCalcWithAlphaAccumKernel;     }
+const string& FinalAccumOpenCLKernelCreator::FinalAccumLateClipWithoutAlphaCalcWithAlphaAccumEntryPoint() const { return m_FinalAccumLateClipWithoutAlphaCalcWithAlphaAccumEntryPoint; }
 
 /// <summary>
 /// Get the gamma correction entry point.
@@ -62,7 +62,7 @@ string FinalAccumOpenCLKernelCreator::FinalAccumLateClipWithoutAlphaCalcWithAlph
 /// <param name="channels">The number of channels used, 3 or 4.</param>
 /// <param name="transparency">True if channels equals 4 and using transparency, else false.</param>
 /// <returns>The name of the gamma correction entry point kernel function</returns>
-string FinalAccumOpenCLKernelCreator::GammaCorrectionEntryPoint(size_t channels, bool transparency)
+const string& FinalAccumOpenCLKernelCreator::GammaCorrectionEntryPoint(size_t channels, bool transparency) const
 {
 	bool alphaCalc = ((channels > 3) && transparency);
 	return alphaCalc ? m_GammaCorrectionWithAlphaCalcEntryPoint : m_GammaCorrectionWithoutAlphaCalcEntryPoint;
@@ -74,7 +74,7 @@ string FinalAccumOpenCLKernelCreator::GammaCorrectionEntryPoint(size_t channels,
 /// <param name="channels">The number of channels used, 3 or 4.</param>
 /// <param name="transparency">True if channels equals 4 and using transparency, else false.</param>
 /// <returns>The gamma correction kernel string</returns>
-string FinalAccumOpenCLKernelCreator::GammaCorrectionKernel(size_t channels, bool transparency)
+const string& FinalAccumOpenCLKernelCreator::GammaCorrectionKernel(size_t channels, bool transparency) const
 {
 	bool alphaCalc = ((channels > 3) && transparency);
 	return alphaCalc ? m_GammaCorrectionWithAlphaCalcKernel : m_GammaCorrectionWithoutAlphaCalcKernel;
@@ -89,7 +89,7 @@ string FinalAccumOpenCLKernelCreator::GammaCorrectionKernel(size_t channels, boo
 /// <param name="alphaBase">Storage for the alpha base value used in the kernel. 0 if transparency is true, else 255.</param>
 /// <param name="alphaScale">Storage for the alpha scale value used in the kernel. 255 if transparency is true, else 0.</param>
 /// <returns>The name of the final accumulation entry point kernel function</returns>
-string FinalAccumOpenCLKernelCreator::FinalAccumEntryPoint(bool earlyClip, size_t channels, bool transparency, double& alphaBase, double& alphaScale)
+const string& FinalAccumOpenCLKernelCreator::FinalAccumEntryPoint(bool earlyClip, size_t channels, bool transparency, double& alphaBase, double& alphaScale) const
 {
 	bool alphaCalc = ((channels > 3) && transparency);
 	bool alphaAccum = channels > 3;
@@ -109,7 +109,7 @@ string FinalAccumOpenCLKernelCreator::FinalAccumEntryPoint(bool earlyClip, size_
 		else if (!alphaCalc && alphaAccum)//Rgba output and !Transparency.
 			return FinalAccumEarlyClipWithoutAlphaCalcWithAlphaAccumEntryPoint();
 		else
-			return "";//Cannot have alphaCalc and !alphaAccum, it makes no sense.
+			return m_Empty;//Cannot have alphaCalc and !alphaAccum, it makes no sense.
 	}
 	else
 	{
@@ -120,7 +120,7 @@ string FinalAccumOpenCLKernelCreator::FinalAccumEntryPoint(bool earlyClip, size_
 		else if (!alphaCalc && alphaAccum)//Rgba output and !Transparency.
 			return FinalAccumLateClipWithoutAlphaCalcWithAlphaAccumEntryPoint();
 		else
-			return "";//Cannot have alphaCalc and !alphaAccum, it makes no sense.
+			return m_Empty;//Cannot have alphaCalc and !alphaAccum, it makes no sense.
 	}
 }
 
@@ -131,7 +131,7 @@ string FinalAccumOpenCLKernelCreator::FinalAccumEntryPoint(bool earlyClip, size_
 /// <param name="channels">The number of channels used, 3 or 4.</param>
 /// <param name="transparency">True if channels equals 4 and using transparency, else false.</param>
 /// <returns>The final accumulation kernel string</returns>
-string FinalAccumOpenCLKernelCreator::FinalAccumKernel(bool earlyClip, size_t channels, bool transparency)
+const string& FinalAccumOpenCLKernelCreator::FinalAccumKernel(bool earlyClip, size_t channels, bool transparency) const
 {
 	bool alphaCalc = (channels > 3 && transparency);
 	bool alphaAccum = channels > 3;
@@ -145,7 +145,7 @@ string FinalAccumOpenCLKernelCreator::FinalAccumKernel(bool earlyClip, size_t ch
 		else if (!alphaCalc && alphaAccum)//Rgba output and !Transparency.
 			return FinalAccumEarlyClipWithoutAlphaCalcWithAlphaAccumKernel();
 		else
-			return "";//Cannot have alphaCalc and !alphaAccum, it makes no sense.
+			return m_Empty;//Cannot have alphaCalc and !alphaAccum, it makes no sense.
 	}
 	else
 	{
@@ -156,7 +156,7 @@ string FinalAccumOpenCLKernelCreator::FinalAccumKernel(bool earlyClip, size_t ch
 		else if (!alphaCalc && alphaAccum)//Rgba output and !Transparency.
 			return FinalAccumLateClipWithoutAlphaCalcWithAlphaAccumKernel();
 		else
-			return "";//Cannot have alphaCalc and !alphaAccum, it makes no sense.
+			return m_Empty;//Cannot have alphaCalc and !alphaAccum, it makes no sense.
 	}
 }
 

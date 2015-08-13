@@ -56,8 +56,8 @@ DEOpenCLKernelCreator::DEOpenCLKernelCreator(bool doublePrecision, bool nVidia)
 /// Kernel source and entry point properties, getters only.
 /// </summary>
 
-string DEOpenCLKernelCreator::LogScaleAssignDEKernel() { return m_LogScaleAssignDEKernel; }
-string DEOpenCLKernelCreator::LogScaleAssignDEEntryPoint() { return m_LogScaleAssignDEEntryPoint; }
+const string& DEOpenCLKernelCreator::LogScaleAssignDEKernel() const { return m_LogScaleAssignDEKernel; }
+const string& DEOpenCLKernelCreator::LogScaleAssignDEEntryPoint() const { return m_LogScaleAssignDEEntryPoint; }
 
 /// <summary>
 /// Get the kernel source for the specified supersample and filterWidth.
@@ -65,7 +65,7 @@ string DEOpenCLKernelCreator::LogScaleAssignDEEntryPoint() { return m_LogScaleAs
 /// <param name="ss">The supersample being used</param>
 /// <param name="filterWidth">Filter width</param>
 /// <returns>The kernel source</returns>
-string DEOpenCLKernelCreator::GaussianDEKernel(size_t ss, uint filterWidth)
+const string& DEOpenCLKernelCreator::GaussianDEKernel(size_t ss, uint filterWidth) const
 {
 #ifndef ROW_ONLY_DE
 	if (filterWidth > MaxDEFilterSize())
@@ -101,7 +101,7 @@ string DEOpenCLKernelCreator::GaussianDEKernel(size_t ss, uint filterWidth)
 /// <param name="ss">The supersample being used</param>
 /// <param name="filterWidth">Filter width</param>
 /// <returns>The name of the density estimation filtering entry point kernel function</returns>
-string DEOpenCLKernelCreator::GaussianDEEntryPoint(size_t ss, uint filterWidth)
+const string& DEOpenCLKernelCreator::GaussianDEEntryPoint(size_t ss, uint filterWidth) const
 {
 #ifndef ROW_ONLY_DE
 	if (filterWidth > MaxDEFilterSize())

@@ -15,7 +15,7 @@ namespace EmberCLns
 template <typename T, typename bucketT>
 RendererCL<T, bucketT>::RendererCL(uint platform, uint device, bool shared, GLuint outputTexID)
 	:
-	m_IterOpenCLKernelCreator(false),
+	m_IterOpenCLKernelCreator(),
 	m_DEOpenCLKernelCreator(typeid(T) == typeid(double), false),
 	m_FinalAccumOpenCLKernelCreator(typeid(T) == typeid(double))
 {
@@ -105,7 +105,7 @@ bool RendererCL<T, bucketT>::Init(uint platform, uint device, bool shared, GLuin
 	{
 		m_NVidia = ToLower(m_Wrapper.DeviceAndPlatformNames()).find_first_of("nvidia") != string::npos && m_Wrapper.LocalMemSize() > (32 * 1024);
 		m_WarpSize = m_NVidia ? 32 : 64;
-		m_IterOpenCLKernelCreator = IterOpenCLKernelCreator<T>(m_NVidia);
+		m_IterOpenCLKernelCreator = IterOpenCLKernelCreator<T>();
 		m_DEOpenCLKernelCreator = DEOpenCLKernelCreator(m_DoublePrecision, m_NVidia);
 
 		string zeroizeProgram = m_IterOpenCLKernelCreator.ZeroizeKernel();
@@ -286,7 +286,7 @@ bool RendererCL<T, bucketT>::WriteRandomPoints()
 /// </summary>
 /// <returns>The string representation of the kernel for the last built iter program.</returns>
 template <typename T, typename bucketT>
-string RendererCL<T, bucketT>::IterKernel() { return m_IterKernel; }
+const string& RendererCL<T, bucketT>::IterKernel() const { return m_IterKernel; }
 
 
 /// <summary>
@@ -294,14 +294,14 @@ string RendererCL<T, bucketT>::IterKernel() { return m_IterKernel; }
 /// </summary>
 /// <returns>The string representation of the kernel for the last built density filtering program.</returns>
 template <typename T, typename bucketT>
-string RendererCL<T, bucketT>::DEKernel() { return m_DEOpenCLKernelCreator.GaussianDEKernel(Supersample(), m_DensityFilterCL.m_FilterWidth); }
+const string& RendererCL<T, bucketT>::DEKernel() const { return m_DEOpenCLKernelCreator.GaussianDEKernel(Supersample(), m_DensityFilterCL.m_FilterWidth); }
 
 /// <summary>
 /// Get the kernel string for the last built final accumulation program.
 /// </summary>
 /// <returns>The string representation of the kernel for the last built final accumulation program.</returns>
 template <typename T, typename bucketT>
-string RendererCL<T, bucketT>::FinalAccumKernel() { return m_FinalAccumOpenCLKernelCreator.FinalAccumKernel(EarlyClip(), Renderer<T, bucketT>::NumChannels(), Transparency()); }
+const string& RendererCL<T, bucketT>::FinalAccumKernel() const { return m_FinalAccumOpenCLKernelCreator.FinalAccumKernel(EarlyClip(), Renderer<T, bucketT>::NumChannels(), Transparency()); }
 
 /// <summary>
 /// Virtual functions overridden from RendererCLBase.
@@ -567,8 +567,8 @@ bool RendererCL<T, bucketT>::Alloc()
 	m_XformsCL.resize(m_Ember.TotalXformCount());
 
 	bool b = true;
-	size_t histLength = SuperSize() * sizeof(v4T);
-	size_t accumLength = SuperSize() * sizeof(v4T);
+	size_t histLength = SuperSize() * sizeof(v4bT);
+	size_t accumLength = SuperSize() * sizeof(v4bT);
 	const char* loc = __FUNCTION__;
 
 	if (b && !(b = m_Wrapper.AddBuffer(m_EmberBufferName,               sizeof(m_EmberCL))))						  { this->m_ErrorReport.push_back(loc); }
@@ -694,18 +694,37 @@ EmberStats RendererCL<T, bucketT>::Iterate(size_t iterCount, size_t temporalSamp
 	EmberStats stats;//Do not record bad vals with with GPU. If the user needs to investigate bad vals, use the CPU.
 	const char* loc = __FUNCTION__;
 
-	IterOpenCLKernelCreator<T>::ParVarIndexDefines(m_Ember, m_Params, true, false);//Always do this to get the values (but no string), regardless of whether a rebuild is necessary.
-
-	//Don't know the size of the parametric varations parameters buffer until the ember is examined.
-	//So set it up right before the run.
-	if (!m_Params.second.empty())
+	//Only need to do this once on the beginning of a new render. Last iter will always be 0 at the beginning of a full render or temporal sample.
+	if (m_LastIter == 0)
 	{
-		if (!m_Wrapper.AddAndWriteBuffer(m_ParVarsBufferName, m_Params.second.data(), m_Params.second.size() * sizeof(m_Params.second[0])))
+		ConvertEmber(m_Ember, m_EmberCL, m_XformsCL);
+		ConvertCarToRas(*CoordMap());
+
+		if (b && !(b = m_Wrapper.WriteBuffer(m_EmberBufferName,		 reinterpret_cast<void*>(&m_EmberCL),							   sizeof(m_EmberCL))))						    { this->m_ErrorReport.push_back(loc); }
+		if (b && !(b = m_Wrapper.WriteBuffer(m_XformsBufferName,	 reinterpret_cast<void*>(m_XformsCL.data()),					   sizeof(m_XformsCL[0]) * m_XformsCL.size()))) { this->m_ErrorReport.push_back(loc); }
+		if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_DistBufferName, reinterpret_cast<void*>(const_cast<byte*>(XformDistributions())), XformDistributionsSize())))				    { this->m_ErrorReport.push_back(loc); }//Will be resized for xaos.
+		if (b && !(b = m_Wrapper.WriteBuffer(m_CarToRasBufferName,   reinterpret_cast<void*>(&m_CarToRasCL),						   sizeof(m_CarToRasCL))))					    { this->m_ErrorReport.push_back(loc); }
+
+		if (b && !(b = m_Wrapper.AddAndWriteImage("Palette", CL_MEM_READ_ONLY, m_PaletteFormat, m_DmapCL.m_Entries.size(), 1, 0, m_DmapCL.m_Entries.data()))) { this->m_ErrorReport.push_back(loc); }
+
+		if (b)
 		{
-			m_Abort = true;
-			this->m_ErrorReport.push_back(loc);
-			return stats;
+			IterOpenCLKernelCreator<T>::ParVarIndexDefines(m_Ember, m_Params, true, false);//Always do this to get the values (but no string), regardless of whether a rebuild is necessary.
+
+			//Don't know the size of the parametric varations parameters buffer until the ember is examined.
+			//So set it up right before the run.
+			if (!m_Params.second.empty())
+			{
+				if (!m_Wrapper.AddAndWriteBuffer(m_ParVarsBufferName, m_Params.second.data(), m_Params.second.size() * sizeof(m_Params.second[0])))
+				{
+					m_Abort = true;
+					this->m_ErrorReport.push_back(loc);
+					return stats;
+				}
+			}
 		}
+		else
+			return stats;
 	}
 
 	//Rebuilding is expensive, so only do it if it's required.
@@ -716,7 +735,7 @@ EmberStats RendererCL<T, bucketT>::Iterate(size_t iterCount, size_t temporalSamp
 	{
 		m_IterTimer.Tic();//Tic() here to avoid including build time in iter time measurement.
 
-		if (m_Stats.m_Iters == 0)//Only reset the call count on the beginning of a new render. Do not reset on KEEP_ITERATING.
+		if (m_LastIter == 0)//Only reset the call count on the beginning of a new render. Do not reset on KEEP_ITERATING.
 			m_Calls = 0;
 
 		b = RunIter(iterCount, temporalSample, stats.m_Iters);
@@ -772,10 +791,8 @@ bool RendererCL<T, bucketT>::BuildIterProgramForEmber(bool doAccum)
 
 /// <summary>
 /// Run the iteration kernel.
-/// Fusing on the CPU is done once per sub batch, usually 10,000 iters, however
-/// determining when to do it in OpenCL is much more difficult.
-/// Currently it's done once every 4 kernel calls which seems to be a good balance
-/// between quality of the final image and performance.
+/// Fusing on the CPU is done once per sub batch, usually 10,000 iters. Here,
+/// the same fusing frequency is kept, but is done per kernel thread.
 /// </summary>
 /// <param name="iterCount">The number of iterations to run</param>
 /// <param name="temporalSample">The temporal sample this is running for</param>
@@ -803,16 +820,6 @@ bool RendererCL<T, bucketT>::RunIter(size_t iterCount, size_t temporalSample, si
 
 	if (kernelIndex != -1)
 	{
-		ConvertEmber(m_Ember, m_EmberCL, m_XformsCL);
-		m_CarToRasCL = ConvertCarToRas(*CoordMap());
-
-		if (b && !(b = m_Wrapper.WriteBuffer      (m_EmberBufferName,    reinterpret_cast<void*>(&m_EmberCL),							   sizeof(m_EmberCL))))						    { this->m_ErrorReport.push_back(loc); }
-		if (b && !(b = m_Wrapper.WriteBuffer	  (m_XformsBufferName,   reinterpret_cast<void*>(m_XformsCL.data()),					   sizeof(m_XformsCL[0]) * m_XformsCL.size()))) { this->m_ErrorReport.push_back(loc); }
-		if (b && !(b = m_Wrapper.AddAndWriteBuffer(m_DistBufferName,     reinterpret_cast<void*>(const_cast<byte*>(XformDistributions())), XformDistributionsSize())))				    { this->m_ErrorReport.push_back(loc); }//Will be resized for xaos.
-		if (b && !(b = m_Wrapper.WriteBuffer      (m_CarToRasBufferName, reinterpret_cast<void*>(&m_CarToRasCL),						   sizeof(m_CarToRasCL))))					    { this->m_ErrorReport.push_back(loc); }
-
-		if (b && !(b = m_Wrapper.AddAndWriteImage("Palette", CL_MEM_READ_ONLY, m_PaletteFormat, m_DmapCL.m_Entries.size(), 1, 0, m_DmapCL.m_Entries.data()))) { this->m_ErrorReport.push_back(loc); }
-
 		//If animating, treat each temporal sample as a newly started render for fusing purposes.
 		if (temporalSample > 0)
 			m_Calls = 0;
@@ -1255,13 +1262,13 @@ bool RendererCL<T, bucketT>::RunDensityFilterPrivate(uint kernelIndex, uint grid
 template <typename T, typename bucketT>
 int RendererCL<T, bucketT>::MakeAndGetDensityFilterProgram(size_t ss, uint filterWidth)
 {
-	string deEntryPoint = m_DEOpenCLKernelCreator.GaussianDEEntryPoint(ss, filterWidth);
+	auto& deEntryPoint = m_DEOpenCLKernelCreator.GaussianDEEntryPoint(ss, filterWidth);
 	int kernelIndex = m_Wrapper.FindKernelIndex(deEntryPoint);
 	const char* loc = __FUNCTION__;
 
 	if (kernelIndex == -1)//Has not been built yet.
 	{
-		string kernel = m_DEOpenCLKernelCreator.GaussianDEKernel(ss, filterWidth);
+		auto& kernel = m_DEOpenCLKernelCreator.GaussianDEKernel(ss, filterWidth);
 		bool b = m_Wrapper.AddProgram(deEntryPoint, kernel, deEntryPoint, m_DoublePrecision);
 
 		if (b)
@@ -1288,13 +1295,13 @@ int RendererCL<T, bucketT>::MakeAndGetDensityFilterProgram(size_t ss, uint filte
 template <typename T, typename bucketT>
 int RendererCL<T, bucketT>::MakeAndGetFinalAccumProgram(double& alphaBase, double& alphaScale)
 {
-	string finalAccumEntryPoint = m_FinalAccumOpenCLKernelCreator.FinalAccumEntryPoint(EarlyClip(), Renderer<T, bucketT>::NumChannels(), Transparency(), alphaBase, alphaScale);
+	auto& finalAccumEntryPoint = m_FinalAccumOpenCLKernelCreator.FinalAccumEntryPoint(EarlyClip(), Renderer<T, bucketT>::NumChannels(), Transparency(), alphaBase, alphaScale);
 	int kernelIndex = m_Wrapper.FindKernelIndex(finalAccumEntryPoint);
 	const char* loc = __FUNCTION__;
 
 	if (kernelIndex == -1)//Has not been built yet.
 	{
-		string kernel = m_FinalAccumOpenCLKernelCreator.FinalAccumKernel(EarlyClip(), Renderer<T, bucketT>::NumChannels(), Transparency());
+		auto& kernel = m_FinalAccumOpenCLKernelCreator.FinalAccumKernel(EarlyClip(), Renderer<T, bucketT>::NumChannels(), Transparency());
 		bool b = m_Wrapper.AddProgram(finalAccumEntryPoint, kernel, finalAccumEntryPoint, m_DoublePrecision);
 
 		if (b)
@@ -1313,13 +1320,13 @@ int RendererCL<T, bucketT>::MakeAndGetFinalAccumProgram(double& alphaBase, doubl
 template <typename T, typename bucketT>
 int RendererCL<T, bucketT>::MakeAndGetGammaCorrectionProgram()
 {
-	string gammaEntryPoint = m_FinalAccumOpenCLKernelCreator.GammaCorrectionEntryPoint(Renderer<T, bucketT>::NumChannels(), Transparency());
+	auto& gammaEntryPoint = m_FinalAccumOpenCLKernelCreator.GammaCorrectionEntryPoint(Renderer<T, bucketT>::NumChannels(), Transparency());
 	int kernelIndex = m_Wrapper.FindKernelIndex(gammaEntryPoint);
 	const char* loc = __FUNCTION__;
 
 	if (kernelIndex == -1)//Has not been built yet.
 	{
-		string kernel = m_FinalAccumOpenCLKernelCreator.GammaCorrectionKernel(Renderer<T, bucketT>::NumChannels(), Transparency());
+		auto& kernel = m_FinalAccumOpenCLKernelCreator.GammaCorrectionKernel(Renderer<T, bucketT>::NumChannels(), Transparency());
 		bool b = m_Wrapper.AddProgram(gammaEntryPoint, kernel, gammaEntryPoint, m_DoublePrecision);
 
 		if (b)
@@ -1454,21 +1461,17 @@ void RendererCL<T, bucketT>::ConvertEmber(Ember<T>& ember, EmberCL<T>& emberCL, 
 /// <param name="carToRas">The CarToRas object to convert</param>
 /// <returns>The CarToRasCL object</returns>
 template <typename T, typename bucketT>
-CarToRasCL<T> RendererCL<T, bucketT>::ConvertCarToRas(const CarToRas<T>& carToRas)
+void RendererCL<T, bucketT>::ConvertCarToRas(const CarToRas<T>& carToRas)
 {
-	CarToRasCL<T> carToRasCL;
-
-	carToRasCL.m_RasWidth = uint(carToRas.RasWidth());
-	carToRasCL.m_PixPerImageUnitW = carToRas.PixPerImageUnitW();
-	carToRasCL.m_RasLlX = carToRas.RasLlX();
-	carToRasCL.m_PixPerImageUnitH = carToRas.PixPerImageUnitH();
-	carToRasCL.m_RasLlY = carToRas.RasLlY();
-	carToRasCL.m_CarLlX = carToRas.CarLlX();
-	carToRasCL.m_CarLlY = carToRas.CarLlY();
-	carToRasCL.m_CarUrX = carToRas.CarUrX();
-	carToRasCL.m_CarUrY = carToRas.CarUrY();
-
-	return carToRasCL;
+	m_CarToRasCL.m_RasWidth = uint(carToRas.RasWidth());
+	m_CarToRasCL.m_PixPerImageUnitW = carToRas.PixPerImageUnitW();
+	m_CarToRasCL.m_RasLlX = carToRas.RasLlX();
+	m_CarToRasCL.m_PixPerImageUnitH = carToRas.PixPerImageUnitH();
+	m_CarToRasCL.m_RasLlY = carToRas.RasLlY();
+	m_CarToRasCL.m_CarLlX = carToRas.CarLlX();
+	m_CarToRasCL.m_CarLlY = carToRas.CarLlY();
+	m_CarToRasCL.m_CarUrX = carToRas.CarUrX();
+	m_CarToRasCL.m_CarUrY = carToRas.CarUrY();
 }
 
 /// <summary>

@@ -351,14 +351,11 @@ static const char* CarToRasFunctionString =
 	"}\n"
 	"\n";
 
-static string AtomicString(bool doublePrecision, bool dp64AtomicSupport)
+static string AtomicString()
 {
 	ostringstream os;
 
-	//If they want single precision, or if they want double precision and have dp atomic support.
-	if (!doublePrecision || dp64AtomicSupport)
-	{
-		os <<
+	os <<
 		"void AtomicAdd(volatile __global real_bucket_t* source, const real_bucket_t operand)\n"
 		"{\n"
 		"	union\n"
@@ -379,32 +376,6 @@ static string AtomicString(bool doublePrecision, bool dp64AtomicSupport)
 		"		newVal.realVal = prevVal.realVal + operand;\n"
 		"	} while (atomic_cmpxchg((volatile __global atomi*)source, prevVal.intVal, newVal.intVal) != prevVal.intVal);\n"
 		"}\n";
-	}
-	else//They want double precision and do not have dp atomic support.
-	{
-		os <<
-		"void AtomicAdd(volatile __global double* source, const double operand)\n"
-		"{\n"
-		"	union\n"
-		"	{\n"
-		"		uint intVal[2];\n"
-		"		double realVal;\n"
-		"	} newVal;\n"
-		"\n"
-		"	union\n"
-		"	{\n"
-		"		uint intVal[2];\n"
-		"		double realVal;\n"
-		"	} prevVal;\n"
-		"\n"
-		"	do\n"
-		"	{\n"
-		"		prevVal.realVal = *source;\n"
-		"		newVal.realVal = prevVal.realVal + operand;\n"
-		"	} while ((atomic_cmpxchg((volatile __global uint*)source, prevVal.intVal[0], newVal.intVal[0])     != prevVal.intVal[0]) ||\n"
-		"			 (atomic_cmpxchg((volatile __global uint*)source + 1, prevVal.intVal[1], newVal.intVal[1]) != prevVal.intVal[1]));\n"
-		"}\n";
-	}
 
 	return os.str();
 }
