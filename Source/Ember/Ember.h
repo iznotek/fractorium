@@ -1095,9 +1095,9 @@ public:
 			if (rand.Rand() & 1)
 				sym = symDistrib[rand.Rand() % Vlen(symDistrib)];
 			else if (rand.Rand() & 31)
-				sym = (rand.Rand() % 13) - 6;
+				sym = intmax_t(rand.Rand() % 13) - 6;
 			else
-				sym = (rand.Rand() % 51) - 25;
+				sym = intmax_t(rand.Rand() % 51) - 25;
 		}
 
 		if (sym == 1 || sym == 0)

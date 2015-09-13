@@ -41,7 +41,9 @@ int main(int argc, char *argv[])
 	 "  subcontrol-position: top left;"
 	 "  padding: 0 3px 0 3px;"
 	 //"    padding: 2px;"
-	 "}" );
+	 "} \n"
+	 "QComboBox { margin-top: 0px; padding-bottom: 0px; }"
+	 );
 #endif
 
 	int rv = -1;
