@@ -1428,7 +1428,7 @@ public:
 	/// <param name="type">The type of the parameter</param>
 	/// <param name="min">The minimum value the parameter can be</param>
 	/// <param name="max">The maximum value the parameter can be</param>
-	ParamWithName(T* param, string name, T def = 0, eParamType type = REAL, T min = TLOW, T max = TMAX)
+	ParamWithName(T* param, const string& name, T def = 0, eParamType type = REAL, T min = TLOW, T max = TMAX)
 	{
 		Init(param, name, def, type, min, max);
 	}
@@ -1481,7 +1481,7 @@ public:
 	/// <param name="min">The minimum value the parameter can be</param>
 	/// <param name="max">The maximum value the parameter can be</param>
 	/// <param name="isPrecalc">Whether the parameter is actually a precalculated value. Default: false.</param>
-	void Init(T* param, string name, T def = 0, eParamType type = REAL, T min = TLOW, T max = TMAX, bool isPrecalc = false)
+	void Init(T* param, const string& name, T def = 0, eParamType type = REAL, T min = TLOW, T max = TMAX, bool isPrecalc = false)
 	{
 		m_Param = param;
 		m_Def = def;

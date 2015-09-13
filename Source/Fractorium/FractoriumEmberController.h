@@ -72,16 +72,16 @@ public:
 	virtual size_t TotalXformCount() const { return 0; }
 	virtual QString Name() const { return ""; }
 	virtual void Name(const string& s) { }
-	virtual uint FinalRasW() const { return 0; }
-	virtual void FinalRasW(uint w) { }
-	virtual uint FinalRasH() const { return 0; }
-	virtual void FinalRasH(uint h) { }
+	virtual size_t FinalRasW() const { return 0; }
+	virtual void FinalRasW(size_t w) { }
+	virtual size_t FinalRasH() const { return 0; }
+	virtual void FinalRasH(size_t h) { }
 	virtual size_t Index() const { return 0; }
 	virtual void AddSymmetry(int sym, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) { }
 	virtual void CalcNormalizedWeights() { }
 
 	//Menu.
-	virtual void NewFlock(uint count) { }//File.
+	virtual void NewFlock(size_t count) { }//File.
 	virtual void NewEmptyFlameInCurrentFile() { }
 	virtual void NewRandomFlameInCurrentFile() { }
 	virtual void CopyFlameInCurrentFile() { }
@@ -209,7 +209,7 @@ public:
 	
 	//Rendering/progress.
 	virtual bool Render() { return false; }
-	virtual bool CreateRenderer(eRendererType renderType, uint platform, uint device, bool shared = true) { return false; }
+	virtual bool CreateRenderer(eRendererType renderType, const vector<pair<size_t, size_t>>& devices, bool shared = true) { return false; }
 	virtual uint SizeOfT() const { return 0; }
 	virtual void ClearUndo() { }
 	virtual GLEmberControllerBase* GLController() { return nullptr; }
@@ -221,10 +221,11 @@ public:
 	void Shutdown();
 	void UpdateRender(eProcessAction action = FULL_RENDER);
 	void DeleteRenderer();
-	void SaveCurrentRender(const QString& filename, bool forcePull);
+	void SaveCurrentRender(const QString& filename, const EmberImageComments& comments, vector<byte>& pixels, size_t width, size_t height, size_t channels, size_t bpc);
 	RendererBase* Renderer() { return m_Renderer.get(); }
-	vector<byte>* FinalImage() { return &(m_FinalImage[m_FinalImageIndex]); }
+	vector<byte>* FinalImage() { return &(m_FinalImage); }
 	vector<byte>* PreviewFinalImage() { return &m_PreviewFinalImage; }
+	EmberStats Stats() { return m_Stats; }
 
 protected:
 	//Rendering/progress.
@@ -236,9 +237,7 @@ protected:
 	bool m_Rendering;
 	bool m_Shared;
 	bool m_LastEditWasUndoRedo;
-	uint m_FinalImageIndex;
-	uint m_Platform;
-	uint m_Device;
+	vector<pair<size_t, size_t>> m_Devices;
 	uint m_SubBatchCount;
 	uint m_FailedRenders;
 	uint m_UndoIndex;
@@ -253,7 +252,7 @@ protected:
 	string m_CurrentPaletteFilePath;
 	CriticalSection m_Cs;
 	std::thread m_WriteThread;
-	vector<byte> m_FinalImage[2];
+	vector<byte> m_FinalImage;
 	vector<byte> m_PreviewFinalImage;
 	vector<eProcessAction> m_ProcessActions;
 	vector<eVariationId> m_FilteredVariations;
@@ -262,6 +261,7 @@ protected:
 	Fractorium* m_Fractorium;
 	QTimer* m_RenderTimer;
 	QTimer* m_RenderRestartTimer;
+	OpenCLInfo& m_Info;
 };
 
 /// <summary>
@@ -306,10 +306,10 @@ public:
 	virtual size_t TotalXformCount() const override { return m_Ember.TotalXformCount(); }
 	virtual QString Name() const override { return QString::fromStdString(m_Ember.m_Name); }
 	virtual void Name(const string& s) override { m_Ember.m_Name = s; }
-	virtual uint FinalRasW() const override { return m_Ember.m_FinalRasW; }
-	virtual void FinalRasW(uint w) override { m_Ember.m_FinalRasW = w; }
-	virtual uint FinalRasH() const override { return m_Ember.m_FinalRasH; }
-	virtual void FinalRasH(uint h) override { m_Ember.m_FinalRasH = h; }
+	virtual size_t FinalRasW() const override { return m_Ember.m_FinalRasW; }
+	virtual void FinalRasW(size_t w) override { m_Ember.m_FinalRasW = w; }
+	virtual size_t FinalRasH() const override { return m_Ember.m_FinalRasH; }
+	virtual void FinalRasH(size_t h) override { m_Ember.m_FinalRasH = h; }
 	virtual size_t Index() const override { return m_Ember.m_Index; }
 	virtual void AddSymmetry(int sym, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override { m_Ember.AddSymmetry(sym, rand); }
 	virtual void CalcNormalizedWeights() override { m_Ember.CalcNormalizedWeights(m_NormalizedWeights); }
@@ -317,7 +317,7 @@ public:
 	Ember<T>* CurrentEmber();
 
 	//Menu.
-	virtual void NewFlock(uint count) override;
+	virtual void NewFlock(size_t count) override;
 	virtual void NewEmptyFlameInCurrentFile() override;
 	virtual void NewRandomFlameInCurrentFile() override;
 	virtual void CopyFlameInCurrentFile() override;
@@ -447,7 +447,7 @@ public:
 
 	//Rendering/progress.
 	virtual bool Render() override;
-	virtual bool CreateRenderer(eRendererType renderType, uint platform, uint device, bool shared = true) override;
+	virtual bool CreateRenderer(eRendererType renderType, const vector<pair<size_t, size_t>>& devices, bool shared = true) override;
 	virtual uint SizeOfT() const override { return sizeof(T); }
 	virtual int ProgressFunc(Ember<T>& ember, void* foo, double fraction, int stage, double etaMs) override;
 	virtual void ClearUndo() override;

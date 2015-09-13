@@ -2,9 +2,9 @@
 
 #include "EmberCLPch.h"
 #include "OpenCLWrapper.h"
-#include "IterOpenCLKernelCreator.h"
 #include "DEOpenCLKernelCreator.h"
 #include "FinalAccumOpenCLKernelCreator.h"
+#include "RendererClDevice.h"
 
 /// <summary>
 /// RendererCLBase and RendererCL classes.
@@ -26,12 +26,17 @@ public:
 /// <summary>
 /// RendererCL is a derivation of the basic CPU renderer which
 /// overrides various functions to render on the GPU using OpenCL.
+/// This supports multi-GPU rendering and is done in the following manner:
+///		-When rendering a single image, the iterations will be split between devices in sub batches.
+///		-When animating, a renderer for each device will be created by the calling code,
+///			and the frames will each be rendered by a single device as available.
+/// The synchronization across devices is done through a single atomic counter.
 /// Since this class derives from EmberReport and also contains an
 /// OpenCLWrapper member which also derives from EmberReport, the
 /// reporting functions are overridden to aggregate the errors from
 /// both sources.
-/// It does not support different types for T and bucketT, so it only has one template argument
-/// and uses both for the base.
+/// Template argument T expected to be float or double.
+/// Template argument bucketT must always be float.
 /// </summary>
 template <typename T, typename bucketT>
 class EMBERCL_API RendererCL : public Renderer<T, bucketT>, public RendererCLBase
@@ -65,6 +70,8 @@ using EmberNs::Renderer<T, bucketT>::RendererBase::m_RenderTimer;
 using EmberNs::Renderer<T, bucketT>::RendererBase::m_IterTimer;
 using EmberNs::Renderer<T, bucketT>::RendererBase::m_ProgressTimer;
 using EmberNs::Renderer<T, bucketT>::RendererBase::EmberReport::m_ErrorReport;
+using EmberNs::Renderer<T, bucketT>::RendererBase::m_ResizeCs;
+using EmberNs::Renderer<T, bucketT>::RendererBase::m_ProcessAction;
 using EmberNs::Renderer<T, bucketT>::m_RotMat;
 using EmberNs::Renderer<T, bucketT>::m_Ember;
 using EmberNs::Renderer<T, bucketT>::m_Csa;
@@ -82,45 +89,45 @@ using EmberNs::Renderer<T, bucketT>::GetSpatialFilter;
 using EmberNs::Renderer<T, bucketT>::CoordMap;
 using EmberNs::Renderer<T, bucketT>::XformDistributions;
 using EmberNs::Renderer<T, bucketT>::XformDistributionsSize;
+using EmberNs::Renderer<T, bucketT>::m_Dmap;
 using EmberNs::Renderer<T, bucketT>::m_DensityFilter;
 using EmberNs::Renderer<T, bucketT>::m_SpatialFilter;
 
 public:
-	RendererCL(uint platform = 0, uint device = 0, bool shared = false, GLuint outputTexID = 0);
+	RendererCL(const vector<pair<size_t, size_t>>& devices, bool shared = false, GLuint outputTexID = 0);
 	~RendererCL();
 
 	//Non-virtual member functions for OpenCL specific tasks.
-	bool Init(uint platform, uint device, bool shared, GLuint outputTexID);
+	bool Init(const vector<pair<size_t, size_t>>& devices, bool shared, GLuint outputTexID);
 	bool SetOutputTexture(GLuint outputTexID);
 
 	//Iters per kernel/block/grid.
-	inline uint IterCountPerKernel() const;
-	inline uint IterCountPerBlock() const;
-	inline uint IterCountPerGrid() const;
+	inline size_t IterCountPerKernel() const;
+	inline size_t IterCountPerBlock() const;
+	inline size_t IterCountPerGrid() const;
 
 	//Kernels per block.
-	inline uint IterBlockKernelWidth() const;
-	inline uint IterBlockKernelHeight() const;
-	inline uint IterBlockKernelCount() const;
+	inline size_t IterBlockKernelWidth() const;
+	inline size_t IterBlockKernelHeight() const;
+	inline size_t IterBlockKernelCount() const;
 
 	//Kernels per grid.
-	inline uint IterGridKernelWidth() const;
-	inline uint IterGridKernelHeight() const;
-	inline uint IterGridKernelCount() const;
+	inline size_t IterGridKernelWidth() const;
+	inline size_t IterGridKernelHeight() const;
+	inline size_t IterGridKernelCount() const;
 
 	//Blocks per grid.
-	inline uint IterGridBlockWidth() const;
-	inline uint IterGridBlockHeight() const;
-	inline uint IterGridBlockCount() const;
+	inline size_t IterGridBlockWidth() const;
+	inline size_t IterGridBlockHeight() const;
+	inline size_t IterGridBlockCount() const;
 
-	uint PlatformIndex();
-	uint DeviceIndex();
-	bool ReadHist();
+	bool ReadHist(size_t device);
 	bool ReadAccum();
-	bool ReadPoints(vector<PointCL<T>>& vec);
+	bool ReadPoints(size_t device, vector<PointCL<T>>& vec);
 	bool ClearHist();
+	bool ClearHist(size_t device);
 	bool ClearAccum();
-	bool WritePoints(vector<PointCL<T>>& vec);
+	bool WritePoints(size_t device, vector<PointCL<T>>& vec);
 #ifdef TEST_CL
 	bool WriteRandomPoints();
 #endif
@@ -136,7 +143,6 @@ public:
 	virtual size_t MemoryAvailable() override;
 	virtual bool Ok() const override;
 	virtual void NumChannels(size_t numChannels) override;
-	virtual void DumpErrorReport() override;
 	virtual void ClearErrorReport() override;
 	virtual size_t SubBatchSize() const override;
 	virtual size_t ThreadCount() const override;
@@ -151,8 +157,7 @@ public:
 protected:
 #endif
 	//Protected virtual functions overridden from Renderer.
-	virtual void MakeDmap(T colorScalar) override;
-	virtual bool Alloc() override;
+	virtual bool Alloc(bool histOnly = false) override;
 	virtual bool ResetBuckets(bool resetHist = true, bool resetAccum = true) override;
 	virtual eRenderStatus LogScaleDensityFilter() override;
 	virtual eRenderStatus GaussianDensityFilter() override;
@@ -162,17 +167,19 @@ protected:
 #ifndef TEST_CL
 private:
 #endif
+	void Init();
 	//Private functions for making and running OpenCL programs.
 	bool BuildIterProgramForEmber(bool doAccum = true);
 	bool RunIter(size_t iterCount, size_t temporalSample, size_t& itersRan);
 	eRenderStatus RunLogScaleFilter();
 	eRenderStatus RunDensityFilter();
 	eRenderStatus RunFinalAccum();
-	bool ClearBuffer(const string& bufferName, uint width, uint height, uint elementSize);
-	bool RunDensityFilterPrivate(uint kernelIndex, uint gridW, uint gridH, uint blockW, uint blockH, uint chunkSizeW, uint chunkSizeH, uint chunkW, uint chunkH);
+	bool ClearBuffer(size_t device, const string& bufferName, uint width, uint height, uint elementSize);
+	bool RunDensityFilterPrivate(size_t kernelIndex, size_t gridW, size_t gridH, size_t blockW, size_t blockH, uint chunkSizeW, uint chunkSizeH, uint chunkW, uint chunkH);
 	int MakeAndGetDensityFilterProgram(size_t ss, uint filterWidth);
 	int MakeAndGetFinalAccumProgram(double& alphaBase, double& alphaScale);
 	int MakeAndGetGammaCorrectionProgram();
+	bool SumDeviceHist();
 	void FillSeeds();
 
 	//Private functions passing data to OpenCL programs.
@@ -182,15 +189,12 @@ private:
 	void ConvertCarToRas(const CarToRas<T>& carToRas);
 
 	bool m_Init;
-	bool m_NVidia;
 	bool m_DoublePrecision;
-	uint m_IterCountPerKernel;
-	uint m_IterBlocksWide, m_IterBlockWidth;
-	uint m_IterBlocksHigh, m_IterBlockHeight;
-	uint m_MaxDEBlockSizeW;
-	uint m_MaxDEBlockSizeH;
-	uint m_WarpSize;
-	size_t m_Calls;
+	size_t m_IterCountPerKernel;
+	size_t m_IterBlocksWide, m_IterBlockWidth;
+	size_t m_IterBlocksHigh, m_IterBlockHeight;
+	size_t m_MaxDEBlockSizeW;
+	size_t m_MaxDEBlockSizeH;
 
 	//Buffer names.
 	string m_EmberBufferName;
@@ -214,7 +218,6 @@ private:
 	//Kernels.
 	string m_IterKernel;
 
-	OpenCLWrapper m_Wrapper;
 	cl::ImageFormat m_PaletteFormat;
 	cl::ImageFormat m_FinalFormat;
 	cl::Image2D m_Palette;
@@ -222,8 +225,7 @@ private:
 	GLuint m_OutputTexID;
 	EmberCL<T> m_EmberCL;
 	vector<XformCL<T>> m_XformsCL;
-	vector<glm::highp_uvec2> m_Seeds;
-	Palette<float> m_DmapCL;//Used instead of the base class' m_Dmap because OpenCL only supports float textures. Likely not needed if we switch to float only hist.
+	vector<vector<glm::highp_uvec2>> m_Seeds;
 	CarToRasCL<T> m_CarToRasCL;
 	DensityFilterCL<bucketT> m_DensityFilterCL;
 	SpatialFilterCL<bucketT> m_SpatialFilterCL;
@@ -231,6 +233,7 @@ private:
 	DEOpenCLKernelCreator m_DEOpenCLKernelCreator;
 	FinalAccumOpenCLKernelCreator m_FinalAccumOpenCLKernelCreator;
 	pair<string, vector<T>> m_Params;
+	vector<unique_ptr<RendererClDevice>> m_Devices;
 	Ember<T> m_LastBuiltEmber;
 };
 }

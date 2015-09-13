@@ -9,17 +9,17 @@
 /// <param name="p">The parent widget. Default: nullptr.</param>
 /// <param name="f">The window flags. Default: 0.</param>
 FractoriumOptionsDialog::FractoriumOptionsDialog(FractoriumSettings* settings, QWidget* p, Qt::WindowFlags f)
-	: QDialog(p, f)
+	: QDialog(p, f),
+	m_Info(OpenCLInfo::Instance())
 {
-	int row = 0, spinHeight = 20;
-	uint i;
+	int i, row = 0, spinHeight = 20;
 
 	ui.setupUi(this);
 	m_Settings = settings;
 	QTableWidget* table = ui.OptionsXmlSavingTable;
 	ui.ThreadCountSpin->setRange(1, Timing::ProcessorCount());
-	connect(ui.OpenCLCheckBox, SIGNAL(stateChanged(int)),		 this, SLOT(OnOpenCLCheckBoxStateChanged(int)),		  Qt::QueuedConnection);
-	connect(ui.PlatformCombo,  SIGNAL(currentIndexChanged(int)), this, SLOT(OnPlatformComboCurrentIndexChanged(int)), Qt::QueuedConnection);
+	connect(ui.OpenCLCheckBox, SIGNAL(stateChanged(int)),		 this, SLOT(OnOpenCLCheckBoxStateChanged(int)),	 Qt::QueuedConnection);
+	connect(ui.DeviceTable,	   SIGNAL(cellChanged(int, int)),	 this, SLOT(OnDeviceTableCellChanged(int, int)), Qt::QueuedConnection);
 
 	SetupSpinner<SpinBox, int>(table, this, row, 1, m_XmlTemporalSamplesSpin, spinHeight,  1,	1000, 100, "", "", true, 1000);
 	SetupSpinner<SpinBox, int>(table, this, row, 1, m_XmlQualitySpin,		  spinHeight,  1, 200000,  50, "", "", true, 1000);
@@ -34,63 +34,28 @@ FractoriumOptionsDialog::FractoriumOptionsDialog(FractoriumSettings* settings, Q
 	m_NickEdit = new QLineEdit(ui.OptionsIdentityTable);
 	ui.OptionsIdentityTable->setCellWidget(2, 1, m_NickEdit);
 
-	m_IdEdit->setText(m_Settings->Id());
-	m_UrlEdit->setText(m_Settings->Url());
-	m_NickEdit->setText(m_Settings->Nick());
+	table = ui.DeviceTable;
 
-	if (m_Wrapper.CheckOpenCL())
+	if (m_Info.Ok() && !m_Info.Devices().empty())
 	{
-		vector<string> platforms = m_Wrapper.PlatformNames();
+		SetupDeviceTable(table, m_Settings->Devices());
 
-		//Populate combo boxes with available OpenCL platforms and devices.
-		for (i = 0; i < platforms.size(); i++)
-			ui.PlatformCombo->addItem(QString::fromStdString(platforms[i]));
-
-		//If init succeeds, set the selected platform and device combos to match what was saved in the settings.
-		if (m_Wrapper.Init(m_Settings->PlatformIndex(), m_Settings->DeviceIndex()))
-		{
-			ui.OpenCLCheckBox->setChecked(	  m_Settings->OpenCL());
-			ui.PlatformCombo->setCurrentIndex(m_Settings->PlatformIndex());
-			ui.DeviceCombo->setCurrentIndex(  m_Settings->DeviceIndex());
-		}
-		else
-		{
-			OnPlatformComboCurrentIndexChanged(0);
-			ui.OpenCLCheckBox->setChecked(false);
-		}
+		for (i = 0; i < table->rowCount(); i++)
+			if (auto radio = qobject_cast<QRadioButton*>(table->cellWidget(i, 1)))
+				connect(radio, SIGNAL(toggled(bool)), this, SLOT(OnDeviceTableRadioToggled(bool)), Qt::QueuedConnection);
 	}
 	else
 	{
+		ui.DeviceTable->setEnabled(false);
 		ui.OpenCLCheckBox->setChecked(false);
 		ui.OpenCLCheckBox->setEnabled(false);
+		ui.OpenCLSubBatchSpin->setEnabled(false);
+		ui.OpenCLFilteringDERadioButton->setEnabled(false);
+		ui.OpenCLFilteringLogRadioButton->setEnabled(false);
+		ui.InteraciveGpuFilteringGroupBox->setEnabled(false);
 	}
 
-	ui.EarlyClipCheckBox->setChecked(	    m_Settings->EarlyClip());
-	ui.YAxisUpCheckBox->setChecked(		    m_Settings->YAxisUp());
-	ui.TransparencyCheckBox->setChecked(    m_Settings->Transparency());
-	ui.ContinuousUpdateCheckBox->setChecked(m_Settings->ContinuousUpdate());
-	ui.DoublePrecisionCheckBox->setChecked( m_Settings->Double());
-	ui.ShowAllXformsCheckBox->setChecked(   m_Settings->ShowAllXforms());
-	ui.ThreadCountSpin->setValue(		    m_Settings->ThreadCount());
-	
-	if (m_Settings->CpuDEFilter())
-		ui.CpuFilteringDERadioButton->setChecked(true);
-	else
-		ui.CpuFilteringLogRadioButton->setChecked(true);
-
-	if (m_Settings->OpenCLDEFilter())
-		ui.OpenCLFilteringDERadioButton->setChecked(true);
-	else
-		ui.OpenCLFilteringLogRadioButton->setChecked(true);
-
-	ui.CpuSubBatchSpin->setValue(m_Settings->CpuSubBatch());
-	ui.OpenCLSubBatchSpin->setValue(m_Settings->OpenCLSubBatch());
-
-	m_XmlTemporalSamplesSpin->setValue(m_Settings->XmlTemporalSamples());
-	m_XmlQualitySpin->setValue(m_Settings->XmlQuality());
-	m_XmlSupersampleSpin->setValue(m_Settings->XmlSupersample());
-	ui.AutoUniqueCheckBox->setChecked(m_Settings->SaveAutoUnique());
-
+	DataToGui();
 	OnOpenCLCheckBoxStateChanged(ui.OpenCLCheckBox->isChecked());
 }
 
@@ -106,12 +71,48 @@ bool FractoriumOptionsDialog::OpenCL() { return ui.OpenCLCheckBox->isChecked(); 
 bool FractoriumOptionsDialog::Double() { return ui.DoublePrecisionCheckBox->isChecked(); }
 bool FractoriumOptionsDialog::ShowAllXforms() { return ui.ShowAllXformsCheckBox->isChecked(); }
 bool FractoriumOptionsDialog::AutoUnique() { return ui.AutoUniqueCheckBox->isChecked(); }
-uint FractoriumOptionsDialog::PlatformIndex() { return ui.PlatformCombo->currentIndex(); }
-uint FractoriumOptionsDialog::DeviceIndex() { return ui.DeviceCombo->currentIndex(); }
 uint FractoriumOptionsDialog::ThreadCount() { return ui.ThreadCountSpin->value(); }
 
 /// <summary>
-/// Disable or enable the OpenCL related controls based on the state passed in.
+/// The check state of one of the OpenCL devices was changed.
+/// This does a special check to always ensure at least one device,
+/// as well as one primary is checked.
+/// </summary>
+/// <param name="row">The row of the cell</param>
+/// <param name="col">The column of the cell</param>
+void FractoriumOptionsDialog::OnDeviceTableCellChanged(int row, int col)
+{
+	if (auto item = ui.DeviceTable->item(row, col))
+		HandleDeviceTableCheckChanged(ui.DeviceTable, row, col);
+}
+
+/// <summary>
+/// The primary device radio button selection was changed.
+/// If the device was specified as primary, but was not selected
+/// for inclusion, it will automatically be selected for inclusion.
+/// </summary>
+/// <param name="checked">The state of the radio button</param>
+void FractoriumOptionsDialog::OnDeviceTableRadioToggled(bool checked)
+{
+	int row;
+	auto s = sender();
+	auto table = ui.DeviceTable;
+	QRadioButton* radio = nullptr;
+
+	if (s)
+	{
+		for (row = 0; row < table->rowCount(); row++)
+			if (radio = qobject_cast<QRadioButton*>(table->cellWidget(row, 1)))
+				if (s == radio)
+				{
+					HandleDeviceTableCheckChanged(ui.DeviceTable, row, 1);
+					break;
+				}
+	}
+}
+
+/// <summary>
+/// Disable or enable the CPU and OpenCL related controls based on the state passed in.
 /// Called when the state of the OpenCL checkbox is changed.
 /// </summary>
 /// <param name="state">The state of the checkbox</param>
@@ -119,28 +120,15 @@ void FractoriumOptionsDialog::OnOpenCLCheckBoxStateChanged(int state)
 {
 	bool checked = state == Qt::Checked;
 
-	ui.PlatformCombo->setEnabled(checked);
-	ui.DeviceCombo->setEnabled(checked);
+	ui.DeviceTable->setEnabled(checked);
 	ui.ThreadCountSpin->setEnabled(!checked);
-}
-
-/// <summary>
-/// Populate the the device combo box with all available
-/// OpenCL devices for the selected platform.
-/// Called when the platform combo box index changes.
-/// </summary>
-/// <param name="index">The selected index of the combo box</param>
-void FractoriumOptionsDialog::OnPlatformComboCurrentIndexChanged(int index)
-{
-	vector<string> devices = m_Wrapper.DeviceNames(index);
-
-	ui.DeviceCombo->clear();
-
-	for (auto& device : devices)
-		ui.DeviceCombo->addItem(QString::fromStdString(device));
-
-	if (ui.PlatformCombo->currentIndex() == m_Settings->PlatformIndex())
-		ui.DeviceCombo->setCurrentIndex(m_Settings->DeviceIndex());
+	ui.CpuSubBatchSpin->setEnabled(!checked);
+	ui.OpenCLSubBatchSpin->setEnabled(checked);
+	ui.CpuFilteringDERadioButton->setEnabled(!checked);
+	ui.CpuFilteringLogRadioButton->setEnabled(!checked);
+	ui.OpenCLFilteringDERadioButton->setEnabled(checked);
+	ui.OpenCLFilteringLogRadioButton->setEnabled(checked);
+	ui.InteraciveGpuFilteringGroupBox->setEnabled(checked);
 }
 
 /// <summary>
@@ -187,13 +175,12 @@ void FractoriumOptionsDialog::GuiToData()
 	m_Settings->OpenCL(OpenCL());
 	m_Settings->Double(Double());
 	m_Settings->ShowAllXforms(ShowAllXforms());
-	m_Settings->PlatformIndex(PlatformIndex());
-	m_Settings->DeviceIndex(DeviceIndex());
 	m_Settings->ThreadCount(ThreadCount());
 	m_Settings->CpuSubBatch(ui.CpuSubBatchSpin->value());
 	m_Settings->OpenCLSubBatch(ui.OpenCLSubBatchSpin->value());
 	m_Settings->CpuDEFilter(ui.CpuFilteringDERadioButton->isChecked());
 	m_Settings->OpenCLDEFilter(ui.OpenCLFilteringDERadioButton->isChecked());
+	m_Settings->Devices(DeviceTableToSettings(ui.DeviceTable));
 
 	//Xml saving.
 	m_Settings->XmlTemporalSamples(m_XmlTemporalSamplesSpin->value());
@@ -213,6 +200,8 @@ void FractoriumOptionsDialog::GuiToData()
 void FractoriumOptionsDialog::DataToGui()
 {
 	//Interactive rendering.
+	auto devices = m_Settings->Devices();
+
 	ui.EarlyClipCheckBox->setChecked(m_Settings->EarlyClip());
 	ui.YAxisUpCheckBox->setChecked(m_Settings->YAxisUp());
 	ui.TransparencyCheckBox->setChecked(m_Settings->Transparency());
@@ -220,13 +209,20 @@ void FractoriumOptionsDialog::DataToGui()
 	ui.OpenCLCheckBox->setChecked(m_Settings->OpenCL());
 	ui.DoublePrecisionCheckBox->setChecked(m_Settings->Double());
 	ui.ShowAllXformsCheckBox->setChecked(m_Settings->ShowAllXforms());
-	ui.PlatformCombo->setCurrentIndex(m_Settings->PlatformIndex());
-	ui.DeviceCombo->setCurrentIndex(m_Settings->DeviceIndex());
 	ui.ThreadCountSpin->setValue(m_Settings->ThreadCount());
 	ui.CpuSubBatchSpin->setValue(m_Settings->CpuSubBatch());
 	ui.OpenCLSubBatchSpin->setValue(m_Settings->OpenCLSubBatch());
-	ui.CpuFilteringDERadioButton->setChecked(m_Settings->CpuDEFilter());
-	ui.OpenCLFilteringDERadioButton->setChecked(m_Settings->OpenCLDEFilter());
+	SettingsToDeviceTable(ui.DeviceTable, devices);
+
+	if (m_Settings->CpuDEFilter())
+		ui.CpuFilteringDERadioButton->setChecked(true);
+	else
+		ui.CpuFilteringLogRadioButton->setChecked(true);
+
+	if (m_Settings->OpenCLDEFilter())
+		ui.OpenCLFilteringDERadioButton->setChecked(true);
+	else
+		ui.OpenCLFilteringLogRadioButton->setChecked(true);
 
 	//Xml saving.
 	m_XmlTemporalSamplesSpin->setValue(m_Settings->XmlTemporalSamples());

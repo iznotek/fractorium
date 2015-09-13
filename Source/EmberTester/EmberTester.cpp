@@ -714,7 +714,7 @@ bool TestParVars()
 			names.reserve(parVar->ParamCount());
 			addresses.reserve(parVar->ParamCount());
 
-			for (uint j = 0; j < parVar->ParamCount(); j++)
+			for (size_t j = 0; j < parVar->ParamCount(); j++)
 			{
 				if (std::find(names.begin(), names.end(), params[j].Name()) != names.end())
 				{
@@ -1449,13 +1449,13 @@ void TestVarsSimilar()
 
 				if (parVar)
 				{
-					for (uint v = 0; v < parVar->ParamCount(); v++)
+					for (size_t v = 0; v < parVar->ParamCount(); v++)
 						parVar->SetParamVal(v, (T)iter);
 				}
 
 				if (parVarComp)
 				{
-					for (uint v = 0; v < parVarComp->ParamCount(); v++)
+					for (size_t v = 0; v < parVarComp->ParamCount(); v++)
 						parVarComp->SetParamVal(v, (T)iter);
 				}
 
@@ -1878,6 +1878,46 @@ double RandD(QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand)
 //	double points[4];
 //};
 
+void TestThreadedKernel()
+{
+	OpenCLWrapper wrapper1, wrapper2;
+
+	if (wrapper1.Init(1, 0) && wrapper2.Init(2, 0))
+	{
+		string k = ConstantDefinesString(false) + "\n__kernel void Kern()\n"
+			"{\n"
+			"	int gid = GLOBAL_ID_X + GLOBAL_ID_Y;\n"
+			"}\n"
+			"\n";
+
+		if (wrapper1.AddProgram("prog1", k, "Kern", false) &&
+			wrapper2.AddProgram("prog1", k, "Kern", false))
+		{
+			cout << "Builds ok, now run..." << endl;
+
+			std::thread th1([&]()
+			{
+				if (wrapper1.RunKernel(0, 256, 16, 1, 16, 16, 1))
+				{
+					cout << "Successful run inside thread 1..." << endl;
+				}
+			});
+
+			std::thread th2([&]()
+			{
+				if (wrapper2.RunKernel(0, 256, 16, 1, 16, 16, 1))
+				{
+					cout << "Successful run inside thread 2..." << endl;
+				}
+			});
+
+			th1.join();
+			th2.join();
+			cout << "Successful join of kernel thread..." << endl;
+		}
+	}
+}
+
 int _tmain(int argc, _TCHAR* argv[])
 {
 	//int i;
@@ -1885,12 +1925,14 @@ int _tmain(int argc, _TCHAR* argv[])
 	QTIsaac<ISAAC_SIZE, ISAAC_INT> rand(1, 2, 3);
 	mt19937 meow(1729);
 
-	PaletteList<float> palf;
+	TestThreadedKernel();
+
+	/*PaletteList<float> palf;
 	Palette<float>* pal = palf.GetRandomPalette();
 
 	cout << pal->Size() << endl;
 
-	/*double d = 1;
+	double d = 1;
 
 	for (int i = 0; i < 10; i++)
 	{

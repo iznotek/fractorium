@@ -341,7 +341,7 @@ void Fractorium::OnPaletteFilterLineEditTextChanged(const QString& text)
 
 	table->setUpdatesEnabled(false);
 
-	for (uint i = 0; i < uint(table->rowCount()); i++)
+	for (int i = 0; i < table->rowCount(); i++)
 	{
 		if (auto item = table->item(i, 0))
 		{

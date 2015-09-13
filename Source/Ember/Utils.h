@@ -213,13 +213,19 @@ static bool ReadFile(const char* filename, string& buf, bool nullTerminate = tru
 			fclose(f);
 		}
 	}
-	catch (...)
+	catch (const std::exception& e)
 	{
-		if (f != nullptr)
-			fclose(f);
-
+		cout << "Error: Reading file " << filename << " failed: " << e.what() << endl;
 		b = false;
 	}
+	catch (...)
+	{
+		cout << "Error: Reading file " << filename << " failed." << endl;
+		b = false;
+	}
+
+	if (f != nullptr)
+		fclose(f);
 
 	return b;
 }
@@ -270,7 +276,7 @@ static void CopyVec(vector<T>& dest, const vector<U>& source, std::function<void
 template <typename T>
 static void ClearVec(vector<T*>& vec, bool arrayDelete = false)
 {
-	for (uint i = 0; i < vec.size(); i++)
+	for (size_t i = 0; i < vec.size(); i++)
 	{
 		if (vec[i] != nullptr)
 		{
@@ -284,6 +290,32 @@ static void ClearVec(vector<T*>& vec, bool arrayDelete = false)
 	}
 
 	vec.clear();
+}
+
+/// <summary>
+/// Determine whether all elements in two containers are equal.
+/// </summary>
+/// <param name="c1">The first collection to compare</param>
+/// <param name="c2">The second collection to compare</param>
+/// <returns>True if the sizes and all elements in both collections are equal, else false.</returns>
+template <typename T>
+static bool Equal(const T& c1, const T& c2)
+{
+	bool equal = c1.size() == c2.size();
+
+	if (equal)
+	{
+		for (auto it1 = c1.begin(), it2 = c2.begin(); it1 != c1.end(); ++it1, ++it2)
+		{
+			if (*it1 != *it2)
+			{
+				equal = false;
+				break;
+			}
+		}
+	}
+
+	return equal;
 }
 
 /// <summary>
@@ -305,15 +337,15 @@ static inline void Memset(vector<T>& vec, int val = 0)
 /// <param name="x">The value to return the floor of</param>
 /// <returns>The floored value</returns>
 template <typename T>
-static inline int Floor(T val)
+static inline intmax_t Floor(T val)
 {
 	if (val >= 0)
 	{
-		return static_cast<int>(val);
+		return static_cast<intmax_t>(val);
 	}
 	else
 	{
-		int i = static_cast<int>(val);//Truncate.
+		intmax_t i = static_cast<intmax_t>(val);//Truncate.
 		return i - (i > val);//Convert trunc to floor.
 	}
 }
@@ -863,24 +895,8 @@ static string GetPath(const string& filename)
 template <typename T>
 static inline T Arg(char* name, T def)
 {
-	T t;
-	return t;
-}
-
-/// <summary>
-/// Template specialization for Arg<>() with a type of int.
-/// </summary>
-/// <param name="name">The name of the environment variable to query</param>
-/// <param name="def">The default value to return if the environment variable was not present</param>
-/// <returns>The value of the specified environment variable if found, else default</returns>
-template <>
-#ifdef _WIN32
-static
-#endif
-int Arg<int>(char* name, int def)
-{
 	char* ch;
-	int returnVal;
+	T returnVal;
 #ifdef WIN32
 	size_t len;
 	errno_t err = _dupenv_s(&ch, &len, name);
@@ -892,27 +908,22 @@ int Arg<int>(char* name, int def)
 	if (err || !ch)
 		returnVal = def;
 	else
-		returnVal = atoi(ch);
+	{
+		T tempVal;
+		istringstream istr(ch);
+
+		istr >> tempVal;
+
+		if (!istr.bad() && !istr.fail())
+			returnVal = tempVal;
+		else
+			returnVal = def;
+	}
 
 #ifdef WIN32
 	free(ch);
 #endif
 	return returnVal;
-}
-
-/// <summary>
-/// Template specialization for Arg<>() with a type of uint.
-/// </summary>
-/// <param name="name">The name of the environment variable to query</param>
-/// <param name="def">The default value to return if the environment variable was not present</param>
-/// <returns>The value of the specified environment variable if found, else default</returns>
-template <>
-#ifdef _WIN32
-static
-#endif
-uint Arg<uint>(char* name, uint def)
-{
-	return Arg<int>(name, static_cast<int>(def));
 }
 
 /// <summary>
@@ -928,39 +939,6 @@ static
 bool Arg<bool>(char* name, bool def)
 {
 	return (Arg<int>(name, -999) != -999) ? true : def;
-}
-
-/// <summary>
-/// Template specialization for Arg<>() with a type of double.
-/// </summary>
-/// <param name="name">The name of the environment variable to query</param>
-/// <param name="def">The default value to return if the environment variable was not present</param>
-/// <returns>The value of the specified environment variable if found, else default</returns>
-template <>
-#ifdef _WIN32
-static
-#endif
-double Arg<double>(char* name, double def)
-{
-	char* ch;
-	double returnVal;
-#ifdef WIN32
-	size_t len;
-	errno_t err = _dupenv_s(&ch, &len, name);
-#else
-	int err = 1;
-	ch = getenv(name);
-#endif
-
-	if (err || !ch)
-		returnVal = def;
-	else
-		returnVal = atof(ch);
-
-#ifdef WIN32
-	free(ch);
-#endif
-	return returnVal;
 }
 
 /// <summary>
@@ -1029,6 +1007,24 @@ static uint FindAndReplace(T& source, const T& find, const T& replace)
 	}
 
 	return replaceCount;
+}
+
+/// <summary>
+/// Split a string into tokens and place them in a vector.
+/// </summary>
+/// <param name="str">The string to split</param>
+/// <param name="del">The delimiter to split the string on</param>
+/// <returns>The split strings, each as an element in a vector.</returns>
+static vector<string> Split(const string& str, char del)
+{
+	string tok;
+	vector<string> vec;
+	stringstream ss(str);
+
+	while (getline(ss, tok, del))
+		vec.push_back(tok);
+
+	return vec;
 }
 
 /// <summary>

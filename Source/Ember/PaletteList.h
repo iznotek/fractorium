@@ -80,7 +80,7 @@ public:
 	Palette<T>* GetRandomPalette()
 	{
 		auto p = m_Palettes.begin();
-		int i = 0, paletteFileIndex = QTIsaac<ISAAC_SIZE, ISAAC_INT>::GlobalRand->Rand() % Size();
+		size_t i = 0, paletteFileIndex = QTIsaac<ISAAC_SIZE, ISAAC_INT>::GlobalRand->Rand() % Size();
 		
 		//Move p forward i elements.
 		while (i < paletteFileIndex && p != m_Palettes.end())
@@ -91,7 +91,7 @@ public:
 
 		if (i < Size())
 		{
-			int paletteIndex = QTIsaac<ISAAC_SIZE, ISAAC_INT>::GlobalRand->Rand() % p->second.size();
+			size_t paletteIndex = QTIsaac<ISAAC_SIZE, ISAAC_INT>::GlobalRand->Rand() % p->second.size();
 
 			if (paletteIndex < p->second.size())
 				return &p->second[paletteIndex];
@@ -106,11 +106,11 @@ public:
 	/// <param name="filename">The filename of the palette to retrieve</param>
 	/// <param name="i">The index of the palette to read. A value of -1 indicates a random palette.</param>
 	/// <returns>A pointer to the requested palette if the index was in range, else nullptr.</returns>
-	Palette<T>* GetPalette(const string& filename, int i)
+	Palette<T>* GetPalette(const string& filename, size_t i)
 	{
 		auto& palettes = m_Palettes[filename];
 
-		if (!palettes.empty() && i < int(palettes.size()))
+		if (!palettes.empty() && i < palettes.size())
 			return &palettes[i];
 
 		return nullptr;
@@ -142,7 +142,7 @@ public:
 	/// <param name="hue">The hue adjustment to apply</param>
 	/// <param name="palette">The palette to store the output</param>
 	/// <returns>True if successful, else false.</returns>
-	bool GetHueAdjustedPalette(const string& filename, int i, T hue, Palette<T>& palette)
+	bool GetHueAdjustedPalette(const string& filename, size_t i, T hue, Palette<T>& palette)
 	{
 		bool b = false;
 

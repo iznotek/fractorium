@@ -293,7 +293,7 @@ template <typename T>
 typename m4T Affine2D<T>::ToMat4ColMajor(bool center) const
 {
 	m4T mat(A(), B(), 0, center ? 0 : C(), //Col0...
-		    D(), E(), 0, center ? 0 : F(), //1
+			D(), E(), 0, center ? 0 : F(), //1
 			  0,   0, 1,			    0, //2
 			  0,   0, 0,			    1);//3
 
@@ -309,7 +309,7 @@ template <typename T>
 typename m4T Affine2D<T>::ToMat4RowMajor(bool center) const
 {
 	m4T mat(A(), D(), 0, 0,
-		    B(), E(), 0, 0,
+			B(), E(), 0, 0,
 			  0,   0, 1, 0,
 			center ? 0 : C(), center ? 0 : F(), 0, 1);
 

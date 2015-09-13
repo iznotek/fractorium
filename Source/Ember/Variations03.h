@@ -277,7 +277,7 @@ public:
 	virtual void Func(IteratorHelper<T>& helper, Point<T>& outPoint, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override
 	{
 		T r = Zeps(pow(helper.m_PrecalcSqrtSumSquares, m_Dist));
-		int n = Floor<T>(m_Power * rand.Frand01<T>());
+		intmax_t n = Floor<T>(m_Power * rand.Frand01<T>());
 		T alpha = helper.m_PrecalcAtanyx + n * M_2PI / Zeps<T>(T(Floor<T>(m_Power)));
 		T sina = sin(alpha);
 		T cosa = cos(alpha);
@@ -2571,7 +2571,7 @@ public:
 
 	virtual void Func(IteratorHelper<T>& helper, Point<T>& outPoint, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override
 	{
-		int n;
+		intmax_t n;
 
 		T z = 4 * m_Dist / m_Power;
 		T r = pow(helper.m_PrecalcSqrtSumSquares, z);

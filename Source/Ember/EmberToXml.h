@@ -104,13 +104,19 @@ public:
 				b = false;
 			}
 		}
-		catch (...)
+		catch (const std::exception& e)
 		{
-			if (f.is_open())
-				f.close();
-
+			cout << "Error: Writing flame " << filename << " failed: " << e.what() << endl;
 			b = false;
 		}
+		catch (...)
+		{
+			cout << "Error: Writing flame " << filename << " failed." << endl;
+			b = false;
+		}
+
+		if (f.is_open())
+			f.close();
 
 		return b;
 	}
@@ -125,7 +131,7 @@ public:
 	/// <param name="intPalette">If true use integers instead of floating point numbers when embedding a non-hex formatted palette, else use floating point numbers.</param>
 	/// <param name="hexPalette">If true, embed a hexadecimal palette instead of Xml Color tags, else use Xml color tags.</param>
 	/// <returns>The Xml string representation of the passed in ember</returns>
-	string ToString(Ember<T>& ember, string extraAttributes, size_t printEditDepth, bool doEdits, bool intPalette, bool hexPalette = true)
+	string ToString(Ember<T>& ember, const string& extraAttributes, size_t printEditDepth, bool doEdits, bool intPalette, bool hexPalette = true)
 	{
 		size_t i, j;
 		string s;
@@ -313,7 +319,7 @@ public:
 	/// <param name="sheepGen">The sheep generation used if > 0. Default: 0.</param>
 	/// <param name="sheepId">The sheep id used if > 0. Default: 0.</param>
 	/// <returns></returns>
-	xmlDocPtr CreateNewEditdoc(Ember<T>* parent0, Ember<T>* parent1, string action, string nick, string url, string id, string comment, int sheepGen = 0, int sheepId = 0)
+	xmlDocPtr CreateNewEditdoc(Ember<T>* parent0, Ember<T>* parent1, const string& action, const string& nick, const string& url, const string& id, const string& comment, intmax_t sheepGen = 0, intmax_t sheepId = 0)
 	{
 		char timeString[128];
 		time_t myTime;
@@ -750,6 +756,7 @@ private:
 		case MOTION_TRIANGLE:
 			os << "\"triangle\"";
 			break;
+		default:
 		case MOTION_SAW:
 			os << "\"saw\"";
 			break;
@@ -761,7 +768,7 @@ private:
 		T cx = 0.0;
 		T cy = 0.0;
 
-		for (int i = 0; i < motion.m_MotionParams.size(); ++i)
+		for (size_t i = 0; i < motion.m_MotionParams.size(); ++i)
 		{
 			switch(motion.m_MotionParams[i].first)
 			{
@@ -815,6 +822,9 @@ private:
 				break;
 			case FLAME_MOTION_VIBRANCY:
 				os << " vibrancy=\"" << motion.m_MotionParams[i].second << "\"";
+				break;
+			case FLAME_MOTION_NONE:
+			default:
 				break;
 			}
 		}

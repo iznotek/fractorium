@@ -11,19 +11,17 @@
 /// </summary>
 /// <param name="fractorium">Pointer to the main window.</param>
 FractoriumEmberControllerBase::FractoriumEmberControllerBase(Fractorium* fractorium)
+	: m_Info(OpenCLInfo::Instance())
 {
 	Timing t;
 
 	m_Rendering = false;
 	m_Shared = true;
-	m_Platform = 0;
-	m_Device = 0;
 	m_FailedRenders = 0;
 	m_UndoIndex = 0;
 	m_RenderType = CPU_RENDERER;
 	m_OutputTexID = 0;
 	m_SubBatchCount = 1;//Will be ovewritten by the options on first render.
-	m_FinalImageIndex = 0;
 	m_Fractorium = fractorium;
 	m_RenderTimer = nullptr;
 	m_RenderRestartTimer = nullptr;

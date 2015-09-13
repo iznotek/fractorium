@@ -240,9 +240,9 @@ void FractoriumEmberController<T>::FillCurvesControl()
 {
 	m_Fractorium->ui.CurvesView->blockSignals(true);
 
-	for (int i = 0; i < 4; i++)
+	for (size_t i = 0; i < 4; i++)
 	{
-		for (int j = 1; j < 3; j++)//Only do middle points.
+		for (size_t j = 1; j < 3; j++)//Only do middle points.
 		{
 			QPointF point(m_Ember.m_Curves.m_Points[i][j].x, m_Ember.m_Curves.m_Points[i][j].y);
 
@@ -280,7 +280,7 @@ void FractoriumEmberController<T>::FillColorWithXform(Xform<T>* xform)
 /// <param name="col">The column of the cell</param>
 void Fractorium::SetPaletteTableItem(QPixmap* pixmap, QTableWidget* table, QTableWidgetItem* item, int row, int col)
 {
-	if (pixmap)
+	if (pixmap && !pixmap->isNull())
 	{
 		QSize size(table->columnWidth(col), table->rowHeight(row) + 1);
 		item->setData(Qt::DecorationRole, pixmap->scaled(size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));

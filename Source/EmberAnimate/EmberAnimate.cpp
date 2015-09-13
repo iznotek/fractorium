@@ -8,10 +8,10 @@
 /// </summary>
 /// <param name="opt">A populated EmberOptions object which specifies all program options to be used</param>
 /// <returns>True if success, else false.</returns>
-template <typename T, typename bucketT>
+template <typename T>
 bool EmberAnimate(EmberOptions& opt)
 {
-	OpenCLWrapper wrapper;
+	OpenCLInfo& info(OpenCLInfo::Instance());
 
 	std::cout.imbue(std::locale(""));
 
@@ -21,53 +21,93 @@ bool EmberAnimate(EmberOptions& opt)
 	if (opt.OpenCLInfo())
 	{
 		cout << "\nOpenCL Info: " << endl;
-		cout << wrapper.DumpInfo();
+		cout << info.DumpInfo();
 		return true;
 	}
 
 	//Regular variables.
 	Timing t;
 	bool unsorted = false;
-	bool startXml = false;
-	bool finishXml = false;
-	bool appendXml = false;
-	uint finalImageIndex = 0;
-	uint i, channels, ftime, padding;
-	string s, flameName, filename, inputPath = GetPath(opt.Input());
-	ostringstream os;
+	uint channels, padding;
+	size_t i;
+	string inputPath = GetPath(opt.Input());
 	vector<Ember<T>> embers;
-	EmberStats stats;
-	EmberReport emberReport;
-	EmberImageComments comments;
-	Ember<T> centerEmber;
 	XmlToEmber<T> parser;
 	EmberToXml<T> emberToXml;
-	vector<byte> finalImages[2];
-	std::thread writeThread;
-	unique_ptr<RenderProgress<T>> progress(new RenderProgress<T>());
-	unique_ptr<Renderer<T, bucketT>> renderer(CreateRenderer<T, bucketT>(opt.EmberCL() ? OPENCL_RENDERER : CPU_RENDERER, opt.Platform(), opt.Device(), false, 0, emberReport));
-	vector<string> errorReport = emberReport.ErrorReport();
+	EmberReport emberReport;
+	const vector<pair<size_t, size_t>> devices = Devices(opt.Devices());
+	std::atomic<size_t> atomfTime;
+	vector<std::thread> threadVec;
+	unique_ptr<RenderProgress<T>> progress;
+	vector<unique_ptr<Renderer<T, float>>> renderers;
+	vector<string> errorReport;
+	CriticalSection verboseCs;
 
-	if (!errorReport.empty())
-		emberReport.DumpErrorReport();
-
-	if (!renderer.get())
+	if (opt.EmberCL())
 	{
-		cout << "Renderer creation failed, exiting." << endl;
-		return false;
+		renderers = CreateRenderers<T>(OPENCL_RENDERER, devices, false, 0, emberReport);
+		errorReport = emberReport.ErrorReport();
+
+		if (!errorReport.empty())
+			emberReport.DumpErrorReport();
+
+		if (!renderers.size() || renderers.size() != devices.size())
+		{
+			cout << "Only created " << renderers.size() << " renderers out of " << devices.size() << " requested, exiting." << endl;
+			return false;
+		}
+
+		if (opt.DoProgress())
+		{
+			progress = unique_ptr<RenderProgress<T>>(new RenderProgress<T>());
+			renderers[0]->Callback(progress.get());
+		}
+
+		cout << "Using OpenCL to render." << endl;
+
+		if (opt.Verbose())
+		{
+			for (auto& device : devices)
+			{
+				cout << "Platform: " << info.PlatformName(device.first) << endl;
+				cout << "Device: " << info.DeviceName(device.first, device.second) << endl;
+			}
+		}
+
+		if (opt.ThreadCount() > 1)
+			cout << "Cannot specify threads with OpenCL, using 1 thread." << endl;
+
+		opt.ThreadCount(1);
+
+		for (auto& r : renderers)
+			r->ThreadCount(opt.ThreadCount(), opt.IsaacSeed() != "" ? opt.IsaacSeed().c_str() : nullptr);
+
+		if (opt.BitsPerChannel() != 8)
+		{
+			cout << "Bits per channel cannot be anything other than 8 with OpenCL, setting to 8." << endl;
+			opt.BitsPerChannel(8);
+		}
 	}
-
-	if (opt.EmberCL() && renderer->RendererType() != OPENCL_RENDERER)//OpenCL init failed, so fall back to CPU.
-		opt.EmberCL(false);
-
-	if (!InitPaletteList<T>(opt.PalettePath()))
-		return false;
-
-	if (!ParseEmberFile(parser, opt.Input(), embers))
-		return false;
-
-	if (!opt.EmberCL())
+	else
 	{
+		unique_ptr<Renderer<T, float>> tempRenderer(CreateRenderer<T>(CPU_RENDERER, devices, false, 0, emberReport));
+		errorReport = emberReport.ErrorReport();
+
+		if (!errorReport.empty())
+			emberReport.DumpErrorReport();
+
+		if (!tempRenderer.get())
+		{
+			cout << "Renderer creation failed, exiting." << endl;
+			return false;
+		}
+
+		if (opt.DoProgress())
+		{
+			progress = unique_ptr<RenderProgress<T>>(new RenderProgress<T>());
+			tempRenderer->Callback(progress.get());
+		}
+
 		if (opt.ThreadCount() == 0)
 		{
 			cout << "Using " << Timing::ProcessorCount() << " automatically detected threads." << endl;
@@ -78,30 +118,15 @@ bool EmberAnimate(EmberOptions& opt)
 			cout << "Using " << opt.ThreadCount() << " manually specified threads." << endl;
 		}
 
-		renderer->ThreadCount(opt.ThreadCount(), opt.IsaacSeed() != "" ? opt.IsaacSeed().c_str() : nullptr);
+		tempRenderer->ThreadCount(opt.ThreadCount(), opt.IsaacSeed() != "" ? opt.IsaacSeed().c_str() : nullptr);
+		renderers.push_back(std::move(tempRenderer));
 	}
-	else
-	{
-		cout << "Using OpenCL to render." << endl;
 
-		if (opt.Verbose())
-		{
-			cout << "Platform: " << wrapper.PlatformName(opt.Platform()) << endl;
-			cout << "Device: " << wrapper.DeviceName(opt.Platform(), opt.Device()) << endl;
-		}
+	if (!InitPaletteList<T>(opt.PalettePath()))
+		return false;
 
-		if (opt.ThreadCount() > 1)
-			cout << "Cannot specify threads with OpenCL, using 1 thread." << endl;
-
-		opt.ThreadCount(1);
-		renderer->ThreadCount(opt.ThreadCount(), opt.IsaacSeed() != "" ? opt.IsaacSeed().c_str() : nullptr);
-
-		if (opt.BitsPerChannel() != 8)
-		{
-			cout << "Bits per channel cannot be anything other than 8 with OpenCL, setting to 8." << endl;
-			opt.BitsPerChannel(8);
-		}
-	}
+	if (!ParseEmberFile(parser, opt.Input(), embers))
+		return false;
 
 	if (opt.Format() != "jpg" &&
 		opt.Format() != "png" &&
@@ -196,7 +221,7 @@ bool EmberAnimate(EmberOptions& opt)
 
 		//Cast to double in case the value exceeds 2^32.
 		double imageMem = double(channels) * double(embers[i].m_FinalRasW)
-			   * double(embers[i].m_FinalRasH) * double(renderer->BytesPerChannel());
+			   * double(embers[i].m_FinalRasH) * double(renderers[0]->BytesPerChannel());
 		double maxMem = pow(2.0, double((sizeof(void*) * 8) - 1));
 
 		if (imageMem > maxMem)//Ensure the max amount of memory for a process isn't exceeded.
@@ -236,128 +261,168 @@ bool EmberAnimate(EmberOptions& opt)
 			opt.FirstFrame(int(embers[0].m_Time));
 
 		if (opt.LastFrame() == UINT_MAX)
-			opt.LastFrame(ClampGte<uint>(uint(embers.back().m_Time - 1), opt.FirstFrame()));
+			opt.LastFrame(ClampGte<size_t>(size_t(embers.back().m_Time - 1), opt.FirstFrame()));
 	}
 
 	if (!opt.Out().empty())
 	{
-		appendXml = true;
-		filename = opt.Out();
-		cout << "Single output file " << opt.Out() << " specified for multiple images. They will be all overwritten and only the last image will remain." << endl;
+		cout << "Single output file " << opt.Out() << " specified for multiple images. They would be all overwritten and only the last image will remain, exiting." << endl;
+		return false;
 	}
 
 	//Final setup steps before running.
-	os.imbue(std::locale(""));
-	padding = uint(log10((double)embers.size())) + 1;
-	renderer->SetEmber(embers);
-	renderer->EarlyClip(opt.EarlyClip());
-	renderer->YAxisUp(opt.YAxisUp());
-	renderer->LockAccum(opt.LockAccum());
-	renderer->InsertPalette(opt.InsertPalette());
-	renderer->PixelAspectRatio(T(opt.AspectRatio()));
-	renderer->Transparency(opt.Transparency());
-	renderer->NumChannels(channels);
-	renderer->BytesPerChannel(opt.BitsPerChannel() / 8);
-	renderer->Priority((eThreadPriority)Clamp<int>((int)eThreadPriority::LOWEST, (int)eThreadPriority::HIGHEST, opt.Priority()));
-	renderer->Callback(opt.DoProgress() ? progress.get() : nullptr);
+	padding = uint(log10(double(embers.size()))) + 1;
 
-	std::function<void(uint)> saveFunc = [&](uint threadVecIndex)
+	for (auto& r : renderers)
+	{
+		r->SetEmber(embers);
+		r->EarlyClip(opt.EarlyClip());
+		r->YAxisUp(opt.YAxisUp());
+		r->LockAccum(opt.LockAccum());
+		r->InsertPalette(opt.InsertPalette());
+		r->PixelAspectRatio(T(opt.AspectRatio()));
+		r->Transparency(opt.Transparency());
+		r->NumChannels(channels);
+		r->BytesPerChannel(opt.BitsPerChannel() / 8);
+		r->Priority(eThreadPriority(Clamp<int>(int(opt.Priority()), int(eThreadPriority::LOWEST), int(eThreadPriority::HIGHEST))));
+	}
+
+	std::function<void (vector<byte>&, string, EmberImageComments, size_t, size_t, size_t)> saveFunc = [&](vector<byte>& finalImage,
+		string filename,//These are copies because this will be launched in a thread.
+		EmberImageComments comments,
+		size_t w,
+		size_t h,
+		size_t chan)
 	{
 		bool writeSuccess = false;
-		byte* finalImagep = finalImages[threadVecIndex].data();
+		byte* finalImagep = finalImage.data();
 
-		if ((opt.Format() == "jpg" || opt.Format() == "bmp") && renderer->NumChannels() == 4)
-			RgbaToRgb(finalImages[threadVecIndex], finalImages[threadVecIndex], renderer->FinalRasW(), renderer->FinalRasH());
+		if ((opt.Format() == "jpg" || opt.Format() == "bmp") && chan == 4)
+			RgbaToRgb(finalImage, finalImage, w, h);
 
 		if (opt.Format() == "png")
-			writeSuccess = WritePng(filename.c_str(), finalImagep, renderer->FinalRasW(), renderer->FinalRasH(), opt.BitsPerChannel() / 8, opt.PngComments(), comments, opt.Id(), opt.Url(), opt.Nick());
+			writeSuccess = WritePng(filename.c_str(), finalImagep, w, h, opt.BitsPerChannel() / 8, opt.PngComments(), comments, opt.Id(), opt.Url(), opt.Nick());
 		else if (opt.Format() == "jpg")
-			writeSuccess = WriteJpeg(filename.c_str(), finalImagep, renderer->FinalRasW(), renderer->FinalRasH(), opt.JpegQuality(), opt.JpegComments(), comments, opt.Id(), opt.Url(), opt.Nick());
+			writeSuccess = WriteJpeg(filename.c_str(), finalImagep, w, h, int(opt.JpegQuality()), opt.JpegComments(), comments, opt.Id(), opt.Url(), opt.Nick());
 		else if (opt.Format() == "ppm")
-			writeSuccess = WritePpm(filename.c_str(), finalImagep, renderer->FinalRasW(), renderer->FinalRasH());
+			writeSuccess = WritePpm(filename.c_str(), finalImagep, w, h);
 		else if (opt.Format() == "bmp")
-			writeSuccess = WriteBmp(filename.c_str(), finalImagep, renderer->FinalRasW(), renderer->FinalRasH());
+			writeSuccess = WriteBmp(filename.c_str(), finalImagep, w, h);
 
 		if (!writeSuccess)
-			cout << "Error writing " << filename << endl;/**/
+			cout << "Error writing " << filename << endl;
 	};
+	
+	atomfTime.store(opt.FirstFrame());
 
-	//Begin run.
-	for (ftime = opt.FirstFrame(); ftime <= opt.LastFrame(); ftime += opt.Dtime())
+	std::function<void(size_t)> iterFunc = [&](size_t index)
 	{
-		T localTime = T(ftime);
+		size_t ftime, finalImageIndex = 0;
+		string filename, flameName;
+		RendererBase* renderer = renderers[index].get();
+		ostringstream fnstream, os;
+		EmberStats stats;
+		EmberImageComments comments;
+		Ember<T> centerEmber;
+		vector<byte> finalImages[2];
+		std::thread writeThread;
 
-		if ((opt.LastFrame() - opt.FirstFrame()) / opt.Dtime() >= 1)
-			VerbosePrint("Time = " << ftime << " / " << opt.LastFrame() << " / " << opt.Dtime());
+		os.imbue(std::locale(""));
 
-		renderer->Reset();
-
-		if ((renderer->Run(finalImages[finalImageIndex], localTime) != RENDER_OK) || renderer->Aborted() || finalImages[finalImageIndex].empty())
+		while (atomfTime.fetch_add(opt.Dtime()), ((ftime = atomfTime.load()) <= opt.LastFrame()))
 		{
-			cout << "Error: image rendering failed, skipping to next image." << endl;
-			renderer->DumpErrorReport();//Something went wrong, print errors.
-			continue;
-		}
+			T localTime = T(ftime) - 1;
 
-		if (opt.Out().empty())
-		{
-			ostringstream fnstream;
+			if (opt.Verbose() && ((opt.LastFrame() - opt.FirstFrame()) / opt.Dtime() >= 1))
+			{
+				verboseCs.Enter();
+				cout << "Time = " << ftime << " / " << opt.LastFrame() << " / " << opt.Dtime() << endl;
+				verboseCs.Leave();
+			}
+
+			renderer->Reset();
+
+			if ((renderer->Run(finalImages[finalImageIndex], localTime) != RENDER_OK) || renderer->Aborted() || finalImages[finalImageIndex].empty())
+			{
+				cout << "Error: image rendering failed, skipping to next image." << endl;
+				renderer->DumpErrorReport();//Something went wrong, print errors.
+				atomfTime.store(opt.LastFrame() + 1);//Abort all threads if any of them encounter an error.
+				break;
+			}
 
 			fnstream << inputPath << opt.Prefix() << setfill('0') << setw(padding) << ftime << opt.Suffix() << "." << opt.Format();
 			filename = fnstream.str();
-		}
+			fnstream.str("");
 
-		if (opt.WriteGenome())
-		{
-			flameName = filename.substr(0, filename.find_last_of('.')) + ".flam3";
-			VerbosePrint("Writing " + flameName);
-			Interpolater<T>::Interpolate(embers, localTime, 0, centerEmber);//Get center flame.
-
-			if (appendXml)
+			if (opt.WriteGenome())
 			{
-				startXml = ftime == opt.FirstFrame();
-				finishXml = ftime == opt.LastFrame();
+				flameName = filename.substr(0, filename.find_last_of('.')) + ".flam3";
+
+				if (opt.Verbose())
+				{
+					verboseCs.Enter();
+					cout << "Writing " << flameName << endl;
+					verboseCs.Leave();
+				}
+
+				Interpolater<T>::Interpolate(embers, localTime, 0, centerEmber);//Get center flame.
+				emberToXml.Save(flameName, centerEmber, opt.PrintEditDepth(), true, opt.IntPalette(), opt.HexPalette(), true, false, false);
+				centerEmber.Clear();
 			}
 
-			emberToXml.Save(flameName, centerEmber, opt.PrintEditDepth(), true, opt.IntPalette(), opt.HexPalette(), true, startXml, finishXml);
+			stats = renderer->Stats();
+			comments = renderer->ImageComments(stats, opt.PrintEditDepth(), opt.IntPalette(), opt.HexPalette());
+			os.str("");
+			size_t iterCount = renderer->TotalIterCount(1);
+			os << comments.m_NumIters << " / " << iterCount << " (" << std::fixed << std::setprecision(2) << ((double(stats.m_Iters) / double(iterCount)) * 100) << "%)";
+
+			if (opt.Verbose())
+			{
+				verboseCs.Enter();
+				cout << "\nIters ran/requested: " + os.str() << endl;
+				if (!opt.EmberCL()) cout << "Bad values: " << stats.m_Badvals << endl;
+				cout << "Render time: " << t.Format(stats.m_RenderMs) << endl;
+				cout << "Pure iter time: " << t.Format(stats.m_IterMs) << endl;
+				cout << "Iters/sec: " << size_t(stats.m_Iters / (stats.m_IterMs / 1000.0)) << endl;
+				cout << "Writing " << filename << endl << endl;
+				verboseCs.Leave();
+			}
+
+			//Run image writing in a thread. Although doing it this way duplicates the final output memory, it saves a lot of time
+			//when running with OpenCL. Call join() to ensure the previous thread call has completed.
+			if (writeThread.joinable())
+				writeThread.join();
+
+			auto threadVecIndex = finalImageIndex;//Cache before launching thread.
+
+			if (opt.ThreadedWrite())//Copies are passed of all but the first parameter to saveFunc(), to avoid conflicting with those values changing when starting the render for the next image.
+			{
+				writeThread = std::thread(saveFunc, std::ref(finalImages[threadVecIndex]), filename, comments, renderer->FinalRasW(), renderer->FinalRasH(), renderer->NumChannels());
+				finalImageIndex ^= 1;//Toggle the index.
+			}
+			else
+				saveFunc(finalImages[threadVecIndex], filename, comments, renderer->FinalRasW(), renderer->FinalRasH(), renderer->NumChannels());//Will always use the first index, thereby not requiring more memory.
 		}
 
-		stats = renderer->Stats();
-		comments = renderer->ImageComments(stats, opt.PrintEditDepth(), opt.IntPalette(), opt.HexPalette());
-		os.str("");
-		size_t iterCount = renderer->TotalIterCount(1);
-		os << comments.m_NumIters << " / " << iterCount << " (" << std::fixed << std::setprecision(2) << ((double(stats.m_Iters) / double(iterCount)) * 100) << "%)";
-
-		VerbosePrint("\nIters ran/requested: " + os.str());
-		VerbosePrint("Bad values: " << stats.m_Badvals);
-		VerbosePrint("Render time: " + t.Format(stats.m_RenderMs));
-		VerbosePrint("Pure iter time: " + t.Format(stats.m_IterMs));
-		VerbosePrint("Iters/sec: " << size_t(stats.m_Iters / (stats.m_IterMs / 1000.0)) << endl);
-		VerbosePrint("Writing " + filename);
-
-		//Run image writing in a thread. Although doing it this way duplicates the final output memory, it saves a lot of time
-		//when running with OpenCL. Call join() to ensure the previous thread call has completed.
-		if (writeThread.joinable())
+		if (writeThread.joinable())//One final check to make sure all writing is done before exiting this thread.
 			writeThread.join();
+	};
 
-		uint threadVecIndex = finalImageIndex;//Cache before launching thread.
+	threadVec.reserve(renderers.size());
 
-		if (opt.ThreadedWrite())
-			writeThread = std::thread(saveFunc, threadVecIndex);
-		else
-			saveFunc(threadVecIndex);
-
-		centerEmber.Clear();
-		finalImageIndex ^= 1;//Toggle the index.
+	for (size_t r = 0; r < renderers.size(); r++)
+	{
+		threadVec.push_back(std::thread([&](size_t dev)
+		{
+			iterFunc(dev);
+		}, r));
 	}
 
-	if (writeThread.joinable())
-		writeThread.join();
+	for (auto& th : threadVec)
+		if (th.joinable())
+			th.join();
 
-	VerbosePrint("Done.\n");
-
-	if (opt.Verbose())
-		t.Toc("\nTotal time: ", true);
+	t.Toc("\nFinished in: ", true);
 
 	return true;
 }
@@ -387,18 +452,18 @@ int _tmain(int argc, _TCHAR* argv[])
 #ifdef DO_DOUBLE
 		if (opt.Bits() == 64)
 		{
-			b = EmberAnimate<double, float>(opt);
+			b = EmberAnimate<double>(opt);
 		}
 		else
 #endif
 		if (opt.Bits() == 33)
 		{
-			b = EmberAnimate<float, float>(opt);
+			b = EmberAnimate<float>(opt);
 		}
 		else if (opt.Bits() == 32)
 		{
 			cout << "Bits 32/int histogram no longer supported. Using bits == 33 (float)." << endl;
-			b = EmberAnimate<float, float>(opt);
+			b = EmberAnimate<float>(opt);
 		}
 	}
 

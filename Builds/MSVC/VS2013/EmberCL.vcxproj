@@ -235,6 +235,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <StringPooling>true</StringPooling>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -298,8 +299,10 @@
     <ClCompile Include="..\..\..\Source\EmberCL\FinalAccumOpenCLKernelCreator.cpp" />
     <ClCompile Include="..\..\..\Source\EmberCL\DEOpenCLKernelCreator.cpp" />
     <ClCompile Include="..\..\..\Source\EmberCL\IterOpenCLKernelCreator.cpp" />
+    <ClCompile Include="..\..\..\Source\EmberCL\OpenCLInfo.cpp" />
     <ClCompile Include="..\..\..\Source\EmberCL\OpenCLWrapper.cpp" />
     <ClCompile Include="..\..\..\Source\EmberCL\RendererCL.cpp" />
+    <ClCompile Include="..\..\..\Source\EmberCL\RendererClDevice.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\EmberCL\EmberCLFunctions.h" />
@@ -307,9 +310,11 @@
     <ClInclude Include="..\..\..\Source\EmberCL\DEOpenCLKernelCreator.h" />
     <ClInclude Include="..\..\..\Source\EmberCL\FinalAccumOpenCLKernelCreator.h" />
     <ClInclude Include="..\..\..\Source\EmberCL\IterOpenCLKernelCreator.h" />
+    <ClInclude Include="..\..\..\Source\EmberCL\OpenCLInfo.h" />
     <ClInclude Include="..\..\..\Source\EmberCL\OpenCLWrapper.h" />
     <ClInclude Include="..\..\..\Source\EmberCL\RendererCL.h" />
     <ClInclude Include="..\..\..\Source\EmberCL\EmberCLPch.h" />
+    <ClInclude Include="..\..\..\Source\EmberCL\RendererClDevice.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

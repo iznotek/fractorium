@@ -151,6 +151,7 @@ public:
 	/// </summary>
 	/// <param name="color">The Color object to copy</param>
 	Color(const Color<T>& color)
+		: v4T()
 	{
 		Color<T>::operator=<T>(color);
 	}

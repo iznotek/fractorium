@@ -15,7 +15,9 @@ IterOpenCLKernelCreator<T>::IterOpenCLKernelCreator()
 {
 	m_IterEntryPoint = "IterateKernel";
 	m_ZeroizeEntryPoint = "ZeroizeKernel";
+	m_SumHistEntryPoint = "SumHisteKernel";
 	m_ZeroizeKernel = CreateZeroizeKernelString();
+	m_SumHistKernel = CreateSumHistKernelString();
 }
 
 /// <summary>
@@ -24,6 +26,8 @@ IterOpenCLKernelCreator<T>::IterOpenCLKernelCreator()
 
 template <typename T> const string& IterOpenCLKernelCreator<T>::ZeroizeKernel() const { return m_ZeroizeKernel; }
 template <typename T> const string& IterOpenCLKernelCreator<T>::ZeroizeEntryPoint() const { return m_ZeroizeEntryPoint; }
+template <typename T> const string& IterOpenCLKernelCreator<T>::SumHistKernel() const { return m_SumHistKernel; }
+template <typename T> const string& IterOpenCLKernelCreator<T>::SumHistEntryPoint() const { return m_SumHistEntryPoint; }
 template <typename T> const string& IterOpenCLKernelCreator<T>::IterEntryPoint() const { return m_IterEntryPoint; }
 
 /// <summary>
@@ -696,6 +700,30 @@ string IterOpenCLKernelCreator<T>::CreateZeroizeKernelString()
 		"		return;\n"
 		"\n"
 		"	buffer[(GLOBAL_ID_Y * width) + GLOBAL_ID_X] = 0;\n"//Can't use INDEX_IN_GRID_2D here because the grid might be larger than the buffer to make even dimensions.
+		"	barrier(CLK_GLOBAL_MEM_FENCE);\n"//Just to be safe.
+		"}\n"
+		"\n";
+
+	return os.str();
+}
+
+template <typename T>
+string IterOpenCLKernelCreator<T>::CreateSumHistKernelString()
+{
+	ostringstream os;
+
+	os <<
+		ConstantDefinesString(typeid(T) == typeid(double)) <<//Double precision doesn't matter here since it's not used.
+		"__kernel void " << m_SumHistEntryPoint << "(__global real4_bucket* source, __global real4_bucket* dest, uint width, uint height, uint clear)\n"
+		"{\n"
+		"	if (GLOBAL_ID_X >= width || GLOBAL_ID_Y >= height)\n"
+		"		return;\n"
+		"\n"
+		"	dest[(GLOBAL_ID_Y * width) + GLOBAL_ID_X] += source[(GLOBAL_ID_Y * width) + GLOBAL_ID_X];\n"//Can't use INDEX_IN_GRID_2D here because the grid might be larger than the buffer to make even dimensions.
+		"\n"
+		"	if (clear)\n"
+		"		source[(GLOBAL_ID_Y * width) + GLOBAL_ID_X] = 0;\n"
+		"\n"
 		"	barrier(CLK_GLOBAL_MEM_FENCE);\n"//Just to be safe.
 		"}\n"
 		"\n";

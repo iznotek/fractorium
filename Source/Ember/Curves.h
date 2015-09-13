@@ -69,7 +69,7 @@ public:
 	template <typename U>
 	Curves<T>& operator = (const Curves<U>& curves)
 	{
-		for (uint i = 0; i < 4; i++)
+		for (size_t i = 0; i < 4; i++)
 		{
 			m_Points[i][0].x = T(curves.m_Points[i][0].x); m_Points[i][0].y = T(curves.m_Points[i][0].y); m_Weights[i].x = T(curves.m_Weights[i].x);
 			m_Points[i][1].x = T(curves.m_Points[i][1].x); m_Points[i][1].y = T(curves.m_Points[i][1].y); m_Weights[i].y = T(curves.m_Weights[i].y);
@@ -87,7 +87,7 @@ public:
 	/// <returns>Reference to updated self</returns>
 	Curves<T>& operator += (const Curves<T>& curves)
 	{
-		for (uint i = 0; i < 4; i++)
+		for (size_t i = 0; i < 4; i++)
 		{
 			m_Points[i][0] += curves.m_Points[i][0];
 			m_Points[i][1] += curves.m_Points[i][1];
@@ -107,7 +107,7 @@ public:
 	/// <returns>Reference to updated self</returns>
 	Curves<T>& operator *= (const Curves<T>& curves)
 	{
-		for (uint i = 0; i < 4; i++)
+		for (size_t i = 0; i < 4; i++)
 		{
 			m_Points[i][0] *= curves.m_Points[i][0];
 			m_Points[i][1] *= curves.m_Points[i][1];
@@ -127,7 +127,7 @@ public:
 	/// <returns>Reference to updated self</returns>
 	Curves<T>& operator *= (const T& t)
 	{
-		for (uint i = 0; i < 4; i++)
+		for (size_t i = 0; i < 4; i++)
 		{
 			m_Points[i][0] *= t;
 			m_Points[i][1] *= t;
@@ -145,7 +145,7 @@ public:
 	/// </summary>
 	void Init()
 	{
-		for (uint i = 0; i < 4; i++)
+		for (size_t i = 0; i < 4; i++)
 		{
 			m_Points[i][0] = v2T(0);//0,0 -> 0,0 -> 1,1 -> 1,1.
 			m_Points[i][1] = v2T(0);
@@ -173,7 +173,7 @@ public:
 	{
 		bool set = false;
 
-		for (uint i = 0; i < 4; i++)
+		for (size_t i = 0; i < 4; i++)
 		{
 			if ((m_Points[i][0] != v2T(0)) ||
 				(m_Points[i][1] != v2T(0)) ||
@@ -257,7 +257,7 @@ Curves<T> operator * (const Curves<T>& curves, const T& t)
 {
 	Curves<T> c(curves);
 
-	for (uint i = 0; i < 4; i++)
+	for (size_t i = 0; i < 4; i++)
 	{
 		c.m_Points[i][0] *= t;
 		c.m_Points[i][1] *= t;

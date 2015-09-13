@@ -65,8 +65,6 @@ public:
 	QString Prefix();
 	QString Suffix();
 	uint Current();
-	uint PlatformIndex();
-	uint DeviceIndex();
 	uint ThreadCount();
 	int ThreadPriority();
 	double WidthScale();
@@ -75,6 +73,7 @@ public:
 	uint TemporalSamples();
 	uint Supersample();
 	uint Strips();
+	QList<QVariant> Devices();
 	FinalRenderGuiState State();
 
 public slots:
@@ -86,22 +85,23 @@ public slots:
 	void OnDoublePrecisionCheckBoxStateChanged(int state);
 	void OnDoAllCheckBoxStateChanged(int state);
 	void OnDoSequenceCheckBoxStateChanged(int state);
-	void OnFinalRenderCurrentSpinChanged(int d);
-	void OnPlatformComboCurrentIndexChanged(int index);
+	void OnCurrentSpinChanged(int d);
 	void OnApplyAllCheckBoxStateChanged(int state);
-	void OnFinalRenderWidthScaleChanged(double d);
-	void OnFinalRenderHeightScaleChanged(double d);
+	void OnWidthScaleChanged(double d);
+	void OnHeightScaleChanged(double d);
 	void OnKeepAspectCheckBoxStateChanged(int state);
 	void OnScaleRadioButtonChanged(bool checked);
+	void OnDeviceTableCellChanged(int row, int col);
+	void OnDeviceTableRadioToggled(bool checked);
 	void OnQualityChanged(double d);
 	void OnTemporalSamplesChanged(int d);
 	void OnSupersampleChanged(int d);
 	void OnStripsChanged(int d);
 	void OnFileButtonClicked(bool checked);
 	void OnShowFolderButtonClicked(bool checked);
-	void OnFinalRenderExtIndexChanged(int d);
-	void OnFinalRenderPrefixChanged(const QString& s);
-	void OnFinalRenderSuffixChanged(const QString& s);
+	void OnExtIndexChanged(int d);
+	void OnPrefixChanged(const QString& s);
+	void OnSuffixChanged(const QString& s);
 	void OnRenderClicked(bool checked);
 	void OnCancelRenderClicked(bool checked);
 	virtual void reject() override;
@@ -116,7 +116,6 @@ private:
 	int m_MemoryCellIndex;
 	int m_ItersCellIndex;
 	int m_PathCellIndex;
-	OpenCLWrapper m_Wrapper;
 	Timing m_RenderTimer;
 	DoubleSpinBox* m_WidthScaleSpin;
 	DoubleSpinBox* m_HeightScaleSpin;
@@ -129,6 +128,8 @@ private:
 	QLineEdit* m_SuffixEdit;
 	FractoriumSettings* m_Settings;
 	Fractorium* m_Fractorium;
+	OpenCLInfo& m_Info;
+	vector<OpenCLWrapper> m_Wrappers;
 	unique_ptr<FinalRenderEmberControllerBase> m_Controller;
 	Ui::FinalRenderDialog ui;
 };

@@ -369,7 +369,7 @@ private:
 	void ShutdownAndRecreateFromOptions();
 	bool CreateRendererFromOptions();
 	bool CreateControllerFromOptions();
-	
+
 	//Dialogs.
 	QStringList SetupOpenXmlDialog();
 	QString SetupSaveXmlDialog(const QString& defaultFilename);
@@ -495,7 +495,7 @@ private:
 	int m_VarSortMode;
 	int m_PaletteSortMode;
 	int m_PreviousPaletteRow;
-	OpenCLWrapper m_Wrapper;
+	OpenCLInfo& m_Info;
 	unique_ptr<FractoriumEmberControllerBase> m_Controller;
 	Ui::FractoriumClass ui;
 };

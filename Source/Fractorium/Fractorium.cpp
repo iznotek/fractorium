@@ -14,7 +14,8 @@
 /// </summary>
 /// <param name="p">The parent widget of this item</param>
 Fractorium::Fractorium(QWidget* p)
-	: QMainWindow(p)
+	: QMainWindow(p),
+	m_Info(OpenCLInfo::Instance())
 {
 	int spinHeight = 20, iconSize_ = 9;
 	size_t i = 0;
@@ -58,9 +59,6 @@ Fractorium::Fractorium(QWidget* p)
 	const QRect screen = QApplication::desktop()->screenGeometry();
 	m_AboutDialog->move(screen.center() - m_AboutDialog->rect().center());
 
-	//The options dialog should be a fixed size without a size grip, however even if it's here, it still shows up. Perhaps Qt will fix it some day.
-	m_OptionsDialog->layout()->setSizeConstraint(QLayout::SetFixedSize);
-	m_OptionsDialog->setSizeGripEnabled(false);
 	connect(m_ColorDialog, SIGNAL(colorSelected(const QColor&)), this, SLOT(OnColorSelected(const QColor&)), Qt::QueuedConnection);
 	
 	m_XformComboColors[i++] = QColor(0XFF, 0X00, 0X00);
@@ -119,8 +117,8 @@ Fractorium::Fractorium(QWidget* p)
 	m_Controller->SetupVariationTree();
 	m_Controller->FilteredVariations();
 
-	if (m_Wrapper.CheckOpenCL() && m_Settings->OpenCL() && m_QualitySpin->value() < 30)
-		m_QualitySpin->setValue(30);
+	if (m_Info.Ok() && m_Settings->OpenCL() && m_QualitySpin->value() < (30 * m_Settings->Devices().size()))
+		m_QualitySpin->setValue(30 * m_Settings->Devices().size());
 
 	int statusBarHeight = 20 * devicePixelRatio();
 	ui.statusBar->setMinimumHeight(statusBarHeight);

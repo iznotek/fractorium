@@ -240,7 +240,7 @@ void FractoriumEmberController<T>::EmberTreeItemChanged(QTreeWidgetItem* item, i
 			}
 		}
 	}
-	catch(std::exception& e)
+	catch(const std::exception& e)
 	{
 		qDebug() << "FractoriumEmberController<T>::EmberTreeItemChanged() : Exception thrown: " << e.what();
 	}

@@ -36,6 +36,7 @@ public:
 	/// </summary>
 	/// <param name="other">The MotionParam object to copy</param>
 	MotionParam(const MotionParam<T>& other)
+		: pair <eEmberMotionParam, T>()
 	{
 		operator=<T>(other);
 	}
@@ -70,8 +71,8 @@ public:
 	template <typename U>
 	MotionParam &operator = (const MotionParam<U>& other)
 	{
-        this->first = other.first;
-        this->second = T(other.second);
+		this->first = other.first;
+		this->second = T(other.second);
 
 		return *this;
 	}

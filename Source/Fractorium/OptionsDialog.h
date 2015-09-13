@@ -28,7 +28,8 @@ public:
 
 public slots:
 	void OnOpenCLCheckBoxStateChanged(int state);
-	void OnPlatformComboCurrentIndexChanged(int index);
+	void OnDeviceTableCellChanged(int row, int col);
+	void OnDeviceTableRadioToggled(bool checked);
 	virtual void accept() override;
 	virtual void reject() override;
 
@@ -45,14 +46,12 @@ private:
 	bool Double();
 	bool ShowAllXforms();
 	bool AutoUnique();
-	uint PlatformIndex();
-	uint DeviceIndex();
 	uint ThreadCount();
 	void DataToGui();
 	void GuiToData();
 
 	Ui::OptionsDialog ui;
-	OpenCLWrapper m_Wrapper;
+	OpenCLInfo& m_Info;
 	SpinBox* m_XmlTemporalSamplesSpin;
 	SpinBox* m_XmlQualitySpin;
 	SpinBox* m_XmlSupersampleSpin;

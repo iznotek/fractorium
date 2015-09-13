@@ -19,13 +19,13 @@ void Fractorium::InitMenusUI()
 	connect(ui.ActionExit,						  SIGNAL(triggered(bool)), this, SLOT(OnActionExit(bool)),						  Qt::QueuedConnection);
 
 	//Edit menu.
-	connect(ui.ActionUndo,			 SIGNAL(triggered(bool)), this, SLOT(OnActionUndo(bool)),			Qt::QueuedConnection);
-	connect(ui.ActionRedo,			 SIGNAL(triggered(bool)), this, SLOT(OnActionRedo(bool)),			Qt::QueuedConnection);
-	connect(ui.ActionCopyXml,		 SIGNAL(triggered(bool)), this, SLOT(OnActionCopyXml(bool)),		Qt::QueuedConnection);
-	connect(ui.ActionCopyAllXml,	 SIGNAL(triggered(bool)), this, SLOT(OnActionCopyAllXml(bool)),		Qt::QueuedConnection);
-	connect(ui.ActionPasteXmlAppend, SIGNAL(triggered(bool)), this, SLOT(OnActionPasteXmlAppend(bool)),	Qt::QueuedConnection);
-	connect(ui.ActionPasteXmlOver,	 SIGNAL(triggered(bool)), this, SLOT(OnActionPasteXmlOver(bool)),	Qt::QueuedConnection);
-	connect(ui.ActionCopySelectedXforms, SIGNAL(triggered(bool)), this, SLOT(OnActionCopySelectedXforms(bool)), Qt::QueuedConnection);
+	connect(ui.ActionUndo,				  SIGNAL(triggered(bool)), this, SLOT(OnActionUndo(bool)),				  Qt::QueuedConnection);
+	connect(ui.ActionRedo,				  SIGNAL(triggered(bool)), this, SLOT(OnActionRedo(bool)),				  Qt::QueuedConnection);
+	connect(ui.ActionCopyXml,			  SIGNAL(triggered(bool)), this, SLOT(OnActionCopyXml(bool)),			  Qt::QueuedConnection);
+	connect(ui.ActionCopyAllXml,		  SIGNAL(triggered(bool)), this, SLOT(OnActionCopyAllXml(bool)),		  Qt::QueuedConnection);
+	connect(ui.ActionPasteXmlAppend,	  SIGNAL(triggered(bool)), this, SLOT(OnActionPasteXmlAppend(bool)),	  Qt::QueuedConnection);
+	connect(ui.ActionPasteXmlOver,		  SIGNAL(triggered(bool)), this, SLOT(OnActionPasteXmlOver(bool)),		  Qt::QueuedConnection);
+	connect(ui.ActionCopySelectedXforms,  SIGNAL(triggered(bool)), this, SLOT(OnActionCopySelectedXforms(bool)),  Qt::QueuedConnection);
 	connect(ui.ActionPasteSelectedXforms, SIGNAL(triggered(bool)), this, SLOT(OnActionPasteSelectedXforms(bool)), Qt::QueuedConnection);
 	ui.ActionPasteSelectedXforms->setEnabled(false);
 
@@ -54,7 +54,7 @@ void Fractorium::InitMenusUI()
 /// </summary>
 /// <param name="count">The number of embers to include in the flock</param>
 template <typename T>
-void FractoriumEmberController<T>::NewFlock(uint count)
+void FractoriumEmberController<T>::NewFlock(size_t count)
 {
 	Ember<T> ember;
 
@@ -63,12 +63,12 @@ void FractoriumEmberController<T>::NewFlock(uint count)
 	m_EmberFile.m_Embers.reserve(count);
 	m_EmberFile.m_Filename = EmberFile<T>::DefaultFilename();
 
-	for (uint i = 0; i < count; i++)
+	for (size_t i = 0; i < count; i++)
 	{
-		m_SheepTools->Random(ember, m_FilteredVariations, static_cast<int>(QTIsaac<ISAAC_SIZE, ISAAC_INT>::GlobalRand->Frand<T>(-2, 2)), 0);
+		m_SheepTools->Random(ember, m_FilteredVariations, static_cast<intmax_t>(QTIsaac<ISAAC_SIZE, ISAAC_INT>::GlobalRand->Frand<T>(-2, 2)), 0);
 		ParamsToEmber(ember);
 		ember.m_Index = i;
-		ember.m_Name = m_EmberFile.m_Filename.toStdString() + "-" + ToString(i + 1).toStdString();
+		ember.m_Name = m_EmberFile.m_Filename.toStdString() + "-" + ToString(i + 1ULL).toStdString();
 		m_EmberFile.m_Embers.push_back(ember);
 	}
 
@@ -353,8 +353,22 @@ void Fractorium::OnActionSaveEntireFileAsXml(bool checked) { m_Controller->SaveE
 void Fractorium::OnActionSaveCurrentScreen(bool checked)
 {
 	QString filename = SetupSaveImageDialog(m_Controller->Name());
+	auto renderer = m_Controller->Renderer();
+	auto& pixels = *m_Controller->FinalImage();
+	RendererCLBase* rendererCL = dynamic_cast<RendererCLBase*>(m_Controller->Renderer());
+	auto stats = m_Controller->Stats();
+	EmberImageComments comments = renderer->ImageComments(stats, 0, false, true);
 
-	m_Controller->SaveCurrentRender(filename, true);
+	if (rendererCL && renderer->PrepFinalAccumVector(pixels))
+	{
+		if (!rendererCL->ReadFinal(pixels.data()))
+		{
+			ShowCritical("GPU Read Error", "Could not read image from the GPU, aborting image save.", false);
+			return;
+		}
+	}
+
+	m_Controller->SaveCurrentRender(filename, comments, pixels, renderer->FinalRasW(), renderer->FinalRasH(), renderer->NumChannels(), renderer->BytesPerChannel());
 }
 
 /// <summary>

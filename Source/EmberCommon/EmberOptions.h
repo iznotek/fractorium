@@ -56,9 +56,7 @@ enum eOptionIDs
 	OPT_DUMP_KERNEL,
 
 	//Value args.
-	OPT_OPENCL_PLATFORM,//Int value args.
-	OPT_OPENCL_DEVICE,
-	OPT_SEED,
+	OPT_SEED,//Int value args.
 	OPT_NTHREADS,
 	OPT_STRIPS,
 	OPT_SUPERSAMPLE,
@@ -94,7 +92,8 @@ enum eOptionIDs
 	OPT_USEMEM,
 	OPT_LOOPS,
 
-	OPT_ISAAC_SEED,//String value args.
+	OPT_OPENCL_DEVICE,//String value args.
+	OPT_ISAAC_SEED,
 	OPT_IN,
 	OPT_OUT,
 	OPT_PREFIX,
@@ -158,7 +157,7 @@ public:
 	/// <param name="defaultVal">The default value to use the option was not given on the command line</param>
 	/// <param name="argType">The format the argument should be given in</param>
 	/// <param name="docString">The documentation string describing what the argument means</param>
-	EmberOptionEntry(eOptionUse optUsage, eOptionIDs optId, const CharT* arg, T defaultVal, ESOArgType argType, string docString)
+	EmberOptionEntry(eOptionUse optUsage, eOptionIDs optId, const CharT* arg, T defaultVal, ESOArgType argType, const string& docString)
 	{
 		m_OptionUse = optUsage;
 		m_Option.nId = int(optId);
@@ -235,25 +234,25 @@ private:
 		break
 
 //Int.
-#define Eoi EmberOptionEntry<int>
+#define Eoi EmberOptionEntry<intmax_t>
 #define INITINTOPTION(member, option) \
 		member = option; \
 		m_IntArgs.push_back(&member)
 
 #define PARSEINTOPTION(opt, member) \
 	case (opt): \
-		sscanf_s(args.OptionArg(), "%d", &member.m_Val); \
+		sscanf_s(args.OptionArg(), "%ld", &member.m_Val); \
 		break
 
 //Uint.
-#define Eou EmberOptionEntry<uint>
+#define Eou EmberOptionEntry<size_t>
 #define INITUINTOPTION(member, option) \
 		member = option; \
 		m_UintArgs.push_back(&member)
 
 #define PARSEUINTOPTION(opt, member) \
 	case (opt): \
-		sscanf_s(args.OptionArg(), "%u", &member.m_Val); \
+		sscanf_s(args.OptionArg(), "%lu", &member.m_Val); \
 		break
 
 //Double.
@@ -318,7 +317,7 @@ public:
 		INITBOOLOPTION(JpegComments,   Eob(OPT_RENDER_ANIM, OPT_JPEG_COMMENTS,	  _T("--enable_jpeg_comments"), true,				  SO_OPT,	  "\t--enable_jpeg_comments   Enables comments in the jpeg header [default: true].\n"));
 		INITBOOLOPTION(PngComments,    Eob(OPT_RENDER_ANIM, OPT_PNG_COMMENTS,	  _T("--enable_png_comments"),  true,				  SO_OPT,	  "\t--enable_png_comments    Enables comments in the png header [default: true].\n"));
 		INITBOOLOPTION(WriteGenome,    Eob(OPT_USE_ANIMATE, OPT_WRITE_GENOME,     _T("--write_genome"),         false,                SO_NONE,    "\t--write_genome           Write out flame associated with center of motion blur window [default: false].\n"));
-		INITBOOLOPTION(ThreadedWrite,  Eob(OPT_RENDER_ANIM, OPT_THREADED_WRITE,	  _T("--threaded_write"),		true,				  SO_OPT,	  "\t--threaded_write         Use a separate thread to write images to disk. This doubles the memory required for the final output buffer. [default: true].\n"));
+		INITBOOLOPTION(ThreadedWrite,  Eob(OPT_RENDER_ANIM, OPT_THREADED_WRITE,	  _T("--threaded_write"),		true,				  SO_OPT,	  "\t--threaded_write         Use a separate thread to write images to disk. This gives better performance, but doubles the memory required for the final output buffer. [default: true].\n"));
 		INITBOOLOPTION(Enclosed,	   Eob(OPT_USE_GENOME,  OPT_ENCLOSED,		  _T("--enclosed"),				true,				  SO_OPT,	  "\t--enclosed               Use enclosing XML tags [default: true].\n"));
 		INITBOOLOPTION(NoEdits,        Eob(OPT_USE_GENOME,  OPT_NO_EDITS,         _T("--noedits"),              false,                SO_NONE,    "\t--noedits                Exclude edit tags when writing Xml [default: false].\n"));
 		INITBOOLOPTION(UnsmoothEdge,   Eob(OPT_USE_GENOME,  OPT_UNSMOOTH_EDGE,    _T("--unsmoother"),           false,                SO_NONE,    "\t--unsmoother             Do not use smooth blending for sheep edges [default: false].\n"));
@@ -336,8 +335,6 @@ public:
 #endif
 
 		//Uint.
-		INITUINTOPTION(Platform,       Eou(OPT_USE_ALL,     OPT_OPENCL_PLATFORM,  _T("--platform"),             0,                    SO_REQ_SEP, "\t--platform               The OpenCL platform index to use [default: 0].\n"));
-		INITUINTOPTION(Device,         Eou(OPT_USE_ALL,     OPT_OPENCL_DEVICE,    _T("--device"),               0,                    SO_REQ_SEP, "\t--device                 The OpenCL device index within the specified platform to use [default: 0].\n"));
 		INITUINTOPTION(Seed,           Eou(OPT_USE_ALL,     OPT_SEED,             _T("--seed"),                 0,                    SO_REQ_SEP, "\t--seed=<val>             Integer seed to use for the random number generator [default: random].\n"));
 		INITUINTOPTION(ThreadCount,    Eou(OPT_USE_ALL,     OPT_NTHREADS,         _T("--nthreads"),             0,                    SO_REQ_SEP, "\t--nthreads=<val>         The number of threads to use [default: use all available cores].\n"));
 		INITUINTOPTION(Strips,		   Eou(OPT_USE_RENDER,  OPT_STRIPS,           _T("--nstrips"),              1,                    SO_REQ_SEP, "\t--nstrips=<val>          The number of fractions to split a single render frame into. Useful for print size renders or low memory systems [default: 1].\n"));
@@ -378,9 +375,10 @@ public:
 		INITDOUBLEOPTION(Loops,        Eod(OPT_USE_GENOME,  OPT_LOOPS,            _T("--loops"),                1.0,                  SO_REQ_SEP, "\t--loops=<val>            Number of times to rotate each control point in sequence [default: 1].\n"));
 
 		//String.
+		INITSTRINGOPTION(Device,	   Eos(OPT_USE_ALL,		OPT_OPENCL_DEVICE,	  _T("--device"),				"0",				  SO_REQ_SEP, "\t--device                 The comma-separated OpenCL device indices to use. Single device: 0 Multi device: 0,1,3,4 [default: 0].\n"));
 		INITSTRINGOPTION(IsaacSeed,    Eos(OPT_USE_ALL,     OPT_ISAAC_SEED,       _T("--isaac_seed"),           "",                   SO_REQ_SEP, "\t--isaac_seed=<val>       Character-based seed for the random number generator [default: random].\n"));
 		INITSTRINGOPTION(Input,        Eos(OPT_RENDER_ANIM, OPT_IN,               _T("--in"),                   "",                   SO_REQ_SEP, "\t--in=<val>               Name of the input file.\n"));
-		INITSTRINGOPTION(Out,          Eos(OPT_RENDER_ANIM, OPT_OUT,              _T("--out"),                  "",                   SO_REQ_SEP, "\t--out=<val>              Name of a single output file. Not recommended when rendering more than one image.\n"));
+		INITSTRINGOPTION(Out,          Eos(OPT_USE_RENDER,	OPT_OUT,              _T("--out"),                  "",                   SO_REQ_SEP, "\t--out=<val>              Name of a single output file. Not recommended when rendering more than one image.\n"));
 		INITSTRINGOPTION(Prefix,       Eos(OPT_RENDER_ANIM, OPT_PREFIX,           _T("--prefix"),               "",                   SO_REQ_SEP, "\t--prefix=<val>           Prefix to prepend to all output files.\n"));
 		INITSTRINGOPTION(Suffix,       Eos(OPT_RENDER_ANIM, OPT_SUFFIX,           _T("--suffix"),               "",                   SO_REQ_SEP, "\t--suffix=<val>           Suffix to append to all output files.\n"));
 		INITSTRINGOPTION(Format,       Eos(OPT_RENDER_ANIM, OPT_FORMAT,           _T("--format"),               "png",                SO_REQ_SEP, "\t--format=<val>           Format of the output file. Valid values are: bmp, jpg, png, ppm [default: jpg].\n"));
@@ -470,9 +468,7 @@ public:
 					PARSEINTOPTION(OPT_SHEEP_GEN, SheepGen);
 					PARSEINTOPTION(OPT_SHEEP_ID, SheepId);
 					PARSEINTOPTION(OPT_PRIORITY, Priority);
-					PARSEUINTOPTION(OPT_OPENCL_PLATFORM, Platform);//uint args.
-					PARSEUINTOPTION(OPT_OPENCL_DEVICE, Device);
-					PARSEUINTOPTION(OPT_SEED, Seed);
+					PARSEUINTOPTION(OPT_SEED, Seed);//uint args.
 					PARSEUINTOPTION(OPT_NTHREADS, ThreadCount);
 					PARSEUINTOPTION(OPT_STRIPS, Strips);
 					PARSEUINTOPTION(OPT_SUPERSAMPLE, Supersample);
@@ -504,7 +500,8 @@ public:
 					PARSEDOUBLEOPTION(OPT_USEMEM, UseMem);
 					PARSEDOUBLEOPTION(OPT_LOOPS, Loops);
 
-					PARSESTRINGOPTION(OPT_ISAAC_SEED, IsaacSeed);//String args.
+					PARSESTRINGOPTION(OPT_OPENCL_DEVICE, Device);//String args.
+					PARSESTRINGOPTION(OPT_ISAAC_SEED, IsaacSeed);
 					PARSESTRINGOPTION(OPT_IN, Input);
 					PARSESTRINGOPTION(OPT_OUT, Out);
 					PARSESTRINGOPTION(OPT_PREFIX, Prefix);
@@ -545,7 +542,34 @@ public:
 			}
 		}
 
+		auto strings = Split(Device(), ',');
+
+		if (!strings.empty())
+		{
+			for (auto& s : strings)
+			{
+				size_t device = 0;
+				istringstream istr(s);
+
+				istr >> device;
+
+				if (!istr.bad() && !istr.fail())
+					m_Devices.push_back(device);
+				else
+					cout << "Failed to parse device index " << s;
+			}
+		}
+
 		return false;
+	}
+
+	/// <summary>
+	/// Return a const ref to m_Devices.
+	/// </summary>
+	/// <returns>A const ref to the vector of absolute device indices to be used</returns>
+	const vector<size_t>& Devices()
+	{
+		return m_Devices;
 	}
 
 	/// <summary>
@@ -656,103 +680,103 @@ public:
 	//Break from the usual m_* notation for members here because
 	//each of these is a functor, so it looks nicer and is less typing
 	//to just say opt.Member().
-	EmberOptionEntry<bool> Help;//Diagnostic bool.
-	EmberOptionEntry<bool> Version;
-	EmberOptionEntry<bool> Verbose;
-	EmberOptionEntry<bool> Debug;
-	EmberOptionEntry<bool> DumpArgs;
-	EmberOptionEntry<bool> DoProgress;
-	EmberOptionEntry<bool> OpenCLInfo;
+	Eob Help;//Diagnostic bool.
+	Eob Version;
+	Eob Verbose;
+	Eob Debug;
+	Eob DumpArgs;
+	Eob DoProgress;
+	Eob OpenCLInfo;
 
-	EmberOptionEntry<bool> EmberCL;//Value bool.
-	EmberOptionEntry<bool> EarlyClip;
-	EmberOptionEntry<bool> YAxisUp;
-	EmberOptionEntry<bool> Transparency;
-	EmberOptionEntry<bool> NameEnable;
-	EmberOptionEntry<bool> IntPalette;
-	EmberOptionEntry<bool> HexPalette;
-	EmberOptionEntry<bool> InsertPalette;
-	EmberOptionEntry<bool> JpegComments;
-	EmberOptionEntry<bool> PngComments;
-	EmberOptionEntry<bool> WriteGenome;
-	EmberOptionEntry<bool> ThreadedWrite;
-	EmberOptionEntry<bool> Enclosed;
-	EmberOptionEntry<bool> NoEdits;
-	EmberOptionEntry<bool> UnsmoothEdge;
-	EmberOptionEntry<bool> LockAccum;
-	EmberOptionEntry<bool> DumpKernel;
+	Eob EmberCL;//Value bool.
+	Eob EarlyClip;
+	Eob YAxisUp;
+	Eob Transparency;
+	Eob NameEnable;
+	Eob IntPalette;
+	Eob HexPalette;
+	Eob InsertPalette;
+	Eob JpegComments;
+	Eob PngComments;
+	Eob WriteGenome;
+	Eob ThreadedWrite;
+	Eob Enclosed;
+	Eob NoEdits;
+	Eob UnsmoothEdge;
+	Eob LockAccum;
+	Eob DumpKernel;
 
-	EmberOptionEntry<int> Symmetry;//Value int.
-	EmberOptionEntry<int> SheepGen;
-	EmberOptionEntry<int> SheepId;
-	EmberOptionEntry<int> Priority;
-	EmberOptionEntry<uint> Platform;//Value uint.
-	EmberOptionEntry<uint> Device;
-	EmberOptionEntry<uint> Seed;
-	EmberOptionEntry<uint> ThreadCount;
-	EmberOptionEntry<uint> Strips;
-	EmberOptionEntry<uint> Supersample;
-	EmberOptionEntry<uint> BitsPerChannel;
-	EmberOptionEntry<uint> SubBatchSize;
-	EmberOptionEntry<uint> Bits;
-	EmberOptionEntry<uint> PrintEditDepth;
-	EmberOptionEntry<uint> JpegQuality;
-	EmberOptionEntry<uint> FirstFrame;
-	EmberOptionEntry<uint> LastFrame;
-	EmberOptionEntry<uint> Frame;
-	EmberOptionEntry<uint> Time;
-	EmberOptionEntry<uint> Dtime;
-	EmberOptionEntry<uint> Frames;
-	EmberOptionEntry<uint> Repeat;
-	EmberOptionEntry<uint> Tries;
-	EmberOptionEntry<uint> MaxXforms;
+	Eoi Symmetry;//Value int.
+	Eoi SheepGen;
+	Eoi SheepId;
+	Eoi Priority;
+	Eou Seed;//Value uint.
+	Eou ThreadCount;
+	Eou Strips;
+	Eou Supersample;
+	Eou BitsPerChannel;
+	Eou SubBatchSize;
+	Eou Bits;
+	Eou PrintEditDepth;
+	Eou JpegQuality;
+	Eou FirstFrame;
+	Eou LastFrame;
+	Eou Frame;
+	Eou Time;
+	Eou Dtime;
+	Eou Frames;
+	Eou Repeat;
+	Eou Tries;
+	Eou MaxXforms;
 
-	EmberOptionEntry<double> SizeScale;//Value double.
-	EmberOptionEntry<double> QualityScale;
-	EmberOptionEntry<double> AspectRatio;
-	EmberOptionEntry<double> Stagger;
-	EmberOptionEntry<double> AvgThresh;
-	EmberOptionEntry<double> BlackThresh;
-	EmberOptionEntry<double> WhiteLimit;
-	EmberOptionEntry<double> Speed;
-	EmberOptionEntry<double> OffsetX;
-	EmberOptionEntry<double> OffsetY;
-	EmberOptionEntry<double> UseMem;
-	EmberOptionEntry<double> Loops;
+	Eod SizeScale;//Value double.
+	Eod QualityScale;
+	Eod AspectRatio;
+	Eod Stagger;
+	Eod AvgThresh;
+	Eod BlackThresh;
+	Eod WhiteLimit;
+	Eod Speed;
+	Eod OffsetX;
+	Eod OffsetY;
+	Eod UseMem;
+	Eod Loops;
 
-	EmberOptionEntry<string> IsaacSeed;//Value string.
-	EmberOptionEntry<string> Input;
-	EmberOptionEntry<string> Out;
-	EmberOptionEntry<string> Prefix;
-	EmberOptionEntry<string> Suffix;
-	EmberOptionEntry<string> Format;
-	EmberOptionEntry<string> PalettePath;
-	//EmberOptionEntry<string> PaletteImage;
-	EmberOptionEntry<string> Id;
-	EmberOptionEntry<string> Url;
-	EmberOptionEntry<string> Nick;
-	EmberOptionEntry<string> Comment;
-	EmberOptionEntry<string> TemplateFile;
-	EmberOptionEntry<string> Clone;
-	EmberOptionEntry<string> CloneAll;
-	EmberOptionEntry<string> CloneAction;
-	EmberOptionEntry<string> Animate;
-	EmberOptionEntry<string> Mutate;
-	EmberOptionEntry<string> Cross0;
-	EmberOptionEntry<string> Cross1;
-	EmberOptionEntry<string> Method;
-	EmberOptionEntry<string> Inter;
-	EmberOptionEntry<string> Rotate;
-	EmberOptionEntry<string> Strip;
-	EmberOptionEntry<string> Sequence;
-	EmberOptionEntry<string> UseVars;
-	EmberOptionEntry<string> DontUseVars;
-	EmberOptionEntry<string> Extras;
+	Eos Device;//Value string.
+	Eos IsaacSeed;
+	Eos Input;
+	Eos Out;
+	Eos Prefix;
+	Eos Suffix;
+	Eos Format;
+	Eos PalettePath;
+	//Eos PaletteImage;
+	Eos Id;
+	Eos Url;
+	Eos Nick;
+	Eos Comment;
+	Eos TemplateFile;
+	Eos Clone;
+	Eos CloneAll;
+	Eos CloneAction;
+	Eos Animate;
+	Eos Mutate;
+	Eos Cross0;
+	Eos Cross1;
+	Eos Method;
+	Eos Inter;
+	Eos Rotate;
+	Eos Strip;
+	Eos Sequence;
+	Eos UseVars;
+	Eos DontUseVars;
+	Eos Extras;
 
 private:
-	vector<EmberOptionEntry<bool>*> m_BoolArgs;
-	vector<EmberOptionEntry<int>*> m_IntArgs;
-	vector<EmberOptionEntry<uint>*> m_UintArgs;
-	vector<EmberOptionEntry<double>*> m_DoubleArgs;
-	vector<EmberOptionEntry<string>*> m_StringArgs;
+	vector<size_t> m_Devices;
+	vector<Eob*> m_BoolArgs;
+	vector<Eoi*> m_IntArgs;
+	vector<Eou*> m_UintArgs;
+	vector<Eod*> m_DoubleArgs;
+	vector<Eos*> m_StringArgs;
 };

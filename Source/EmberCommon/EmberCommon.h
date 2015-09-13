@@ -84,7 +84,7 @@ private:
 /// <param name="useDefaults">True to use defaults if they are not present in the file, else false to use invalid values as placeholders to indicate the values were not present. Default: true.</param>
 /// <returns>True if success, else false.</returns>
 template <typename T>
-static bool ParseEmberFile(XmlToEmber<T>& parser, string filename, vector<Ember<T>>& embers, bool useDefaults = true)
+static bool ParseEmberFile(XmlToEmber<T>& parser, const string& filename, vector<Ember<T>>& embers, bool useDefaults = true)
 {
 	if (!parser.Parse(filename.c_str(), embers, useDefaults))
 	{
@@ -138,7 +138,7 @@ static void RgbaToRgb(vector<byte>& rgba, vector<byte>& rgb, size_t width, size_
 	if (rgba.data() != rgb.data())//Only resize the destination buffer if they are different.
 		rgb.resize(width * height * 3);
 
-	for (uint i = 0, j = 0; i < (width * height * 4); i += 4, j += 3)
+	for (size_t i = 0, j = 0; i < (width * height * 4); i += 4, j += 3)
 	{
 		rgb[j]	   = rgba[i];
 		rgb[j + 1] = rgba[i + 1];
@@ -232,34 +232,51 @@ static T NextLowestEvenDiv(T numerator, T denominator)
 }
 
 /// <summary>
+/// Wrapper for converting a vector of absolute device indices to a vector
+/// of platform,device index pairs.
+/// </summary>
+/// <param name="selectedDevices">The vector of absolute device indices to convert</param>
+/// <returns>The converted vector of platform,device index pairs</returns>
+static vector<pair<size_t, size_t>> Devices(const vector<size_t>& selectedDevices)
+{
+	vector<pair<size_t, size_t>> vec;
+	OpenCLInfo& info = OpenCLInfo::Instance();
+	auto& devices = info.DeviceIndices();
+
+	vec.reserve(selectedDevices.size());
+
+	for (size_t i = 0; i < selectedDevices.size(); i++)
+	{
+		auto index = selectedDevices[i];
+
+		if (index < devices.size())
+			vec.push_back(devices[index]);
+	}
+
+	return vec;
+}
+
+/// <summary>
 /// Wrapper for creating a renderer of the specified type.
-/// First template argument expected to be float or double for CPU renderer,
-/// Second argument expected to be float or double for CPU renderer, and only float for OpenCL renderer.
 /// </summary>
 /// <param name="renderType">Type of renderer to create</param>
-/// <param name="platform">The index platform of the platform to use</param>
-/// <param name="device">The index device of the device to use</param>
+/// <param name="devices">The vector of platform/device indices to use</param>
 /// <param name="shared">True if shared with OpenGL, else false.</param>
 /// <param name="texId">The texture ID of the shared OpenGL texture if shared</param>
 /// <param name="errorReport">The error report for holding errors if anything goes wrong</param>
 /// <returns>A pointer to the created renderer if successful, else false.</returns>
-template <typename T, typename bucketT>
-static Renderer<T, bucketT>* CreateRenderer(eRendererType renderType, uint platform, uint device, bool shared, GLuint texId, EmberReport& errorReport)
+template <typename T>
+static Renderer<T, float>* CreateRenderer(eRendererType renderType, const vector<pair<size_t, size_t>>& devices, bool shared, GLuint texId, EmberReport& errorReport)
 {
 	string s;
-	unique_ptr<Renderer<T, bucketT>> renderer;
+	unique_ptr<Renderer<T, float>> renderer;
 
 	try
 	{
-		if (renderType == CPU_RENDERER)
-		{
-			s = "CPU";
-			renderer = unique_ptr<Renderer<T, bucketT>>(new Renderer<T, bucketT>());
-		}
-		else if (renderType == OPENCL_RENDERER)
+		if (renderType == OPENCL_RENDERER && !devices.empty())
 		{
 			s = "OpenCL";
-			renderer = unique_ptr<Renderer<T, bucketT>>(new RendererCL<T, bucketT>(platform, device, shared, texId));
+			renderer = unique_ptr<Renderer<T, float>>(new RendererCL<T, float>(devices, shared, texId));
 
 			if (!renderer.get() || !renderer->Ok())
 			{
@@ -267,9 +284,18 @@ static Renderer<T, bucketT>* CreateRenderer(eRendererType renderType, uint platf
 					errorReport.AddToReport(renderer->ErrorReport());
 
 				errorReport.AddToReport("Error initializing OpenCL renderer, using CPU renderer instead.");
-				renderer = unique_ptr<Renderer<T, bucketT>>(new Renderer<T, bucketT>());
+				renderer = unique_ptr<Renderer<T, float>>(new Renderer<T, float>());
 			}
 		}
+		else
+		{
+			s = "CPU";
+			renderer = unique_ptr<Renderer<T, float>>(new Renderer<T, float>());
+		}
+	}
+	catch (const std::exception& e)
+	{
+		errorReport.AddToReport("Error creating " + s + " renderer: " + e.what() + "\n");
 	}
 	catch (...)
 	{
@@ -279,6 +305,100 @@ static Renderer<T, bucketT>* CreateRenderer(eRendererType renderType, uint platf
 	return renderer.release();
 }
 
+/// <summary>
+/// Wrapper for creating a vector of renderers of the specified type for each passed in device.
+/// If shared is true, only the first renderer will be shared with OpenGL.
+/// Although a fallback GPU renderer will be created if a failure occurs, it doesn't really
+/// make sense since the concept of devices only applies to OpenCL renderers.
+/// </summary>
+/// <param name="renderType">Type of renderer to create</param>
+/// <param name="devices">The vector of platform/device indices to use</param>
+/// <param name="shared">True if shared with OpenGL, else false.</param>
+/// <param name="texId">The texture ID of the shared OpenGL texture if shared</param>
+/// <param name="errorReport">The error report for holding errors if anything goes wrong</param>
+/// <returns>The vector of created renderers if successful, else false.</returns>
+template <typename T>
+static vector<unique_ptr<Renderer<T, float>>> CreateRenderers(eRendererType renderType, const vector<pair<size_t, size_t>>& devices, bool shared, GLuint texId, EmberReport& errorReport)
+{
+	string s;
+	vector<unique_ptr<Renderer<T, float>>> v;
+
+	try
+	{
+		if (renderType == OPENCL_RENDERER && !devices.empty())
+		{
+			s = "OpenCL";
+			v.reserve(devices.size());
+
+			for (size_t i = 0; i < devices.size(); i++)
+			{
+				vector<pair<size_t, size_t>> tempDevices{ devices[i] };
+				auto renderer = unique_ptr<Renderer<T, float>>(new RendererCL<T, float>(tempDevices, !i ? shared : false, texId));
+
+				if (!renderer.get() || !renderer->Ok())
+				{
+					ostringstream os;
+
+					if (renderer.get())
+						errorReport.AddToReport(renderer->ErrorReport());
+
+					os << "Error initializing OpenCL renderer for platform " << devices[i].first << ", " << devices[i].second;
+					errorReport.AddToReport(os.str());
+				}
+				else
+					v.push_back(std::move(renderer));
+			}
+		}
+		else
+		{
+			s = "CPU";
+			v.push_back(std::move(unique_ptr<Renderer<T, float>>(::CreateRenderer<T>(CPU_RENDERER, devices, shared, texId, errorReport))));
+		}
+	}
+	catch (const std::exception& e)
+	{
+		errorReport.AddToReport("Error creating " + s + " renderer: " + e.what() + "\n");
+	}
+	catch (...)
+	{
+		errorReport.AddToReport("Error creating " + s + " renderer.\n");
+	}
+
+	if (v.empty() && s != "CPU")//OpenCL creation failed and CPU creation has not been attempted, so just create one CPU renderer and place it in the vector.
+	{
+		try
+		{
+			s = "CPU";
+			v.push_back(std::move(unique_ptr<Renderer<T, float>>(::CreateRenderer<T>(CPU_RENDERER, devices, shared, texId, errorReport))));
+		}
+		catch (const std::exception& e)
+		{
+			errorReport.AddToReport("Error creating fallback" + s + " renderer: " + e.what() + "\n");
+		}
+		catch (...)
+		{
+			errorReport.AddToReport("Error creating fallback " + s + " renderer.\n");
+		}
+	}
+
+	return v;
+}
+
+/// <summary>
+/// Perform a render which allows for using strips or not.
+/// If an error occurs while rendering any strip, the rendering process stops.
+/// </summary>
+/// <param name="renderer">The renderer to use</param>
+/// <param name="ember">The ember to render</param>
+/// <param name="finalImage">The vector to place the final output in</param>
+/// <param name="time">The time position to use, only valid for animation</param>
+/// <param name="strips">The number of strips to use. This must be validated before calling this function.</param>
+/// <param name="yAxisUp">True to flip the Y axis, else false.</param>
+/// <param name="perStripStart">Function called before the start of the rendering of each strip</param>
+/// <param name="perStripFinish">Function called after the end of the rendering of each strip</param>
+/// <param name="perStripError">Function called if there is an error rendering a strip</param>
+/// <param name="allStripsFinished">Function called when all strips successfully finish rendering</param>
+/// <returns>True if all rendering was successful, else false.</returns>
 template <typename T>
 static bool StripsRender(RendererBase* renderer, Ember<T>& ember, vector<byte>& finalImage, double time, size_t strips, bool yAxisUp,
 	std::function<void(size_t strip)> perStripStart,
@@ -354,6 +474,17 @@ static bool StripsRender(RendererBase* renderer, Ember<T>& ember, vector<byte>& 
 	return success;
 }
 
+/// <summary>
+/// Verify that the specified number of strips is valid for the given height.
+/// The passed in error functions will be called if the number of strips needs
+/// to be modified for the given height.
+/// </summary>
+/// <param name="height">The height in pixels of the image to be rendered</param>
+/// <param name="strips">The number of strips to split the render into</param>
+/// <param name="stripError1">Function called if the number of strips exceeds the height of the image</param>
+/// <param name="stripError2">Function called if the number of strips does not divide evently into the height of the image</param>
+/// <param name="stripError3">Called if for any reason the number of strips used will differ from the value passed in</param>
+/// <returns>The actual number of strips that will be used</returns>
 static size_t VerifyStrips(size_t height, size_t strips,
 	std::function<void(const string& s)> stripError1,
 	std::function<void(const string& s)> stripError2,

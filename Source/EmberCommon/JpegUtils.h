@@ -44,7 +44,7 @@ static bool WritePpm(const char* filename, byte* image, size_t width, size_t hei
 /// <param name="url">Url of the author</param>
 /// <param name="nick">Nickname of the author</param>
 /// <returns>True if success, else false</returns>
-static bool WriteJpeg(const char* filename, byte* image, size_t width, size_t height, int quality, bool enableComments, EmberImageComments& comments, string id, string url, string nick)
+static bool WriteJpeg(const char* filename, byte* image, size_t width, size_t height, int quality, bool enableComments, const EmberImageComments& comments, const string& id, const string& url, const string& nick)
 {
 	bool b = false;
 	FILE* file;
@@ -135,7 +135,7 @@ static bool WriteJpeg(const char* filename, byte* image, size_t width, size_t he
 /// <param name="url">Url of the author</param>
 /// <param name="nick">Nickname of the author</param>
 /// <returns>True if success, else false</returns>
-static bool WritePng(const char* filename, byte* image, size_t width, size_t height, size_t bytesPerChannel, bool enableComments, EmberImageComments& comments, string id, string url, string nick)
+static bool WritePng(const char* filename, byte* image, size_t width, size_t height, size_t bytesPerChannel, bool enableComments, const EmberImageComments& comments, const string& id, const string& url, const string& nick)
 {
 	bool b = false;
 	FILE* file;

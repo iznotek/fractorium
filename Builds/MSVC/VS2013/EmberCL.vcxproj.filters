@@ -36,6 +36,12 @@
     <ClCompile Include="..\..\..\Source\EmberCL\IterOpenCLKernelCreator.cpp">
       <Filter>Kernel Creators</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\EmberCL\RendererClDevice.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\EmberCL\OpenCLInfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\EmberCL\OpenCLWrapper.h">
@@ -61,6 +67,12 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\EmberCL\IterOpenCLKernelCreator.h">
       <Filter>Kernel Creators</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\EmberCL\RendererClDevice.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\EmberCL\OpenCLInfo.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

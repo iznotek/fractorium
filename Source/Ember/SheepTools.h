@@ -44,7 +44,7 @@ enum eCrossMode
 /// Most functions in this class perform a particular action and return
 /// a string describing what it did so it can be recorded in an Xml edit doc
 /// to be saved with the ember when converting to Xml.
-/// Since it's members can occupy significant memory space and also have
+/// Since its members can occupy significant memory space and also have
 /// hefty initialization sequences, it's important to declare one instance
 /// and reuse it for the duration of the program instead of creating and deleting
 /// them as local variables.
@@ -186,11 +186,10 @@ public:
 	/// <param name="sym">The type of symmetry to add if random specified. If 0, it will be added randomly.</param>
 	/// <param name="speed">The speed to multiply the pre affine transforms by if the mutate mode is MUTATE_ALL_COEFS, else ignored.</param>
 	/// <returns>A string describing what was done</returns>
-	string Mutate(Ember<T>& ember, eMutateMode mode, vector<eVariationId>& useVars, int sym, T speed)
+	string Mutate(Ember<T>& ember, eMutateMode mode, vector<eVariationId>& useVars, intmax_t sym, T speed)
 	{
 		bool done = false;
 		size_t modXform;
-		char ministr[32];
 		T randSelect;
 		ostringstream os;
 		Ember<T> mutation;
@@ -285,14 +284,13 @@ public:
 		else if (mode == MUTATE_POST_XFORMS)
 		{
 			bool same = (m_Rand.Rand() & 3) > 0;//25% chance of using the same post for all of them.
-			uint b = 1 + m_Rand.Rand() % 6;
+			size_t b = 1 + m_Rand.Rand() % 6;
 
-			sprintf_s(ministr, 32, "(%d%s)", b, same ? " same" : "");
-			os << "mutate post xforms " << ministr;
+			os << "mutate post xforms " << b << (same ? " same" : "");
 
 			for (size_t i = 0; i < ember.TotalXformCount(); i++)
 			{
-				int copy = (i > 0) && same;
+				bool copy = (i > 0) && same;
 				Xform<T>* xform = ember.GetTotalXform(i);
 
 				if (copy)//Copy the post from the first xform to the rest of them.
@@ -605,7 +603,7 @@ public:
 	{
 		vector<eVariationId> useVars;
 
-		Random(ember, useVars, static_cast<int>(m_Rand.Frand<T>(-2, 2)), 0);
+        Random(ember, useVars, static_cast<intmax_t>(m_Rand.Frand<T>(-2, 2)), 0);
 	}
 
 	/// <summary>
@@ -615,7 +613,7 @@ public:
 	/// <param name="useVars">A list of variations to use. If empty, any variation can be used.</param>
 	/// <param name="sym">The symmetry type to use from -2 to 2</param>
 	/// <param name="specXforms">The number of xforms to use. If 0, a quasi random count is used.</param>
-	void Random(Ember<T>& ember, vector<eVariationId>& useVars, int sym, size_t specXforms)
+	void Random(Ember<T>& ember, vector<eVariationId>& useVars, intmax_t sym, size_t specXforms)
 	{
 		bool postid, addfinal = false;
 		int var, samed, multid, samepost;
@@ -806,9 +804,9 @@ public:
 	/// <param name="tries">The number of test renders to try before giving up</param>
 	/// <param name="changePalette">Change palette if true, else keep trying with the same palette.</param>
 	/// <param name="colorResolution">The resolution of the test histogram. This value ^ 3 will be used for the total size. Common value is 10.</param>
-	void ImproveColors(Ember<T>& ember, int tries, bool changePalette, int colorResolution)
+	void ImproveColors(Ember<T>& ember, size_t tries, bool changePalette, size_t colorResolution)
 	{
-		int i;
+		size_t i;
 		T best, b;
 		Ember<T> bestEmber = ember;
 
@@ -847,7 +845,7 @@ public:
 	/// <param name="ember">The ember to render</param>
 	/// <param name="colorResolution">The resolution of the test histogram. This value ^ 3 will be used for the total size. Common value is 10.</param>
 	/// <returns>The number of histogram cells that weren't black</returns>
-	T TryColors(Ember<T>& ember, int colorResolution)
+	T TryColors(Ember<T>& ember, size_t colorResolution)
 	{
 		byte* p;
 		size_t i, hits = 0, res = colorResolution;
@@ -903,7 +901,7 @@ public:
 	}
 
 	/// <summary>
-	/// Change around color coordinates. Optionall change out the entire palette.
+	/// Change around color coordinates. Optionally change out the entire palette.
 	/// </summary>
 	/// <param name="ember">The ember whose xform's color coordinates will be changed</param>
 	/// <param name="changePalette">Change palette if true, else don't</param>
@@ -1071,7 +1069,7 @@ public:
 	/// <param name="result">The result of the spin</param>
 	/// <param name="frame">The frame in the sequence to be stored in the m_Time member of result</param>
 	/// <param name="blend">The interpolation time</param>
-	void Spin(Ember<T>& parent, Ember<T>* templ, Ember<T>& result, int frame, T blend)
+	void Spin(Ember<T>& parent, Ember<T>* templ, Ember<T>& result, size_t frame, T blend)
 	{
 		char temp[50];
 
@@ -1112,7 +1110,7 @@ public:
 	/// <param name="frame">The frame in the sequence to be stored in the m_Time member of result</param>
 	/// <param name="seqFlag">True if embers points to the first or last ember in the entire sequence, else false.</param>
 	/// <param name="blend">The interpolation time</param>
-	void SpinInter(Ember<T>* parents, Ember<T>* templ, Ember<T>& result, int frame, bool seqFlag, T blend)
+	void SpinInter(Ember<T>* parents, Ember<T>* templ, Ember<T>& result, size_t frame, bool seqFlag, T blend)
 	{
 		char temp[50];
 
@@ -1286,8 +1284,8 @@ public:
 		m_Samples.resize(samples);
 		params.m_Count = samples;
 		params.m_Skip = 20;
-		//params.m_OneColDiv2 = m_Renderer->CoordMap()->OneCol() / 2;
-		//params.m_OneRowDiv2 = m_Renderer->CoordMap()->OneRow() / 2;
+		//params.m_OneColDiv2 = m_Renderer->CoordMap().OneCol() / 2;
+		//params.m_OneRowDiv2 = m_Renderer->CoordMap().OneRow() / 2;
 
 		size_t bv = m_Iterator->Iterate(ember, params, m_Samples.data(), m_Rand);//Use a special fuse of 20, all other calls to this will use 15, or 100.
 
@@ -1349,7 +1347,7 @@ public:
 	/// <param name="comment">The comment to include</param>
 	/// <param name="sheepGen">The sheep generation used if > 0. Default: 0.</param>
 	/// <param name="sheepId">The sheep id used if > 0. Default: 0.</param>
-	void SetSpinParams(bool smooth, T stagger, T offsetX, T offsetY, string nick, string url, string id, string comment, int sheepGen, int sheepId)
+	void SetSpinParams(bool smooth, T stagger, T offsetX, T offsetY, const string& nick, const string& url, const string& id, const string& comment, intmax_t sheepGen, intmax_t sheepId)
 	{
 		m_Smooth = smooth;
 		m_SheepGen = sheepGen;
@@ -1365,8 +1363,8 @@ public:
 
 private:
 	bool m_Smooth;
-	int m_SheepGen;
-	int m_SheepId;
+	intmax_t m_SheepGen;
+	intmax_t m_SheepId;
 	T m_Stagger;
 	T m_OffsetX;
 	T m_OffsetY;

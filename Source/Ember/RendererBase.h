@@ -120,7 +120,7 @@ public:
 	virtual void ComputeQuality() = 0;
 	virtual void ComputeCamera() = 0;
 	virtual eRenderStatus Run(vector<byte>& finalImage, double time = 0, size_t subBatchCountOverride = 0, bool forceOutput = false, size_t finalOffset = 0) = 0;
-	virtual EmberImageComments ImageComments(EmberStats& stats, size_t printEditDepth = 0, bool intPalette = false, bool hexPalette = true) = 0;
+	virtual EmberImageComments ImageComments(const EmberStats& stats, size_t printEditDepth = 0, bool intPalette = false, bool hexPalette = true) = 0;
 	virtual DensityFilterBase* GetDensityFilter() = 0;
 
 	//Non-virtual renderer properties, getters only.

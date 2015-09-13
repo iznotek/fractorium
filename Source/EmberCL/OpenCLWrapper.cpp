@@ -5,33 +5,23 @@ namespace EmberCLns
 {
 /// <summary>
 /// Constructor that sets everything to an uninitialized state.
-/// No OpenCL setup is done here, the caller must explicitly do it.
+/// No OpenCL setup is done here other than what's done in the
+/// global OpenCLInfo object. The caller must explicitly do it.
 /// </summary>
 OpenCLWrapper::OpenCLWrapper()
+	: m_Info(OpenCLInfo::Instance())
 {
 	m_Init = false;
 	m_Shared = false;
 	m_PlatformIndex = 0;
 	m_DeviceIndex = 0;
 	m_LocalMemSize = 0;
-	cl::Platform::get(&m_Platforms);
-	m_Devices.resize(m_Platforms.size());
 
-	for (size_t i = 0; i < m_Platforms.size(); i++)
-		m_Platforms[i].getDevices(CL_DEVICE_TYPE_ALL, &m_Devices[i]);
-}
-
-/// <summary>
-/// Determine if OpenCL is available on the system.
-/// </summary>
-/// <returns>True if any OpenCL platform and at least 1 device within that platform exists on the system, else false.</returns>
-bool OpenCLWrapper::CheckOpenCL()
-{
-	for (size_t i = 0; i < m_Platforms.size(); i++)
-		for (size_t j = 0; j < m_Devices[i].size(); j++)
-			return true;
-
-	return false;
+	//Pre-allocate some space to avoid temporary copying.
+	m_Programs.reserve(4);
+	m_Buffers.reserve(4);
+	m_Images.reserve(4);
+	m_GLImages.reserve(4);
 }
 
 /// <summary>
@@ -42,35 +32,40 @@ bool OpenCLWrapper::CheckOpenCL()
 /// <param name="device">The index device of the device to use</param>
 /// <param name="shared">True if shared with OpenGL, else false.</param>
 /// <returns>True if success, else false.</returns>
-bool OpenCLWrapper::Init(uint platform, uint device, bool shared)
+bool OpenCLWrapper::Init(size_t platformIndex, size_t deviceIndex, bool shared)
 {
 	cl_int err;
+	auto& platforms = m_Info.Platforms();
+	auto& devices = m_Info.Devices();
 
 	m_Init = false;
 	m_ErrorReport.clear();
 
-	if (m_Platforms.size() > 0)
+	if (m_Info.Ok())
 	{
-		if (platform < m_Platforms.size() && platform < m_Devices.size())
+		if (platformIndex < platforms.size() && platformIndex < devices.size())
 		{
-			m_PlatformIndex = platform;//Platform is ok, now do context.
+			cl::Context context;
 
-			if (CreateContext(shared))
+			if (m_Info.CreateContext(platforms[platformIndex], context, shared))//Platform index is within range, now do context.
 			{
-				//Context is ok, now do device.
-				if (device < m_Devices[m_PlatformIndex].size())
+				if (deviceIndex < devices[platformIndex].size())//Context is ok, now do device.
 				{
-					//At least one GPU device is present, so create a command queue.
-					m_Queue = cl::CommandQueue(m_Context, m_Devices[m_PlatformIndex][device], 0, &err);
+					auto q = cl::CommandQueue(context, devices[platformIndex][deviceIndex], 0, &err);//At least one GPU device is present, so create a command queue.
 
-					if (CheckCL(err, "cl::CommandQueue()"))
+					if (m_Info.CheckCL(err, "cl::CommandQueue()"))//Everything was successful so assign temporaries to members.
 					{
-						m_DeviceIndex = device;
-						m_Platform = m_Platforms[m_PlatformIndex];
-						m_Device = m_Devices[m_PlatformIndex][device];
+						m_Platform = platforms[platformIndex];
+						m_Device = devices[platformIndex][deviceIndex];
+						m_Context = context;
+						m_Queue = q;
+						m_PlatformIndex = platformIndex;
+						m_DeviceIndex = deviceIndex;
 						m_DeviceVec.clear();
 						m_DeviceVec.push_back(m_Device);
-						m_LocalMemSize = uint(GetInfo<cl_ulong>(m_PlatformIndex, m_DeviceIndex, CL_DEVICE_LOCAL_MEM_SIZE));
+						m_LocalMemSize = size_t(m_Info.GetInfo<cl_ulong>(m_PlatformIndex, m_DeviceIndex, CL_DEVICE_LOCAL_MEM_SIZE));
+						m_GlobalMemSize = size_t(m_Info.GetInfo<cl_ulong>(m_PlatformIndex, m_DeviceIndex, CL_DEVICE_GLOBAL_MEM_SIZE));
+						m_MaxAllocSize = size_t(m_Info.GetInfo<cl_ulong>(m_PlatformIndex, m_DeviceIndex, CL_DEVICE_MAX_MEM_ALLOC_SIZE));
 						m_Shared = shared;
 						m_Init = true;//Command queue is ok, it's now ok to begin building and running programs.
 					}
@@ -96,11 +91,11 @@ bool OpenCLWrapper::AddProgram(const string& name, const string& program, const 
 
 	if (CreateSPK(name, program, entryPoint, spk, doublePrecision))
 	{
-		for (auto& program : m_Programs)
+		for (auto& p : m_Programs)
 		{
-			if (name == program.m_Name)
+			if (name == p.m_Name)
 			{
-				program = spk;
+				p = spk;
 				return true;
 			}
 		}
@@ -144,7 +139,7 @@ bool OpenCLWrapper::AddBuffer(const string& name, size_t size, cl_mem_flags flag
 		{
 			cl::Buffer buff(m_Context, flags, size, nullptr, &err);
 
-			if (!CheckCL(err, "cl::Buffer()"))
+			if (!m_Info.CheckCL(err, "cl::Buffer()"))
 				return false;
 
 			NamedBuffer nb(buff, name);
@@ -157,7 +152,7 @@ bool OpenCLWrapper::AddBuffer(const string& name, size_t size, cl_mem_flags flag
 
 			cl::Buffer buff(m_Context, flags, size, nullptr, &err);//Create the new buffer.
 
-			if (!CheckCL(err, "cl::Buffer()"))
+			if (!m_Info.CheckCL(err, "cl::Buffer()"))
 				return false;
 
 			NamedBuffer nb(buff, name);//Make a named buffer out of the new buffer.
@@ -215,7 +210,7 @@ bool OpenCLWrapper::WriteBuffer(const string& name, void* data, size_t size)
 /// <param name="data">A pointer to the buffer</param>
 /// <param name="size">The size in bytes of the buffer</param>
 /// <returns>True if success, else false.</returns>
-bool OpenCLWrapper::WriteBuffer(uint bufferIndex, void* data, size_t size)
+bool OpenCLWrapper::WriteBuffer(size_t bufferIndex, void* data, size_t size)
 {
 	if (m_Init && (bufferIndex < m_Buffers.size()) && (GetBufferSize(bufferIndex) == size))
 	{
@@ -225,7 +220,7 @@ bool OpenCLWrapper::WriteBuffer(uint bufferIndex, void* data, size_t size)
 		e.wait();
 		m_Queue.finish();
 
-		if (CheckCL(err, "cl::CommandQueue::enqueueWriteBuffer()"))
+		if (m_Info.CheckCL(err, "cl::CommandQueue::enqueueWriteBuffer()"))
 			return true;
 	}
 
@@ -253,7 +248,7 @@ bool OpenCLWrapper::ReadBuffer(const string& name, void* data, size_t size)
 /// <param name="data">A pointer to a buffer to copy the data to</param>
 /// <param name="size">The size in bytes of the buffer</param>
 /// <returns>True if success, else false.</returns>
-bool OpenCLWrapper::ReadBuffer(uint bufferIndex, void* data, size_t size)
+bool OpenCLWrapper::ReadBuffer(size_t bufferIndex, void* data, size_t size)
 {
 	if (m_Init && (bufferIndex < m_Buffers.size()) && (GetBufferSize(bufferIndex) == size))
 	{
@@ -263,7 +258,7 @@ bool OpenCLWrapper::ReadBuffer(uint bufferIndex, void* data, size_t size)
 		e.wait();
 		m_Queue.finish();
 
-		if (CheckCL(err, "cl::CommandQueue::enqueueReadBuffer()"))
+		if (m_Info.CheckCL(err, "cl::CommandQueue::enqueueReadBuffer()"))
 			return true;
 	}
 
@@ -289,7 +284,7 @@ int OpenCLWrapper::FindBufferIndex(const string& name)
 /// </summary>
 /// <param name="name">The name of the buffer to search for</param>
 /// <returns>The size of the buffer if found, else 0.</returns>
-uint OpenCLWrapper::GetBufferSize(const string& name)
+size_t OpenCLWrapper::GetBufferSize(const string& name)
 {
 	int bufferIndex = FindBufferIndex(name);
 
@@ -301,10 +296,10 @@ uint OpenCLWrapper::GetBufferSize(const string& name)
 /// </summary>
 /// <param name="name">The index of the buffer to get the size of</param>
 /// <returns>The size of the buffer if found, else 0.</returns>
-uint OpenCLWrapper::GetBufferSize(uint bufferIndex)
+size_t OpenCLWrapper::GetBufferSize(size_t bufferIndex)
 {
 	if (m_Init && (bufferIndex < m_Buffers.size()))
-		return uint(m_Buffers[bufferIndex].m_Buffer.getInfo<CL_MEM_SIZE>(nullptr));
+		return m_Buffers[bufferIndex].m_Buffer.getInfo<CL_MEM_SIZE>(nullptr);
 
 	return 0;
 }
@@ -350,12 +345,12 @@ bool OpenCLWrapper::AddAndWriteImage(const string& name, cl_mem_flags flags, con
 				IMAGEGL2D imageGL(m_Context, flags, GL_TEXTURE_2D, 0, texName, &err);
 				NamedImage2DGL namedImageGL(imageGL, name);
 
-				if (CheckCL(err, "cl::ImageGL()"))
+				if (m_Info.CheckCL(err, "cl::ImageGL()"))
 				{
 					m_GLImages.push_back(namedImageGL);
 
 					if (data)
-						return WriteImage2D(uint(m_GLImages.size() - 1), true, width, height, row_pitch, data);//OpenGL images/textures require a separate write.
+						return WriteImage2D(m_GLImages.size() - 1, true, width, height, row_pitch, data);//OpenGL images/textures require a separate write.
 					else
 						return true;
 				}
@@ -364,7 +359,7 @@ bool OpenCLWrapper::AddAndWriteImage(const string& name, cl_mem_flags flags, con
 			{
 				NamedImage2D namedImage(cl::Image2D(m_Context, flags, format, width, height, row_pitch, data, &err), name);
 
-				if (CheckCL(err, "cl::Image2D()"))
+				if (m_Info.CheckCL(err, "cl::Image2D()"))
 				{
 					m_Images.push_back(namedImage);
 					return true;
@@ -381,7 +376,7 @@ bool OpenCLWrapper::AddAndWriteImage(const string& name, cl_mem_flags flags, con
 				{
 					NamedImage2DGL namedImageGL(IMAGEGL2D(m_Context, flags, GL_TEXTURE_2D, 0, texName, &err), name);//Sizes are different, so create new.
 
-					if (CheckCL(err, "cl::ImageGL()"))
+					if (m_Info.CheckCL(err, "cl::ImageGL()"))
 					{
 						m_GLImages[imageIndex] = namedImageGL;
 					}
@@ -403,7 +398,7 @@ bool OpenCLWrapper::AddAndWriteImage(const string& name, cl_mem_flags flags, con
 
 					NamedImage2D namedImage(cl::Image2D(m_Context, flags, format, width, height, row_pitch, data, &err), name);
 
-					if (CheckCL(err, "cl::Image2D()"))
+					if (m_Info.CheckCL(err, "cl::Image2D()"))
 					{
 						m_Images[imageIndex] = namedImage;
 						return true;
@@ -430,7 +425,7 @@ bool OpenCLWrapper::AddAndWriteImage(const string& name, cl_mem_flags flags, con
 /// <param name="row_pitch">The row pitch (usually zero)</param>
 /// <param name="data">The image data</param>
 /// <returns>True if success, else false.</returns>
-bool OpenCLWrapper::WriteImage2D(uint index, bool shared, ::size_t width, ::size_t height, ::size_t row_pitch, void* data)
+bool OpenCLWrapper::WriteImage2D(size_t index, bool shared, ::size_t width, ::size_t height, ::size_t row_pitch, void* data)
 {
 	if (m_Init)
 	{
@@ -457,7 +452,7 @@ bool OpenCLWrapper::WriteImage2D(uint index, bool shared, ::size_t width, ::size
 				m_Queue.finish();
 
 				bool b = EnqueueReleaseGLObjects(imageGL);
-				return CheckCL(err, "cl::enqueueWriteImage()") && b;
+				return m_Info.CheckCL(err, "cl::enqueueWriteImage()") && b;
 			}
 		}
 		else if (!shared && index < m_Images.size())
@@ -465,7 +460,7 @@ bool OpenCLWrapper::WriteImage2D(uint index, bool shared, ::size_t width, ::size
 			err = m_Queue.enqueueWriteImage(m_Images[index].m_Image, CL_TRUE, origin, region, row_pitch, 0, data, nullptr, &e);
 			e.wait();
 			m_Queue.finish();
-			return CheckCL(err, "cl::enqueueWriteImage()");
+			return m_Info.CheckCL(err, "cl::enqueueWriteImage()");
 		}
 	}
 
@@ -505,7 +500,7 @@ bool OpenCLWrapper::ReadImage(const string& name, ::size_t width, ::size_t heigh
 /// <param name="shared">True if shared with an OpenGL texture, else false.</param>
 /// <param name="data">A pointer to a buffer to copy the data to</param>
 /// <returns>True if success, else false.</returns>
-bool OpenCLWrapper::ReadImage(uint imageIndex, ::size_t width, ::size_t height, ::size_t row_pitch, bool shared, void* data)
+bool OpenCLWrapper::ReadImage(size_t imageIndex, ::size_t width, ::size_t height, ::size_t row_pitch, bool shared, void* data)
 {
 	if (m_Init)
 	{
@@ -529,13 +524,13 @@ bool OpenCLWrapper::ReadImage(uint imageIndex, ::size_t width, ::size_t height, 
 			{
 				err = m_Queue.enqueueReadImage(m_GLImages[imageIndex].m_Image, true, origin, region, row_pitch, 0, data);
 				bool b = EnqueueReleaseGLObjects(m_GLImages[imageIndex].m_Image);
-				return CheckCL(err, "cl::enqueueReadImage()") && b;
+				return m_Info.CheckCL(err, "cl::enqueueReadImage()") && b;
 			}
 		}
 		else if (!shared && imageIndex < m_Images.size())
 		{
 			err = m_Queue.enqueueReadImage(m_Images[imageIndex].m_Image, true, origin, region, row_pitch, 0, data);
-			return CheckCL(err, "cl::enqueueReadImage()");
+			return m_Info.CheckCL(err, "cl::enqueueReadImage()");
 		}
 	}
 
@@ -572,7 +567,7 @@ int OpenCLWrapper::FindImageIndex(const string& name, bool shared)
 /// <param name="name">The name of the image to search for</param>
 /// <param name="shared">True if shared with an OpenGL texture, else false.</param>
 /// <returns>The size of the 2D image if found, else 0.</returns>
-uint OpenCLWrapper::GetImageSize(const string& name, bool shared)
+size_t OpenCLWrapper::GetImageSize(const string& name, bool shared)
 {
 	int imageIndex = FindImageIndex(name, shared);
 	return GetImageSize(imageIndex, shared);
@@ -584,7 +579,7 @@ uint OpenCLWrapper::GetImageSize(const string& name, bool shared)
 /// <param name="imageIndex">Index of the image to search for</param>
 /// <param name="shared">True if shared with an OpenGL texture, else false.</param>
 /// <returns>The size of the 2D image if found, else 0.</returns>
-uint OpenCLWrapper::GetImageSize(uint imageIndex, bool shared)
+size_t OpenCLWrapper::GetImageSize(size_t imageIndex, bool shared)
 {
 	size_t size = 0;
 
@@ -593,6 +588,7 @@ uint OpenCLWrapper::GetImageSize(uint imageIndex, bool shared)
 		if (shared && imageIndex < m_GLImages.size())
 		{
 			vector<cl::Memory> images;
+
 			images.push_back(m_GLImages[imageIndex].m_Image);
 			IMAGEGL2D image = m_GLImages[imageIndex].m_Image;
 
@@ -608,7 +604,7 @@ uint OpenCLWrapper::GetImageSize(uint imageIndex, bool shared)
 		}
 	}
 
-	return uint(size);
+	return size;
 }
 
 /// <summary>
@@ -671,7 +667,7 @@ bool OpenCLWrapper::CreateImage2D(cl::Image2D& image2D, cl_mem_flags flags, cl::
 					data,
 					&err);
 
-		return CheckCL(err, "cl::Image2D()");
+		return m_Info.CheckCL(err, "cl::Image2D()");
 	}
 
 	return false;
@@ -699,7 +695,7 @@ bool OpenCLWrapper::CreateImage2DGL(IMAGEGL2D& image2DGL, cl_mem_flags flags, GL
 					texobj,
 					&err);
 
-		return CheckCL(err, "cl::ImageGL()");
+		return m_Info.CheckCL(err, "cl::ImageGL()");
 	}
 
 	return false;
@@ -734,7 +730,7 @@ bool OpenCLWrapper::EnqueueAcquireGLObjects(IMAGEGL2D& image)
 		images.push_back(image);
 		cl_int err = m_Queue.enqueueAcquireGLObjects(&images);
 		m_Queue.finish();
-		return CheckCL(err, "cl::CommandQueue::enqueueAcquireGLObjects()");
+		return m_Info.CheckCL(err, "cl::CommandQueue::enqueueAcquireGLObjects()");
 	}
 
 	return false;
@@ -769,7 +765,7 @@ bool OpenCLWrapper::EnqueueReleaseGLObjects(IMAGEGL2D& image)
 		images.push_back(image);
 		cl_int err = m_Queue.enqueueReleaseGLObjects(&images);
 		m_Queue.finish();
-		return CheckCL(err, "cl::CommandQueue::enqueueReleaseGLObjects()");
+		return m_Info.CheckCL(err, "cl::CommandQueue::enqueueReleaseGLObjects()");
 	}
 
 	return false;
@@ -787,7 +783,7 @@ bool OpenCLWrapper::EnqueueAcquireGLObjects(const VECTOR_CLASS<cl::Memory>* memO
 		cl_int err = m_Queue.enqueueAcquireGLObjects(memObjects);
 
 		m_Queue.finish();
-		return CheckCL(err, "cl::CommandQueue::enqueueAcquireGLObjects()");
+		return m_Info.CheckCL(err, "cl::CommandQueue::enqueueAcquireGLObjects()");
 	}
 
 	return false;
@@ -805,7 +801,7 @@ bool OpenCLWrapper::EnqueueReleaseGLObjects(const VECTOR_CLASS<cl::Memory>* memO
 		cl_int err = m_Queue.enqueueReleaseGLObjects(memObjects);
 
 		m_Queue.finish();
-		return CheckCL(err, "cl::CommandQueue::enqueueReleaseGLObjects()");
+		return m_Info.CheckCL(err, "cl::CommandQueue::enqueueReleaseGLObjects()");
 	}
 
 	return false;
@@ -829,7 +825,7 @@ bool OpenCLWrapper::CreateSampler(cl::Sampler& sampler, cl_bool normalizedCoords
 				filterMode,
 				&err);
 
-	return CheckCL(err, "cl::Sampler()");
+	return m_Info.CheckCL(err, "cl::Sampler()");
 }
 
 /// <summary>
@@ -840,7 +836,7 @@ bool OpenCLWrapper::CreateSampler(cl::Sampler& sampler, cl_bool normalizedCoords
 /// <param name="argIndex">Index of the argument</param>
 /// <param name="name">The name of the buffer</param>
 /// <returns>True if success, else false.</returns>
-bool OpenCLWrapper::SetBufferArg(uint kernelIndex, uint argIndex, const string& name)
+bool OpenCLWrapper::SetBufferArg(size_t kernelIndex, cl_uint argIndex, const string& name)
 {
 	int bufferIndex = OpenCLWrapper::FindBufferIndex(name);
 
@@ -855,7 +851,7 @@ bool OpenCLWrapper::SetBufferArg(uint kernelIndex, uint argIndex, const string& 
 /// <param name="argIndex">Index of the argument</param>
 /// <param name="bufferIndex">Index of the buffer</param>
 /// <returns>True if success, else false.</returns>
-bool OpenCLWrapper::SetBufferArg(uint kernelIndex, uint argIndex, uint bufferIndex)
+bool OpenCLWrapper::SetBufferArg(size_t kernelIndex, cl_uint argIndex, size_t bufferIndex)
 {
 	if (m_Init && bufferIndex < m_Buffers.size())
 		return SetArg<cl::Buffer>(kernelIndex, argIndex, m_Buffers[bufferIndex].m_Buffer);
@@ -872,7 +868,7 @@ bool OpenCLWrapper::SetBufferArg(uint kernelIndex, uint argIndex, uint bufferInd
 /// <param name="shared">True if shared with an OpenGL texture, else false</param>
 /// <param name="name">The name of the 2D image</param>
 /// <returns>True if success, else false.</returns>
-bool OpenCLWrapper::SetImageArg(uint kernelIndex, uint argIndex, bool shared, const string& name)
+bool OpenCLWrapper::SetImageArg(size_t kernelIndex, cl_uint argIndex, bool shared, const string& name)
 {
 	if (m_Init)
 	{
@@ -892,7 +888,7 @@ bool OpenCLWrapper::SetImageArg(uint kernelIndex, uint argIndex, bool shared, co
 /// <param name="shared">True if shared with an OpenGL texture, else false</param>
 /// <param name="imageIndex">Index of the 2D image</param>
 /// <returns>True if success, else false.</returns>
-bool OpenCLWrapper::SetImageArg(uint kernelIndex, uint argIndex, bool shared, uint imageIndex)
+bool OpenCLWrapper::SetImageArg(size_t kernelIndex, cl_uint argIndex, bool shared, size_t imageIndex)
 {
 	cl_int err;
 
@@ -901,12 +897,12 @@ bool OpenCLWrapper::SetImageArg(uint kernelIndex, uint argIndex, bool shared, ui
 		if (shared && imageIndex < m_GLImages.size())
 		{
 			err = m_Programs[kernelIndex].m_Kernel.setArg(argIndex, m_GLImages[imageIndex].m_Image);
-			return CheckCL(err, "cl::Kernel::setArg()");
+			return m_Info.CheckCL(err, "cl::Kernel::setArg()");
 		}
 		else if (!shared && imageIndex < m_Images.size())
 		{
 			err = m_Programs[kernelIndex].m_Kernel.setArg(argIndex, m_Images[imageIndex].m_Image);
-			return CheckCL(err, "cl::Kernel::setArg()");
+			return m_Info.CheckCL(err, "cl::Kernel::setArg()");
 		}
 	}
 
@@ -938,8 +934,8 @@ int OpenCLWrapper::FindKernelIndex(const string& name)
 /// <param name="blockHeight">Height of each block</param>
 /// <param name="blockDepth">Depth of each block</param>
 /// <returns>True if success, else false.</returns>
-bool OpenCLWrapper::RunKernel(uint kernelIndex, uint totalGridWidth, uint totalGridHeight, uint totalGridDepth,
-	uint blockWidth, uint blockHeight, uint blockDepth)
+bool OpenCLWrapper::RunKernel(size_t kernelIndex, size_t totalGridWidth, size_t totalGridHeight, size_t totalGridDepth,
+	size_t blockWidth, size_t blockHeight, size_t blockDepth)
 {
 	if (m_Init && kernelIndex < m_Programs.size())
 	{
@@ -953,170 +949,10 @@ bool OpenCLWrapper::RunKernel(uint kernelIndex, uint totalGridWidth, uint totalG
 
 		e.wait();
 		m_Queue.finish();
-		return CheckCL(err, "cl::CommandQueue::enqueueNDRangeKernel()");
+		return m_Info.CheckCL(err, "cl::CommandQueue::enqueueNDRangeKernel()");
 	}
 
 	return false;
-}
-
-/// <summary>
-/// Get device information for the specified field.
-/// Template argument expected to be cl_ulong, cl_uint or cl_int;
-/// </summary>
-/// <param name="name">The device field/feature to query</param>
-/// <returns>The value of the field</returns>
-template<typename T>
-T OpenCLWrapper::GetInfo(size_t platform, size_t device, cl_device_info name) const
-{
-	T val;
-
-	if (platform < m_Devices.size() && device < m_Devices[platform].size())
-		m_Devices[platform][device].getInfo(name, &val);
-
-	return val;
-}
-
-/// <summary>
-/// Get the platform name at the specified index.
-/// </summary>
-/// <param name="i">The platform index to get the name of</param>
-/// <returns>The platform name if found, else empty string</returns>
-string OpenCLWrapper::PlatformName(size_t platform)
-{
-	if (platform < m_Platforms.size())
-		return m_Platforms[platform].getInfo<CL_PLATFORM_VENDOR>(nullptr) + " " + m_Platforms[platform].getInfo<CL_PLATFORM_NAME>(nullptr) + " " + m_Platforms[platform].getInfo<CL_PLATFORM_VERSION>(nullptr);
-	else
-		return "";
-}
-
-/// <summary>
-/// Get all available platform names on the system as a vector of strings.
-/// </summary>
-/// <returns>All available platform names on the system as a vector of strings</returns>
-vector<string> OpenCLWrapper::PlatformNames()
-{
-	vector<string> platforms;
-
-	platforms.reserve(m_Platforms.size());
-
-	for (size_t i = 0; i < m_Platforms.size(); i++)
-		platforms.push_back(PlatformName(i));
-
-	return platforms;
-}
-
-/// <summary>
-/// Get the device name at the specified index on the platform
-/// at the specified index.
-/// </summary>
-/// <param name="platform">The platform index of the device</param>
-/// <param name="device">The device index</param>
-/// <returns>The name of the device if found, else empty string</returns>
-string OpenCLWrapper::DeviceName(size_t platform, size_t device)
-{
-	string s;
-
-	if (platform < m_Platforms.size() && platform < m_Devices.size())
-		if (device < m_Devices[platform].size())
-			s = m_Devices[platform][device].getInfo<CL_DEVICE_VENDOR>(nullptr) + " " + m_Devices[platform][device].getInfo<CL_DEVICE_NAME>(nullptr);// + " " + m_Devices[platform][device].getInfo<CL_DEVICE_VERSION>();
-
-	return s;
-}
-
-/// <summary>
-/// Get all available device names on the platform at the specified index as a vector of strings.
-/// </summary>
-/// <param name="platform">The platform index of the devices to query</param>
-/// <returns>All available device names on the platform at the specified index as a vector of strings</returns>
-vector<string> OpenCLWrapper::DeviceNames(size_t platform)
-{
-	uint i = 0;
-	string s;
-	vector<string> devices;
-
-	do
-	{
-		s = DeviceName(platform, i);
-
-		if (s != "")
-			devices.push_back(s);
-
-		i++;
-	} while (s != "");
-
-	return devices;
-}
-
-/// <summary>
-/// Get all availabe device and platform names as one contiguous string.
-/// </summary>
-/// <returns>A string with all available device and platform names</returns>
-string OpenCLWrapper::DeviceAndPlatformNames()
-{
-	ostringstream os;
-	vector<string> deviceNames;
-
-	for (size_t platform = 0; platform < m_Platforms.size(); platform++)
-	{
-		os << PlatformName(platform) << endl;
-
-		deviceNames = DeviceNames(platform);
-
-		for (size_t device = 0; device < m_Devices[platform].size(); device++)
-			os << "\t" << deviceNames[device] << endl;
-	}
-
-	return os.str();
-}
-
-/// <summary>
-/// Get all information about the currently used device.
-/// </summary>
-/// <returns>A string with all information about the currently used device</returns>
-string OpenCLWrapper::DumpInfo()
-{
-	ostringstream os;
-	vector<size_t> sizes;
-
-	os.imbue(std::locale(""));
-
-	for (size_t platform = 0; platform < m_Platforms.size(); platform++)
-	{
-		os << "Platform " << platform << ": " << PlatformName(platform) << endl;
-
-		for (size_t device = 0; device < m_Devices[platform].size(); device++)
-		{
-			os << "Device " << device << ": " << DeviceName(platform, device) << endl;
-			os << "CL_DEVICE_OPENCL_C_VERSION: "		  << GetInfo<string>  (platform, device, CL_DEVICE_OPENCL_C_VERSION)		  << endl;
-			os << "CL_DEVICE_LOCAL_MEM_SIZE: "			  << GetInfo<cl_ulong>(platform, device, CL_DEVICE_LOCAL_MEM_SIZE)			  << endl;
-			os << "CL_DEVICE_LOCAL_MEM_TYPE: "			  << GetInfo<cl_uint> (platform, device, CL_DEVICE_LOCAL_MEM_TYPE)			  << endl;
-			os << "CL_DEVICE_MAX_COMPUTE_UNITS: "		  << GetInfo<cl_uint> (platform, device, CL_DEVICE_MAX_COMPUTE_UNITS)		  << endl;
-			os << "CL_DEVICE_MAX_READ_IMAGE_ARGS: "		  << GetInfo<cl_uint> (platform, device, CL_DEVICE_MAX_READ_IMAGE_ARGS)		  << endl;
-			os << "CL_DEVICE_MAX_WRITE_IMAGE_ARGS: "	  << GetInfo<cl_uint> (platform, device, CL_DEVICE_MAX_WRITE_IMAGE_ARGS)	  << endl;
-			os << "CL_DEVICE_MAX_MEM_ALLOC_SIZE: "		  << GetInfo<cl_ulong>(platform, device, CL_DEVICE_MAX_MEM_ALLOC_SIZE)		  << endl;
-			os << "CL_DEVICE_ADDRESS_BITS: "			  << GetInfo<cl_uint> (platform, device, CL_DEVICE_ADDRESS_BITS)			  << endl;
-
-			os << "CL_DEVICE_GLOBAL_MEM_CACHE_TYPE: "	  << GetInfo<cl_uint> (platform, device, CL_DEVICE_GLOBAL_MEM_CACHE_TYPE)	  << endl;
-			os << "CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE: " << GetInfo<cl_uint> (platform, device, CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE) << endl;
-			os << "CL_DEVICE_GLOBAL_MEM_CACHE_SIZE: "	  << GetInfo<cl_ulong>(platform, device, CL_DEVICE_GLOBAL_MEM_CACHE_SIZE)	  << endl;
-			os << "CL_DEVICE_GLOBAL_MEM_SIZE: "			  << GetInfo<cl_ulong>(platform, device, CL_DEVICE_GLOBAL_MEM_SIZE)			  << endl;
-			os << "CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE: "  << GetInfo<cl_ulong>(platform, device, CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE)  << endl;
-
-			os << "CL_DEVICE_MAX_CONSTANT_ARGS: "		  << GetInfo<cl_uint> (platform, device, CL_DEVICE_MAX_CONSTANT_ARGS)		  << endl;
-			os << "CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS: "  << GetInfo<cl_uint> (platform, device, CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS)  << endl;
-			os << "CL_DEVICE_MAX_WORK_GROUP_SIZE: "		  << GetInfo<::size_t>(platform, device, CL_DEVICE_MAX_WORK_GROUP_SIZE)		  << endl;
-
-			sizes = GetInfo<vector< ::size_t>>(platform, device, CL_DEVICE_MAX_WORK_ITEM_SIZES);
-			os << "CL_DEVICE_MAX_WORK_ITEM_SIZES: "		  << sizes[0] << ", " << sizes[1] << ", " << sizes[2] << endl << endl;
-
-			if (device != m_Devices[platform].size() - 1 && platform != m_Platforms.size() - 1)
-				os << endl;
-		}
-
-		os << endl;
-	}
-
-	return os.str();
 }
 
 /// <summary>
@@ -1124,12 +960,13 @@ string OpenCLWrapper::DumpInfo()
 /// </summary>
 bool OpenCLWrapper::Ok() const { return m_Init; }
 bool OpenCLWrapper::Shared() const { return m_Shared; }
-cl::Context OpenCLWrapper::Context() const { return m_Context; }
-uint OpenCLWrapper::PlatformIndex() const { return m_PlatformIndex; }
-uint OpenCLWrapper::DeviceIndex() const { return m_DeviceIndex; }
-size_t OpenCLWrapper::GlobalMemSize() const { return GetInfo<cl_ulong>(PlatformIndex(), DeviceIndex(), CL_DEVICE_GLOBAL_MEM_SIZE); }
-uint OpenCLWrapper::LocalMemSize() const { return m_LocalMemSize; }
-size_t OpenCLWrapper::MaxAllocSize() const { return GetInfo<cl_ulong>(PlatformIndex(), DeviceIndex(), CL_DEVICE_MAX_MEM_ALLOC_SIZE); }
+const cl::Context& OpenCLWrapper::Context() const { return m_Context; }
+size_t OpenCLWrapper::PlatformIndex() const { return m_PlatformIndex; }
+size_t OpenCLWrapper::DeviceIndex() const { return m_DeviceIndex; }
+const string& OpenCLWrapper::DeviceName() const { return m_Info.DeviceName(m_PlatformIndex, m_DeviceIndex); }
+size_t OpenCLWrapper::LocalMemSize() const { return m_LocalMemSize; }
+size_t OpenCLWrapper::GlobalMemSize() const { return m_GlobalMemSize; }
+size_t OpenCLWrapper::MaxAllocSize() const { return m_MaxAllocSize; }
 
 /// <summary>
 /// Makes the even grid dims.
@@ -1138,74 +975,13 @@ size_t OpenCLWrapper::MaxAllocSize() const { return GetInfo<cl_ulong>(PlatformIn
 /// <param name="blockH">The block h.</param>
 /// <param name="gridW">The grid w.</param>
 /// <param name="gridH">The grid h.</param>
-void OpenCLWrapper::MakeEvenGridDims(uint blockW, uint blockH, uint& gridW, uint& gridH)
+void OpenCLWrapper::MakeEvenGridDims(size_t blockW, size_t blockH, size_t& gridW, size_t& gridH)
 {
 	if (gridW % blockW != 0)
 		gridW += (blockW - (gridW % blockW));
 
 	if (gridH % blockH != 0)
 		gridH += (blockH - (gridH % blockH));
-}
-
-/// <summary>
-/// Create a context that is optionall shared with OpenGL.
-/// </summary>
-/// <param name="shared">True if shared with OpenGL, else not shared.</param>
-/// <returns>True if success, else false.</returns>
-bool OpenCLWrapper::CreateContext(bool shared)
-{
-	cl_int err;
-
-	if (shared)
-	{
-		//Define OS-specific context properties and create the OpenCL context.
-		#if defined (__APPLE__) || defined(MACOSX)
-			CGLContextObj kCGLContext = CGLGetCurrentContext();
-			CGLShareGroupObj kCGLShareGroup = CGLGetShareGroup(kCGLContext);
-			cl_context_properties props[] =
-			{
-				CL_CONTEXT_PROPERTY_USE_CGL_SHAREGROUP_APPLE, (cl_context_properties)kCGLShareGroup,
-				0
-			};
-
-			m_Context = cl::Context(CL_DEVICE_TYPE_GPU, props, nullptr, nullptr, &err);//May need to tinker with this on Mac.
-		#else
-			#if defined WIN32
-				cl_context_properties props[] =
-				{
-					CL_GL_CONTEXT_KHR, (cl_context_properties)wglGetCurrentContext(),
-					CL_WGL_HDC_KHR, (cl_context_properties)wglGetCurrentDC(),
-					CL_CONTEXT_PLATFORM, reinterpret_cast<cl_context_properties>((m_Platforms[m_PlatformIndex])()),
-					0
-				};
-
-				m_Context = cl::Context(CL_DEVICE_TYPE_GPU, props, nullptr, nullptr, &err);
-			#else
-				cl_context_properties props[] =
-				{
-					CL_GL_CONTEXT_KHR, cl_context_properties(glXGetCurrentContext()),
-					CL_GLX_DISPLAY_KHR, cl_context_properties(glXGetCurrentDisplay()),
-					CL_CONTEXT_PLATFORM, reinterpret_cast<cl_context_properties>((m_Platforms[m_PlatformIndex])()),
-					0
-				};
-
-				m_Context = cl::Context(CL_DEVICE_TYPE_GPU, props, nullptr, nullptr, &err);
-			#endif
-		#endif
-	}
-	else
-	{
-		cl_context_properties props[3] =
-		{
-			CL_CONTEXT_PLATFORM,
-			reinterpret_cast<cl_context_properties>((m_Platforms[m_PlatformIndex])()),
-			0
-		};
-
-		m_Context = cl::Context(CL_DEVICE_TYPE_ALL, props, nullptr, nullptr, &err);
-	}
-
-	return CheckCL(err, "cl::Context()");
 }
 
 /// <summary>
@@ -1235,107 +1011,21 @@ bool OpenCLWrapper::CreateSPK(const string& name, const string& program, const s
 			//err = spk.m_Program.build(m_DeviceVec, "-cl-mad-enable -cl-no-signed-zeros -cl-fast-relaxed-math -cl-single-precision-constant");//This can cause some rounding.
 			//err = spk.m_Program.build(m_DeviceVec, "-cl-mad-enable -cl-single-precision-constant");
 
-		if (CheckCL(err, "cl::Program::build()"))
+		if (m_Info.CheckCL(err, "cl::Program::build()"))
 		{
 			//Building of program is ok, now create kernel with the specified entry point.
 			spk.m_Kernel = cl::Kernel(spk.m_Program, entryPoint.c_str(), &err);
 
-			if (CheckCL(err, "cl::Kernel()"))
+			if (m_Info.CheckCL(err, "cl::Kernel()"))
 				return true;//Everything is ok.
 		}
 		else
 		{
 			for (auto& i : m_DeviceVec)
-				m_ErrorReport.push_back(spk.m_Program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(i));
+				m_ErrorReport.push_back(spk.m_Program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(i, nullptr));
 		}
 	}
 
 	return false;
-}
-
-/// <summary>
-/// Check an OpenCL return value for errors.
-/// </summary>
-/// <param name="err">The error code to inspect</param>
-/// <param name="name">A description of where the value was gotten from</param>
-/// <returns>True if success, else false.</returns>
-bool OpenCLWrapper::CheckCL(cl_int err, const char* name)
-{
-	if (err != CL_SUCCESS)
-	{
-		ostringstream ss;
-		ss << "ERROR: " << ErrorToStringCL(err) << " in " << name << "." << std::endl;
-		m_ErrorReport.push_back(ss.str());
-	}
-
-	return err == CL_SUCCESS;
-}
-
-/// <summary>
-/// Translate an OpenCL error code into a human readable string.
-/// </summary>
-/// <param name="err">The error code to translate</param>
-/// <returns>A human readable description of the error passed in</returns>
-std::string OpenCLWrapper::ErrorToStringCL(cl_int err)
-{
-	switch (err)
-	{
-		case CL_SUCCESS:								   return "Success";
-		case CL_DEVICE_NOT_FOUND:						   return "Device not found";
-		case CL_DEVICE_NOT_AVAILABLE:					   return "Device not available";
-		case CL_COMPILER_NOT_AVAILABLE:					   return "Compiler not available";
-		case CL_MEM_OBJECT_ALLOCATION_FAILURE:			   return "Memory object allocation failure";
-		case CL_OUT_OF_RESOURCES:						   return "Out of resources";
-		case CL_OUT_OF_HOST_MEMORY:						   return "Out of host memory";
-		case CL_PROFILING_INFO_NOT_AVAILABLE:			   return "Profiling information not available";
-		case CL_MEM_COPY_OVERLAP:						   return "Memory copy overlap";
-		case CL_IMAGE_FORMAT_MISMATCH:					   return "Image format mismatch";
-		case CL_IMAGE_FORMAT_NOT_SUPPORTED:				   return "Image format not supported";
-		case CL_BUILD_PROGRAM_FAILURE:					   return "Program build failure";
-		case CL_MAP_FAILURE:							   return "Map failure";
-		case CL_MISALIGNED_SUB_BUFFER_OFFSET:			   return "Misaligned sub buffer offset";
-		case CL_EXEC_STATUS_ERROR_FOR_EVENTS_IN_WAIT_LIST: return "Exec status error for events in wait list";
-		case CL_INVALID_VALUE:							   return "Invalid value";
-		case CL_INVALID_DEVICE_TYPE:					   return "Invalid device type";
-		case CL_INVALID_PLATFORM:						   return "Invalid platform";
-		case CL_INVALID_DEVICE:							   return "Invalid device";
-		case CL_INVALID_CONTEXT:						   return "Invalid context";
-		case CL_INVALID_QUEUE_PROPERTIES:				   return "Invalid queue properties";
-		case CL_INVALID_COMMAND_QUEUE:					   return "Invalid command queue";
-		case CL_INVALID_HOST_PTR:						   return "Invalid host pointer";
-		case CL_INVALID_MEM_OBJECT:						   return "Invalid memory object";
-		case CL_INVALID_IMAGE_FORMAT_DESCRIPTOR:		   return "Invalid image format descriptor";
-		case CL_INVALID_IMAGE_SIZE:						   return "Invalid image size";
-		case CL_INVALID_SAMPLER:						   return "Invalid sampler";
-		case CL_INVALID_BINARY:							   return "Invalid binary";
-		case CL_INVALID_BUILD_OPTIONS:					   return "Invalid build options";
-		case CL_INVALID_PROGRAM:						   return "Invalid program";
-		case CL_INVALID_PROGRAM_EXECUTABLE:				   return "Invalid program executable";
-		case CL_INVALID_KERNEL_NAME:					   return "Invalid kernel name";
-		case CL_INVALID_KERNEL_DEFINITION:				   return "Invalid kernel definition";
-		case CL_INVALID_KERNEL:							   return "Invalid kernel";
-		case CL_INVALID_ARG_INDEX:						   return "Invalid argument index";
-		case CL_INVALID_ARG_VALUE:						   return "Invalid argument value";
-		case CL_INVALID_ARG_SIZE:						   return "Invalid argument size";
-		case CL_INVALID_KERNEL_ARGS:					   return "Invalid kernel arguments";
-		case CL_INVALID_WORK_DIMENSION:					   return "Invalid work dimension";
-		case CL_INVALID_WORK_GROUP_SIZE:				   return "Invalid work group size";
-		case CL_INVALID_WORK_ITEM_SIZE:					   return "Invalid work item size";
-		case CL_INVALID_GLOBAL_OFFSET:					   return "Invalid global offset";
-		case CL_INVALID_EVENT_WAIT_LIST:				   return "Invalid event wait list";
-		case CL_INVALID_EVENT:							   return "Invalid event";
-		case CL_INVALID_OPERATION:						   return "Invalid operation";
-		case CL_INVALID_GL_OBJECT:						   return "Invalid OpenGL object";
-		case CL_INVALID_BUFFER_SIZE:					   return "Invalid buffer size";
-		case CL_INVALID_MIP_LEVEL:						   return "Invalid mip-map level";
-		case CL_INVALID_GLOBAL_WORK_SIZE:				   return "Invalid global work size";
-		case CL_INVALID_PROPERTY:						   return "Invalid property";
-		default:
-		{
-			ostringstream ss;
-			ss << "<Unknown error code> " << err;
-			return ss.str();
-		}
-	}
 }
 }

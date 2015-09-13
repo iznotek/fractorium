@@ -671,7 +671,7 @@ Finish:
 /// <param name="hexPalette">If true, embed a hexadecimal palette instead of Xml Color tags, else use Xml color tags.</param>
 /// <returns>The EmberImageComments object with image comments filled out</returns>
 template <typename T, typename bucketT>
-EmberImageComments Renderer<T, bucketT>::ImageComments(EmberStats& stats, size_t printEditDepth, bool intPalette, bool hexPalette)
+EmberImageComments Renderer<T, bucketT>::ImageComments(const EmberStats& stats, size_t printEditDepth, bool intPalette, bool hexPalette)
 {
 	ostringstream ss;
 	EmberImageComments comments;
@@ -708,7 +708,7 @@ void Renderer<T, bucketT>::MakeDmap(T colorScalar)
 /// </summary>
 /// <returns>True if success, else false</returns>
 template <typename T, typename bucketT>
-bool Renderer<T, bucketT>::Alloc()
+bool Renderer<T, bucketT>::Alloc(bool histOnly)
 {
 	bool b = true;
 	bool lock =
@@ -728,6 +728,14 @@ bool Renderer<T, bucketT>::Alloc()
 			m_HistBuckets.shrink_to_fit();
 
 		b &= (m_HistBuckets.size() == m_SuperSize);
+	}
+
+	if (histOnly)
+	{
+		if (lock)
+			LeaveResize();
+
+		return b;
 	}
 
 	if (m_SuperSize != m_AccumulatorBuckets.size())
@@ -1224,7 +1232,7 @@ EmberStats Renderer<T, bucketT>::Iterate(size_t iterCount, size_t temporalSample
 		sp.sched_priority = m_Priority;
 		pthread_setschedparam(pthread_self(), SCHED_RR, &sp);
 #else
-		pthread_setschedprio(pthread_self(), (int)m_Priority);
+		pthread_setschedprio(pthread_self(), int(m_Priority));
 #endif
 		//Timing t;
 		IterParams<T> params;
@@ -1268,7 +1276,6 @@ EmberStats Renderer<T, bucketT>::Iterate(size_t iterCount, size_t temporalSample
 			if (m_Callback && threadIndex == 0)
 			{
 				percent = 100.0 *
-
 				double
 				(
 					double
@@ -1342,7 +1349,7 @@ template <typename T, typename bucketT> T							   Renderer<T, bucketT>::PixelsP
 template <typename T, typename bucketT> T							   Renderer<T, bucketT>::PixelsPerUnitY()	   const { return m_PixelsPerUnitY; }
 template <typename T, typename bucketT> bucketT						   Renderer<T, bucketT>::K1()				   const { return m_K1; }
 template <typename T, typename bucketT> bucketT						   Renderer<T, bucketT>::K2()				   const { return m_K2; }
-template <typename T, typename bucketT> const CarToRas<T>*			   Renderer<T, bucketT>::CoordMap()			   const { return &m_CarToRas; }
+template <typename T, typename bucketT> const CarToRas<T>&			   Renderer<T, bucketT>::CoordMap()			   const { return m_CarToRas; }
 template <typename T, typename bucketT> tvec4<bucketT, glm::defaultp>* Renderer<T, bucketT>::HistBuckets()				 { return m_HistBuckets.data(); }
 template <typename T, typename bucketT> tvec4<bucketT, glm::defaultp>* Renderer<T, bucketT>::AccumulatorBuckets()		 { return m_AccumulatorBuckets.data(); }
 template <typename T, typename bucketT> SpatialFilter<bucketT>*		   Renderer<T, bucketT>::GetSpatialFilter()			 { return m_SpatialFilter.get(); }

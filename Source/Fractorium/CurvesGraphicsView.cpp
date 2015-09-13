@@ -124,7 +124,7 @@ void CurvesGraphicsView::Set(int curveIndex, int pointIndex, const QPointF& poin
 /// <param name="curveIndex">The curve to set</param>
 void CurvesGraphicsView::SetTop(CurveIndex curveIndex)
 {
-	int index;
+	size_t index;
 
 	switch (curveIndex)
 	{
@@ -142,7 +142,7 @@ void CurvesGraphicsView::SetTop(CurveIndex curveIndex)
 		index = 3;
 	}
 
-	for (int i = 0; i < 4; i++)
+	for (size_t i = 0; i < 4; i++)
 	{
 		if (i == index)
 		{

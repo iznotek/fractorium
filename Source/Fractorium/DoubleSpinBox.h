@@ -76,7 +76,7 @@ public:
 	/// <param name="param">The name of the parameter this is for</param>
 	/// <param name="h">The height of the spin box. Default: 16.</param>
 	/// <param name="step">The step used to increment/decrement the spin box when using the mouse wheel. Default: 0.05.</param>
-	explicit VariationTreeDoubleSpinBox(QWidget* p, VariationTreeWidgetItem* widgetItem, eVariationId id, string param, int h = 16, double step = 0.05)
+	explicit VariationTreeDoubleSpinBox(QWidget* p, VariationTreeWidgetItem* widgetItem, eVariationId id, const string& param, int h = 16, double step = 0.05)
 		: DoubleSpinBox(p, h, step)
 	{
 		m_WidgetItem = widgetItem;

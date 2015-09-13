@@ -39,7 +39,7 @@ public:
 	/// <param name="index">The index in the palette file</param>
 	/// <param name="size">The size of the palette which should be 256</param>
 	/// <param name="xmlPaletteEntries">A pointer to 256 color entries</param>
-	Palette(const string& name, int index, uint size, v4T* xmlPaletteEntries)
+	Palette(const string& name, int index, size_t size, v4T* xmlPaletteEntries)
 	{
 		m_Name = name;
 		m_Index = index;
@@ -86,7 +86,7 @@ public:
 0x00, 0x81, 0x96, 0x8d, 0x00, 0x81, 0x9a, 0x8d, 0x00, 0x85, 0x9a, 0x8d, 0x00, 0x89, 0x9e, 0x8d, 0x00, 0x89, 0x9e, 0x8d, 0x00, 0x8d, 0xa2, 0x97, 0x00, 0x95, 0xa2, 0x97, 0x00, 0x8d, 0xa2, 0x97,
 0x00, 0x96, 0xa6, 0x8d, 0x00, 0x9a, 0xa1, 0x8d, 0x00, 0x9e, 0xa9, 0x84, 0x00, 0x9e, 0xa6, 0x7a, 0x00, 0xa2, 0xa5, 0x71, 0x00, 0x9e, 0xa6, 0x71, 0x00, 0x9a, 0xa6, 0x71, 0x00, 0x95, 0x9d, 0x71 };
 
-			for (uint i = 0; i < size; i++)
+			for (size_t i = 0; i < size; i++)
 			{
 				m_Entries[i].a = T(palette15[i * 4 + 0]);
 				m_Entries[i].r = T(palette15[i * 4 + 1]);
@@ -208,7 +208,7 @@ public:
 		palette.m_Filename = m_Filename;
 		palette.m_Entries.resize(Size());
 
-		for (uint i = 0; i < Size(); i++)
+		for (size_t i = 0; i < Size(); i++)
 		{
 			size_t ii = (i * 256) / COLORMAP_LENGTH;
 			T rgb[3], hsv[3];
@@ -348,7 +348,7 @@ public:
 		if (palette.Size() != Size())
 			palette.m_Entries.resize(Size());
 
-		for (uint j = 0; j < palette.Size(); j++)
+		for (size_t j = 0; j < palette.Size(); j++)
 		{
 			palette.m_Entries[j] = m_Entries[j] * colorScalar;
 			palette.m_Entries[j].a = 1;
@@ -362,16 +362,16 @@ public:
 	/// </summary>
 	/// <param name="height">The height of the output block</param>
 	/// <returns>A vector holding the color values</returns>
-	vector<byte> MakeRgbPaletteBlock(uint height)
+	vector<byte> MakeRgbPaletteBlock(size_t height)
 	{
 		size_t width = Size();
 		vector<byte> v(height * width * 3);
 
 		if (v.size() == (height * Size() * 3))
 		{
-			for (uint i = 0; i < height; i++)
+			for (size_t i = 0; i < height; i++)
 			{
-				for (uint j = 0; j < width; j++)
+				for (size_t j = 0; j < width; j++)
 				{
 					v[(width * 3 * i) + (j * 3)]     = byte(m_Entries[j][0] * T(255));//Palettes are as [0..1], so convert to [0..255] here since it's for GUI display.
 					v[(width * 3 * i) + (j * 3) + 1] = byte(m_Entries[j][1] * T(255));
@@ -443,7 +443,7 @@ public:
 	/// <param name="b">Blue 0 - 1</param>
 	static void HsvToRgb(T h, T s, T v, T& r, T& g, T& b)
 	{
-		int j;
+		intmax_t j;
 		T f, p, q, t;
 
 		while (h >= 6)
@@ -522,7 +522,7 @@ public:
 	template<typename bucketT>
 	static void CalcNewRgb(bucketT* cBuf, T ls, T highPow, bucketT* newRgb)
 	{
-		int rgbi;
+		size_t rgbi;
 		T newls, lsratio;
 		bucketT newhsv[3];
 		T maxa, maxc;

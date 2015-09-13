@@ -1075,14 +1075,15 @@ public:
 	/// </summary>
 	/// <param name="sym">The type of symmetry to add</param>
 	/// <param name="rand">The random context to use for generating random symmetry</param>
-	void AddSymmetry(int sym, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand)
+	void AddSymmetry(intmax_t sym, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand)
 	{
-		size_t i, k, result = 0;
+		intmax_t k;
+		size_t i, result = 0;
 		T a;
 
 		if (sym == 0)
 		{
-			static int symDistrib[] = {
+			static intmax_t symDistrib[] = {
 				-4, -3,
 				-2, -2, -2,
 				-1, -1, -1,
@@ -1356,6 +1357,9 @@ public:
 				case FLAME_MOTION_VIBRANCY:
 					APP_FMP(m_Vibrancy);
 					break;
+				case FLAME_MOTION_NONE:
+				default:
+					break;
 				}
 			}
 		}
@@ -1581,7 +1585,7 @@ public:
 
 	//Whether or not any symmetry was added. This field is in a bit of a state of conflict right now as flam3 has a severe bug.
 	//Xml field: "symmetry".
-	int m_Symmetry;
+	intmax_t m_Symmetry;
 
 	//The number of iterations per pixel of the final output image. Note this is not affected by the increase in pixels in the
 	//histogram and DE filtering buffer due to supersampling. It can be affected by a non-zero zoom value though.

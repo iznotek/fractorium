@@ -11,7 +11,8 @@
 /// <param name="p">The parent widget</param>
 /// <param name="f">The window flags. Default: 0.</param>
 FractoriumFinalRenderDialog::FractoriumFinalRenderDialog(FractoriumSettings* settings, QWidget* p, Qt::WindowFlags f)
-	: QDialog(p, f)
+	: QDialog(p, f),
+	m_Info(OpenCLInfo::Instance())
 {	
 	ui.setupUi(this);
 
@@ -29,18 +30,18 @@ FractoriumFinalRenderDialog::FractoriumFinalRenderDialog(FractoriumSettings* set
 	connect(ui.FinalRenderTransparencyCheckBox,	   SIGNAL(stateChanged(int)),		 this, SLOT(OnTransparencyCheckBoxStateChanged(int)),	 Qt::QueuedConnection);
 	connect(ui.FinalRenderOpenCLCheckBox,		   SIGNAL(stateChanged(int)),		 this, SLOT(OnOpenCLCheckBoxStateChanged(int)),		     Qt::QueuedConnection);
 	connect(ui.FinalRenderDoublePrecisionCheckBox, SIGNAL(stateChanged(int)),		 this, SLOT(OnDoublePrecisionCheckBoxStateChanged(int)), Qt::QueuedConnection);
-	connect(ui.FinalRenderPlatformCombo,		   SIGNAL(currentIndexChanged(int)), this, SLOT(OnPlatformComboCurrentIndexChanged(int)),	 Qt::QueuedConnection);
 	connect(ui.FinalRenderDoAllCheckBox,		   SIGNAL(stateChanged(int)),		 this, SLOT(OnDoAllCheckBoxStateChanged(int)),			 Qt::QueuedConnection);
 	connect(ui.FinalRenderDoSequenceCheckBox,	   SIGNAL(stateChanged(int)),		 this, SLOT(OnDoSequenceCheckBoxStateChanged(int)),		 Qt::QueuedConnection);
-	connect(ui.FinalRenderCurrentSpin,			   SIGNAL(valueChanged(int)),		 this, SLOT(OnFinalRenderCurrentSpinChanged(int)),		 Qt::QueuedConnection);
+	connect(ui.FinalRenderCurrentSpin,			   SIGNAL(valueChanged(int)),		 this, SLOT(OnCurrentSpinChanged(int)),		 Qt::QueuedConnection);
 	connect(ui.FinalRenderApplyToAllCheckBox,	   SIGNAL(stateChanged(int)),		 this, SLOT(OnApplyAllCheckBoxStateChanged(int)),		 Qt::QueuedConnection);
 	connect(ui.FinalRenderKeepAspectCheckBox,	   SIGNAL(stateChanged(int)),		 this, SLOT(OnKeepAspectCheckBoxStateChanged(int)),		 Qt::QueuedConnection);
 	connect(ui.FinalRenderScaleNoneRadioButton,	   SIGNAL(toggled(bool)),			 this, SLOT(OnScaleRadioButtonChanged(bool)),			 Qt::QueuedConnection);
 	connect(ui.FinalRenderScaleWidthRadioButton,   SIGNAL(toggled(bool)),			 this, SLOT(OnScaleRadioButtonChanged(bool)),			 Qt::QueuedConnection);
 	connect(ui.FinalRenderScaleHeightRadioButton,  SIGNAL(toggled(bool)),			 this, SLOT(OnScaleRadioButtonChanged(bool)),			 Qt::QueuedConnection);
-	
-	SetupSpinner<DoubleSpinBox, double>(ui.FinalRenderSizeTable, this, row, 1, m_WidthScaleSpin,  spinHeight, 0.001, 99.99, 0.1, SIGNAL(valueChanged(double)), SLOT(OnFinalRenderWidthScaleChanged(double)), true, 1.0, 1.0, 1.0);
-	SetupSpinner<DoubleSpinBox, double>(ui.FinalRenderSizeTable, this, row, 1, m_HeightScaleSpin, spinHeight, 0.001, 99.99, 0.1, SIGNAL(valueChanged(double)), SLOT(OnFinalRenderHeightScaleChanged(double)), true, 1.0, 1.0, 1.0);
+	connect(ui.DeviceTable,						   SIGNAL(cellChanged(int, int)),	 this, SLOT(OnDeviceTableCellChanged(int, int)),		 Qt::QueuedConnection);
+
+	SetupSpinner<DoubleSpinBox, double>(ui.FinalRenderSizeTable, this, row, 1, m_WidthScaleSpin,  spinHeight, 0.001, 99.99, 0.1, SIGNAL(valueChanged(double)), SLOT(OnWidthScaleChanged(double)), true, 1.0, 1.0, 1.0);
+	SetupSpinner<DoubleSpinBox, double>(ui.FinalRenderSizeTable, this, row, 1, m_HeightScaleSpin, spinHeight, 0.001, 99.99, 0.1, SIGNAL(valueChanged(double)), SLOT(OnHeightScaleChanged(double)), true, 1.0, 1.0, 1.0);
 	m_WidthScaleSpin->setDecimals(3);
 	m_HeightScaleSpin->setDecimals(3);
 	m_WidthScaleSpin->setSuffix(" ( )");
@@ -68,43 +69,35 @@ FractoriumFinalRenderDialog::FractoriumFinalRenderDialog(FractoriumSettings* set
 	table->item(row++, 1)->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
 	connect(m_Tbcw->m_Button1, SIGNAL(clicked(bool)),			 this, SLOT(OnFileButtonClicked(bool)),			Qt::QueuedConnection);
 	connect(m_Tbcw->m_Button2, SIGNAL(clicked(bool)),			 this, SLOT(OnShowFolderButtonClicked(bool)),   Qt::QueuedConnection);
-	connect(m_Tbcw->m_Combo,   SIGNAL(currentIndexChanged(int)), this, SLOT(OnFinalRenderExtIndexChanged(int)), Qt::QueuedConnection);
+	connect(m_Tbcw->m_Combo,   SIGNAL(currentIndexChanged(int)), this, SLOT(OnExtIndexChanged(int)), Qt::QueuedConnection);
 
 	m_PrefixEdit = new QLineEdit(table);
 	table->setCellWidget(row++, 1, m_PrefixEdit);
 
 	m_SuffixEdit = new QLineEdit(table);
 	table->setCellWidget(row++, 1, m_SuffixEdit);
-	connect(m_PrefixEdit, SIGNAL(textChanged(const QString&)), this, SLOT(OnFinalRenderPrefixChanged(const QString&)), Qt::QueuedConnection);
-	connect(m_SuffixEdit, SIGNAL(textChanged(const QString&)), this, SLOT(OnFinalRenderSuffixChanged(const QString&)), Qt::QueuedConnection);
+	connect(m_PrefixEdit, SIGNAL(textChanged(const QString&)), this, SLOT(OnPrefixChanged(const QString&)), Qt::QueuedConnection);
+	connect(m_SuffixEdit, SIGNAL(textChanged(const QString&)), this, SLOT(OnSuffixChanged(const QString&)), Qt::QueuedConnection);
 
 	ui.StartRenderButton->disconnect(SIGNAL(clicked(bool)));
 	connect(ui.StartRenderButton, SIGNAL(clicked(bool)), this, SLOT(OnRenderClicked(bool)),		  Qt::QueuedConnection);
 	connect(ui.StopRenderButton,  SIGNAL(clicked(bool)), this, SLOT(OnCancelRenderClicked(bool)), Qt::QueuedConnection);
 
-	if (m_Wrapper.CheckOpenCL())
+	table = ui.DeviceTable;
+
+	if (m_Info.Ok() && !m_Info.Devices().empty())
 	{
-		vector<string> platforms = m_Wrapper.PlatformNames();
+		SetupDeviceTable(table, m_Settings->FinalDevices());
 
-		//Populate combo boxes with available OpenCL platforms and devices.
-		for (i = 0; i < platforms.size(); i++)
-			ui.FinalRenderPlatformCombo->addItem(QString::fromStdString(platforms[i]));
+		for (int i = 0; i < table->rowCount(); i++)
+			if (auto radio = qobject_cast<QRadioButton*>(table->cellWidget(i, 1)))
+				connect(radio, SIGNAL(toggled(bool)), this, SLOT(OnDeviceTableRadioToggled(bool)), Qt::QueuedConnection);
 
-		//If init succeeds, set the selected platform and device combos to match what was saved in the settings.
-		if (m_Wrapper.Init(m_Settings->FinalPlatformIndex(), m_Settings->FinalDeviceIndex()))
-		{
-			ui.FinalRenderOpenCLCheckBox->setChecked(	 m_Settings->FinalOpenCL());
-			ui.FinalRenderPlatformCombo->setCurrentIndex(m_Settings->FinalPlatformIndex());
-			ui.FinalRenderDeviceCombo->setCurrentIndex(  m_Settings->FinalDeviceIndex());
-		}
-		else
-		{
-			OnPlatformComboCurrentIndexChanged(0);
-			ui.FinalRenderOpenCLCheckBox->setChecked(false);
-		}
+		ui.FinalRenderOpenCLCheckBox->setChecked(m_Settings->FinalOpenCL());
 	}
 	else
 	{
+		table->setEnabled(false);
 		ui.FinalRenderOpenCLCheckBox->setChecked(false);
 		ui.FinalRenderOpenCLCheckBox->setEnabled(false);
 	}
@@ -128,7 +121,7 @@ FractoriumFinalRenderDialog::FractoriumFinalRenderDialog(FractoriumSettings* set
 	else if (m_Settings->FinalThreadPriority() == THREAD_PRIORITY_HIGHEST)
 		ui.FinalRenderThreadPriorityComboBox->setCurrentIndex(tpc);
 	else
-		ui.FinalRenderThreadPriorityComboBox->setCurrentIndex(Clamp<int>(0, tpc, m_Settings->FinalThreadPriority() / 25));
+		ui.FinalRenderThreadPriorityComboBox->setCurrentIndex(Clamp<int>(m_Settings->FinalThreadPriority() / 25, 0, tpc));
 #endif
 
 	m_QualitySpin->setValue(m_Settings->FinalQuality());
@@ -167,8 +160,7 @@ FractoriumFinalRenderDialog::FractoriumFinalRenderDialog(FractoriumSettings* set
 	w = SetTabOrder(this, w, ui.FinalRenderDoAllCheckBox);
 	w = SetTabOrder(this, w, ui.FinalRenderDoSequenceCheckBox);
 	w = SetTabOrder(this, w, ui.FinalRenderCurrentSpin);
-	w = SetTabOrder(this, w, ui.FinalRenderPlatformCombo);
-	w = SetTabOrder(this, w, ui.FinalRenderDeviceCombo);
+	w = SetTabOrder(this, w, ui.DeviceTable);
 	w = SetTabOrder(this, w, ui.FinalRenderThreadCountSpin);
 	w = SetTabOrder(this, w, ui.FinalRenderThreadPriorityComboBox);
 	w = SetTabOrder(this, w, ui.FinalRenderApplyToAllCheckBox);
@@ -214,8 +206,6 @@ void FractoriumFinalRenderDialog::Path(const QString& s) { ui.FinalRenderParamsT
 QString FractoriumFinalRenderDialog::Prefix() { return m_PrefixEdit->text(); }
 QString FractoriumFinalRenderDialog::Suffix() { return m_SuffixEdit->text(); }
 uint FractoriumFinalRenderDialog::Current() { return ui.FinalRenderCurrentSpin->value(); }
-uint FractoriumFinalRenderDialog::PlatformIndex() { return ui.FinalRenderPlatformCombo->currentIndex(); }
-uint FractoriumFinalRenderDialog::DeviceIndex() { return ui.FinalRenderDeviceCombo->currentIndex(); }
 uint FractoriumFinalRenderDialog::ThreadCount() { return ui.FinalRenderThreadCountSpin->value(); }
 #ifdef _WIN32
 int FractoriumFinalRenderDialog::ThreadPriority() { return ui.FinalRenderThreadPriorityComboBox->currentIndex() - 2; }
@@ -236,6 +226,7 @@ double FractoriumFinalRenderDialog::Quality() { return m_QualitySpin->value(); }
 uint FractoriumFinalRenderDialog::TemporalSamples() { return m_TemporalSamplesSpin->value(); }
 uint FractoriumFinalRenderDialog::Supersample() { return m_SupersampleSpin->value(); }
 uint FractoriumFinalRenderDialog::Strips() { return m_StripsSpin->value(); }
+QList<QVariant> FractoriumFinalRenderDialog::Devices() { return DeviceTableToSettings(ui.DeviceTable); }
 
 /// <summary>
 /// Capture the current state of the Gui.
@@ -260,8 +251,7 @@ FinalRenderGuiState FractoriumFinalRenderDialog::State()
 	state.m_Ext = Ext();
 	state.m_Prefix = Prefix();
 	state.m_Suffix = Suffix();
-	state.m_PlatformIndex = PlatformIndex();
-	state.m_DeviceIndex = DeviceIndex();
+	state.m_Devices = Devices();
 	state.m_ThreadCount = ThreadCount();
 	state.m_ThreadPriority = ThreadPriority();
 	state.m_WidthScale = WidthScale();
@@ -348,14 +338,14 @@ void FractoriumFinalRenderDialog::OnTransparencyCheckBoxStateChanged(int state)
 
 /// <summary>
 /// Set whether to use OpenCL in the rendering process or not.
+/// Also disable or enable the CPU and OpenCL related controls based on the state passed in.
 /// </summary>
 /// <param name="state">Use OpenCL if state == Qt::Checked, else don't.</param>
 void FractoriumFinalRenderDialog::OnOpenCLCheckBoxStateChanged(int state)
 {
 	bool checked = state == Qt::Checked;
 
-	ui.FinalRenderPlatformCombo->setEnabled(checked);
-	ui.FinalRenderDeviceCombo->setEnabled(checked);
+	ui.DeviceTable->setEnabled(checked);
 	ui.FinalRenderThreadCountSpin->setEnabled(!checked);
 	ui.FinalRenderThreadPriorityComboBox->setEnabled(!checked);
 	SetMemory();
@@ -379,6 +369,9 @@ void FractoriumFinalRenderDialog::OnDoublePrecisionCheckBoxStateChanged(int stat
 /// <param name="state">The state of the checkbox</param>
 void FractoriumFinalRenderDialog::OnDoAllCheckBoxStateChanged(int state)
 {
+	if (!state)
+		ui.FinalRenderDoSequenceCheckBox->setChecked(false);
+
 	ui.FinalRenderDoSequenceCheckBox->setEnabled(ui.FinalRenderDoAllCheckBox->isChecked());
 }
 
@@ -390,34 +383,26 @@ void FractoriumFinalRenderDialog::OnDoAllCheckBoxStateChanged(int state)
 /// <param name="state">The state of the checkbox</param>
 void FractoriumFinalRenderDialog::OnDoSequenceCheckBoxStateChanged(int state)
 {
-	m_TemporalSamplesSpin->setEnabled(ui.FinalRenderDoSequenceCheckBox->isChecked());
+	bool checked = ui.FinalRenderDoSequenceCheckBox->isChecked();
+
+	m_TemporalSamplesSpin->setEnabled(checked);
+
+	if (checked)
+		m_StripsSpin->setValue(1);
+
+	m_StripsSpin->setEnabled(!checked);
+	SetMemory();
 }
 
 /// <summary>
 /// The current ember spinner was changed, update fields.
 /// </summary>
 /// <param name="d">Ignored</param>
-void FractoriumFinalRenderDialog::OnFinalRenderCurrentSpinChanged(int d)
+void FractoriumFinalRenderDialog::OnCurrentSpinChanged(int d)
 {
 	m_Controller->SetEmber(d - 1);
 	m_Controller->SyncCurrentToGui();
 	SetMemory();
-}
-
-/// <summary>
-/// Populate the the device combo box with all available
-/// OpenCL devices for the selected platform.
-/// Called when the platform combo box index changes.
-/// </summary>
-/// <param name="index">The selected index of the combo box</param>
-void FractoriumFinalRenderDialog::OnPlatformComboCurrentIndexChanged(int index)
-{
-	vector<string> devices = m_Wrapper.DeviceNames(index);
-
-	ui.FinalRenderDeviceCombo->clear();
-
-	for (auto& device : devices)
-		ui.FinalRenderDeviceCombo->addItem(QString::fromStdString(device));
 }
 
 /// <summary>
@@ -437,7 +422,7 @@ void FractoriumFinalRenderDialog::OnApplyAllCheckBoxStateChanged(int state)
 /// the height spinner as well to be in proportion.
 /// </summary>
 /// <param name="d">Ignored</param>
-void FractoriumFinalRenderDialog::OnFinalRenderWidthScaleChanged(double d)
+void FractoriumFinalRenderDialog::OnWidthScaleChanged(double d)
 {
 	if (ui.FinalRenderKeepAspectCheckBox->isChecked() && m_Controller.get())
 			m_HeightScaleSpin->SetValueStealth(m_WidthScaleSpin->value());
@@ -452,7 +437,7 @@ void FractoriumFinalRenderDialog::OnFinalRenderWidthScaleChanged(double d)
 /// the width spinner as well to be in proportion.
 /// </summary>
 /// <param name="d">Ignored</param>
-void FractoriumFinalRenderDialog::OnFinalRenderHeightScaleChanged(double d)
+void FractoriumFinalRenderDialog::OnHeightScaleChanged(double d)
 {
 	if (ui.FinalRenderKeepAspectCheckBox->isChecked() && m_Controller.get())
 			m_WidthScaleSpin->SetValueStealth(m_HeightScaleSpin->value());
@@ -480,6 +465,50 @@ void FractoriumFinalRenderDialog::OnKeepAspectCheckBoxStateChanged(int state)
 /// <param name="checked">The state of the radio button</param>
 void FractoriumFinalRenderDialog::OnScaleRadioButtonChanged(bool checked)
 {
+	if (checked)
+		SetMemory();
+}
+
+/// <summary>
+/// The check state of one of the OpenCL devices was changed.
+/// This does a special check to always ensure at least one device,
+/// as well as one primary is checked.
+/// </summary>
+/// <param name="row">The row of the cell</param>
+/// <param name="col">The column of the cell</param>
+void FractoriumFinalRenderDialog::OnDeviceTableCellChanged(int row, int col)
+{
+	if (auto item = ui.DeviceTable->item(row, col))
+	{
+		HandleDeviceTableCheckChanged(ui.DeviceTable, row, col);
+		SetMemory();
+	}
+}
+
+/// <summary>
+/// The primary device radio button selection was changed.
+/// If the device was specified as primary, but was not selected
+/// for inclusion, it will automatically be selected for inclusion.
+/// </summary>
+/// <param name="checked">The state of the radio button</param>
+void FractoriumFinalRenderDialog::OnDeviceTableRadioToggled(bool checked)
+{
+	int row;
+	auto s = sender();
+	auto table = ui.DeviceTable;
+	QRadioButton* radio = nullptr;
+
+	if (s)
+	{
+		for (row = 0; row < table->rowCount(); row++)
+			if (radio = qobject_cast<QRadioButton*>(table->cellWidget(row, 1)))
+				if (s == radio)
+				{
+					HandleDeviceTableCheckChanged(ui.DeviceTable, row, 1);
+					break;
+				}
+	}
+
 	if (checked)
 		SetMemory();
 }
@@ -558,7 +587,7 @@ void FractoriumFinalRenderDialog::OnShowFolderButtonClicked(bool checked)
 /// number of channels used in the final output buffer.
 /// </summary>
 /// <param name="d">Ignored</param>
-void FractoriumFinalRenderDialog::OnFinalRenderExtIndexChanged(int d)
+void FractoriumFinalRenderDialog::OnExtIndexChanged(int d)
 {
 	if (SetMemory())
 		Path(m_Controller->ComposePath(m_Controller->Name()));
@@ -568,7 +597,7 @@ void FractoriumFinalRenderDialog::OnFinalRenderExtIndexChanged(int d)
 /// Change the prefix prepended to the output file name.
 /// </summary>
 /// <param name="s">Ignored</param>
-void FractoriumFinalRenderDialog::OnFinalRenderPrefixChanged(const QString& s)
+void FractoriumFinalRenderDialog::OnPrefixChanged(const QString& s)
 {
 	Path(m_Controller->ComposePath(m_Controller->Name()));
 }
@@ -577,7 +606,7 @@ void FractoriumFinalRenderDialog::OnFinalRenderPrefixChanged(const QString& s)
 /// Change the suffix appended to the output file name.
 /// </summary>
 /// <param name="s">Ignored</param>
-void FractoriumFinalRenderDialog::OnFinalRenderSuffixChanged(const QString& s)
+void FractoriumFinalRenderDialog::OnSuffixChanged(const QString& s)
 {
 	Path(m_Controller->ComposePath(m_Controller->Name()));
 }
@@ -637,7 +666,7 @@ void FractoriumFinalRenderDialog::showEvent(QShowEvent* e)
 		ui.FinalRenderCurrentSpin->blockSignals(true);
 		ui.FinalRenderCurrentSpin->setValue(index);//Set the currently selected ember to the one that was being edited.
 		ui.FinalRenderCurrentSpin->blockSignals(false);
-		OnFinalRenderCurrentSpinChanged(index);//Force update in case the ember was new, but at the same index as the previous one.
+		OnCurrentSpinChanged(index);//Force update in case the ember was new, but at the same index as the previous one.
 		m_Controller->m_ImageCount = 0;
 		SetMemory();
 		m_Controller->ResetProgress();
@@ -655,7 +684,7 @@ void FractoriumFinalRenderDialog::showEvent(QShowEvent* e)
 /// <summary>
 /// Close the dialog without running, or if running, cancel and exit.
 /// Settings will not be saved.
-/// Control will be returned to Fractorium::OnActionFinalRender().
+/// Control will be returned to Fractorium::OnActiOn().
 /// </summary>
 void FractoriumFinalRenderDialog::reject()
 {
@@ -736,48 +765,58 @@ bool FractoriumFinalRenderDialog::CreateControllerFromGUI(bool createRenderer)
 /// <summary>
 /// Compute the amount of memory needed via call to SyncAndComputeMemory(), then
 /// assign the result to the table cell as text.
+/// Report errors if not enough memory is available for any of the selected devices.
 /// </summary>
+/// <returns>True devices and a controller is present, else false.</returns>
 bool FractoriumFinalRenderDialog::SetMemory()
 {
 	if (isVisible() && CreateControllerFromGUI(true))
 	{
 		bool error = false;
 		tuple<size_t, size_t, size_t> p = m_Controller->SyncAndComputeMemory();
+		QString s;
 
 		ui.FinalRenderParamsTable->item(m_MemoryCellIndex, 1)->setText(ToString<qulonglong>(get<1>(p)));
 		ui.FinalRenderParamsTable->item(m_ItersCellIndex, 1)->setText(ToString<qulonglong>(get<2>(p)));
-
-		if (OpenCL())
+		
+		if (OpenCL() && !m_Wrappers.empty())
 		{
-			if (!m_Wrapper.Ok() || PlatformIndex() != m_Wrapper.PlatformIndex() || DeviceIndex() != m_Wrapper.DeviceIndex())
-				m_Wrapper.Init(PlatformIndex(), DeviceIndex());
+			auto devices = Devices();
 
-			if (m_Wrapper.Ok())
+			for (size_t i = 0; i < m_Wrappers.size(); i++)
 			{
-				size_t histSize = get<0>(p);
-				size_t totalSize = get<1>(p);
-				size_t maxAlloc = m_Wrapper.MaxAllocSize();
-				size_t totalAvail = m_Wrapper.GlobalMemSize();
-				QString s;
-
-				if (histSize > maxAlloc)
+				if (devices.contains(int(i)))
 				{
-					s = "Histogram/Accumulator memory size of " + ToString<qulonglong>(histSize) +
-						" is greater than the max OpenCL allocation size of " + ToString<qulonglong>(maxAlloc);
-				}
+					size_t histSize = get<0>(p);
+					size_t totalSize = get<1>(p);
+					size_t maxAlloc = m_Wrappers[i].MaxAllocSize();
+					size_t totalAvail = m_Wrappers[i].GlobalMemSize();
+					QString temp;
 
-				if (totalSize > totalAvail)
-				{
-					s += "\n\nTotal required memory size of " + ToString<qulonglong>(totalSize) +
-						" is greater than the max OpenCL available memory of " + ToString<qulonglong>(totalAvail);
-				}
+					if (histSize > maxAlloc)
+					{
+						temp = "Histogram/Accumulator memory size of " + ToString<qulonglong>(histSize) +
+							" is greater than the max OpenCL allocation size of " + ToString<qulonglong>(maxAlloc);
+					}
 
-				if (!s.isEmpty())
-				{
-					error = true;
-					ui.FinalRenderTextOutput->setText(s + ".\n\nRendering will most likely fail.");
+					if (totalSize > totalAvail)
+					{
+						temp += "\n\nTotal required memory size of " + ToString<qulonglong>(totalSize) +
+							" is greater than the max OpenCL available memory of " + ToString<qulonglong>(totalAvail);
+					}
+
+					if (!temp.isEmpty())
+					{
+						error = true;
+						s += QString::fromStdString(m_Wrappers[i].DeviceName()) + ":\n" + temp + "\n\n";
+					}
 				}
 			}
+
+			if (!s.isEmpty())
+				s += "Rendering will most likely fail.";
+
+			ui.FinalRenderTextOutput->setText(s);
 		}
 
 		if (!error)

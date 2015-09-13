@@ -1,4 +1,6 @@
-#pragma once
+#ifdef WIN32
+    #pragma once
+#endif
 
 /// <summary>
 /// Precompiled header file. Place all system includes here with appropriate #defines for different operating systems and compilers.

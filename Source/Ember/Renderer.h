@@ -38,9 +38,7 @@ namespace EmberNs
 /// for every single function in this class, saying it can't find the implementation. This warning
 /// can be safely ignored.
 /// Template argument T expected to be float or double.
-/// Template argument bucketT was originally used to experiment with different types for the histogram, however
-/// the only types that work are float and double, so it's useless and should always match what T is.
-/// Mismatched types between T and bucketT are undefined.
+/// Template argument bucketT must always be float.
 /// </summary>
 template <typename T, typename bucketT>
 class EMBER_API Renderer : public RendererBase
@@ -65,12 +63,12 @@ public:
 	virtual bool CreateTemporalFilter(bool& newAlloc) override;
 	virtual size_t HistBucketSize() const override { return sizeof(tvec4<bucketT, glm::defaultp>); }
 	virtual eRenderStatus Run(vector<byte>& finalImage, double time = 0, size_t subBatchCountOverride = 0, bool forceOutput = false, size_t finalOffset = 0) override;
-	virtual EmberImageComments ImageComments(EmberStats& stats, size_t printEditDepth = 0, bool intPalette = false, bool hexPalette = true) override;
+	virtual EmberImageComments ImageComments(const EmberStats& stats, size_t printEditDepth = 0, bool intPalette = false, bool hexPalette = true) override;
 
 protected:
 	//New virtual functions to be overridden in derived renderers that use the GPU, but not accessed outside.
 	virtual void MakeDmap(T colorScalar);
-	virtual bool Alloc();
+	virtual bool Alloc(bool histOnly = false);
 	virtual bool ResetBuckets(bool resetHist = true, bool resetAccum = true);
 	virtual eRenderStatus LogScaleDensityFilter();
 	virtual eRenderStatus GaussianDensityFilter();
@@ -89,7 +87,7 @@ public:
 	inline T                              PixelsPerUnitY()      const;
 	inline bucketT                        K1()                  const;
 	inline bucketT                        K2()                  const;
-	inline const CarToRas<T>*             CoordMap()            const;
+	inline const CarToRas<T>&             CoordMap()            const;
 	inline tvec4<bucketT, glm::defaultp>* HistBuckets();
 	inline tvec4<bucketT, glm::defaultp>* AccumulatorBuckets();
 	inline SpatialFilter<bucketT>*        GetSpatialFilter();

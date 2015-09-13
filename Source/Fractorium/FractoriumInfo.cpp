@@ -33,7 +33,7 @@ void Fractorium::InitInfoUI()
 /// <param name="newSize">Ignored</param>
 void Fractorium::OnSummaryTableHeaderResized(int logicalIndex, int oldSize, int newSize)
 {
-	QPixmap pixmap = QPixmap::fromImage(m_Controller->FinalPaletteImage());//Create a QPixmap out of the QImage.
+	QPixmap pixmap = QPixmap::fromImage(m_Controller->FinalPaletteImage());//Create a QPixmap out of the QImage, will be empty on startup.
 	SetPaletteTableItem(&pixmap, ui.SummaryTableWidget, m_InfoPaletteItem, 1, 0);
 }
 

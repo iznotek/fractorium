@@ -1,4 +1,5 @@
 #include "EmberCommonPch.h"
+
 #include "EmberGenome.h"
 #include "JpegUtils.h"
 
@@ -39,10 +40,11 @@ void SetDefaultTestValues(Ember<T>& ember)
 /// </summary>
 /// <param name="opt">A populated EmberOptions object which specifies all program options to be used</param>
 /// <returns>True if success, else false.</returns>
-template <typename T, typename bucketT>
+template <typename T>
 bool EmberGenome(EmberOptions& opt)
 {
-	OpenCLWrapper wrapper;
+	OpenCLInfo& info(OpenCLInfo::Instance());
+
 	std::cout.imbue(std::locale(""));
 
 	if (opt.DumpArgs())
@@ -51,15 +53,15 @@ bool EmberGenome(EmberOptions& opt)
 	if (opt.OpenCLInfo())
 	{
 		cerr << "\nOpenCL Info: " << endl;
-		cerr << wrapper.DumpInfo();
+		cerr << info.DumpInfo();
 		return true;
 	}
 
 	//Regular variables.
 	Timing t;
 	bool exactTimeMatch, randomMode, didColor, seqFlag;
-	uint i, j, i0, i1, rep, val, frame, frameCount, count = 0;
-	uint ftime, firstFrame, lastFrame;
+	size_t i, j, i0, i1, rep, val, frame, frameCount, count = 0;
+	size_t ftime, firstFrame, lastFrame;
 	size_t n, tot, totb, totw;
 	T avgPix, fractionBlack, fractionWhite, blend, spread, mix0, mix1;
 	string token, filename;
@@ -76,8 +78,9 @@ bool EmberGenome(EmberOptions& opt)
 	EmberToXml<T> emberToXml;
 	VariationList<T> varList;
 	EmberReport emberReport, emberReport2;
+	const vector<pair<size_t, size_t>> devices = Devices(opt.Devices());
 	unique_ptr<RenderProgress<T>> progress(new RenderProgress<T>());
-	unique_ptr<Renderer<T, bucketT>> renderer(CreateRenderer<T, bucketT>(opt.EmberCL() ? OPENCL_RENDERER : CPU_RENDERER, opt.Platform(), opt.Device(), false, 0, emberReport));
+	unique_ptr<Renderer<T, float>> renderer(CreateRenderer<T>(opt.EmberCL() ? OPENCL_RENDERER : CPU_RENDERER, devices, false, 0, emberReport));
 	QTIsaac<ISAAC_SIZE, ISAAC_INT> rand(ISAAC_INT(t.Tic()), ISAAC_INT(t.Tic() * 2), ISAAC_INT(t.Tic() * 3));
 	vector<string> errorReport = emberReport.ErrorReport();
 
@@ -107,13 +110,16 @@ bool EmberGenome(EmberOptions& opt)
 
 		if (opt.Verbose())
 		{
-			cerr << "Platform: " << wrapper.PlatformName(opt.Platform()) << endl;
-			cerr << "Device: " << wrapper.DeviceName(opt.Platform(), opt.Device()) << endl;
+			for (auto& device : devices)
+			{
+				cerr << "Platform: " << info.PlatformName(device.first) << endl;
+				cerr << "Device: " << info.DeviceName(device.first, device.second) << endl;
+			}
 		}
 	}
 
 	//SheepTools will own the created renderer and will take care of cleaning it up.
-	SheepTools<T, bucketT> tools(opt.PalettePath(), CreateRenderer<T, bucketT>(opt.EmberCL() ? OPENCL_RENDERER : CPU_RENDERER, opt.Platform(), opt.Device(), false, 0, emberReport2));
+	SheepTools<T, float> tools(opt.PalettePath(), CreateRenderer<T>(opt.EmberCL() ? OPENCL_RENDERER : CPU_RENDERER, devices, false, 0, emberReport2));
 
 	tools.SetSpinParams(!opt.UnsmoothEdge(),
 						T(opt.Stagger()),
@@ -169,7 +175,7 @@ bool EmberGenome(EmberOptions& opt)
 
 			while (std::getline(iss, token, ','))
 			{
-				if (parser.Atoi(token.c_str(), val))
+				if (parser.Aton(token.c_str(), val))
 				{
 					if (val < varList.Size())
 						vars.push_back(static_cast<eVariationId>(val));
@@ -182,7 +188,7 @@ bool EmberGenome(EmberOptions& opt)
 
 			while (std::getline(iss, token, ','))
 			{
-				if (parser.Atoi(token.c_str(), val))
+				if (parser.Aton(token.c_str(), val))
 				{
 					if (val < varList.Size())
 						noVars.push_back(static_cast<eVariationId>(val));
@@ -787,18 +793,18 @@ int _tmain(int argc, _TCHAR* argv[])
 #ifdef DO_DOUBLE
 		if (opt.Bits() == 64)
 		{
-			b = EmberGenome<double, float>(opt);
+			b = EmberGenome<double>(opt);
 		}
 		else
 #endif
 		if (opt.Bits() == 33)
 		{
-			b = EmberGenome<float, float>(opt);
+			b = EmberGenome<float>(opt);
 		}
 		else if (opt.Bits() == 32)
 		{
 			cerr << "Bits 32/int histogram no longer supported. Using bits == 33 (float)." << endl;
-			b = EmberGenome<float, float>(opt);
+			b = EmberGenome<float>(opt);
 		}
 	}
 

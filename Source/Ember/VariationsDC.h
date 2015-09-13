@@ -878,7 +878,7 @@ public:
 		   << "\t\t	inside = 1;\n"
 		   << "\t\t}\n"
 		   << "\n"
-		   << "\t\tif (" << zeroEdges << " && !inside)\n"
+		   << "\t\tif (" << zeroEdges << " != 0.0 && !inside)\n"
 		   << "\t\t{\n"
 		   << "\t\t	u = v = 0;\n"
 		   << "\t\t}\n"

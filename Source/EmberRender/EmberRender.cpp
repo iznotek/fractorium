@@ -8,10 +8,10 @@
 /// </summary>
 /// <param name="opt">A populated EmberOptions object which specifies all program options to be used</param>
 /// <returns>True if success, else false.</returns>
-template <typename T, typename bucketT>
+template <typename T>
 bool EmberRender(EmberOptions& opt)
 {
-	OpenCLWrapper wrapper;
+	EmberCLns::OpenCLInfo& info(EmberCLns::OpenCLInfo::Instance());
 
 	std::cout.imbue(std::locale(""));
 
@@ -21,7 +21,7 @@ bool EmberRender(EmberOptions& opt)
 	if (opt.OpenCLInfo())
 	{
 		cout << "\nOpenCL Info: " << endl;
-		cout << wrapper.DumpInfo();
+		cout << info.DumpInfo();
 		return true;
 	}
 
@@ -44,8 +44,9 @@ bool EmberRender(EmberOptions& opt)
 	XmlToEmber<T> parser;
 	EmberToXml<T> emberToXml;
 	vector<QTIsaac<ISAAC_SIZE, ISAAC_INT>> randVec;
+	const vector<pair<size_t, size_t>> devices = Devices(opt.Devices());
 	unique_ptr<RenderProgress<T>> progress(new RenderProgress<T>());
-	unique_ptr<Renderer<T, bucketT>> renderer(CreateRenderer<T, bucketT>(opt.EmberCL() ? OPENCL_RENDERER : CPU_RENDERER, opt.Platform(), opt.Device(), false, 0, emberReport));
+	unique_ptr<Renderer<T, float>> renderer(CreateRenderer<T>(opt.EmberCL() ? OPENCL_RENDERER : CPU_RENDERER, devices, false, 0, emberReport));
 	vector<string> errorReport = emberReport.ErrorReport();
 
 	if (!errorReport.empty())
@@ -86,8 +87,11 @@ bool EmberRender(EmberOptions& opt)
 
 		if (opt.Verbose())
 		{
-			cout << "Platform: " << wrapper.PlatformName(opt.Platform()) << endl;
-			cout << "Device: " << wrapper.DeviceName(opt.Platform(), opt.Device()) << endl;
+			for (auto& device : devices)
+			{
+				cout << "Platform: " << info.PlatformName(device.first) << endl;
+				cout << "Device: " << info.DeviceName(device.first, device.second) << endl;
+			}
 		}
 
 		if (opt.ThreadCount() > 1)
@@ -145,7 +149,7 @@ bool EmberRender(EmberOptions& opt)
 
 	//Final setup steps before running.
 	os.imbue(std::locale(""));
-	padding = uint(log10((double)embers.size())) + 1;
+	padding = uint(log10(double(embers.size()))) + 1;
 	renderer->EarlyClip(opt.EarlyClip());
 	renderer->YAxisUp(opt.YAxisUp());
 	renderer->LockAccum(opt.LockAccum());
@@ -154,7 +158,7 @@ bool EmberRender(EmberOptions& opt)
 	renderer->Transparency(opt.Transparency());
 	renderer->NumChannels(channels);
 	renderer->BytesPerChannel(opt.BitsPerChannel() / 8);
-	renderer->Priority((eThreadPriority)Clamp<int>((int)eThreadPriority::LOWEST, (int)eThreadPriority::HIGHEST, opt.Priority()));
+	renderer->Priority(eThreadPriority(Clamp<int>(int(opt.Priority()), int(eThreadPriority::LOWEST), int(eThreadPriority::HIGHEST))));
 	renderer->Callback(opt.DoProgress() ? progress.get() : nullptr);
 
 	for (i = 0; i < embers.size(); i++)
@@ -276,7 +280,7 @@ bool EmberRender(EmberOptions& opt)
 			os << comments.m_NumIters << " / " << iterCount << " (" << std::fixed << std::setprecision(2) << ((double(stats.m_Iters) / double(iterCount)) * 100) << "%)";
 
 			VerbosePrint("\nIters ran/requested: " + os.str());
-			VerbosePrint("Bad values: " << stats.m_Badvals);
+			if (!opt.EmberCL()) VerbosePrint("Bad values: " << stats.m_Badvals);
 			VerbosePrint("Render time: " + t.Format(stats.m_RenderMs));
 			VerbosePrint("Pure iter time: " + t.Format(stats.m_IterMs));
 			VerbosePrint("Iters/sec: " << size_t(stats.m_Iters / (stats.m_IterMs / 1000.0)) << endl);
@@ -291,7 +295,7 @@ bool EmberRender(EmberOptions& opt)
 			if (opt.Format() == "png")
 				writeSuccess = WritePng(filename.c_str(), finalImagep, finalEmber.m_FinalRasW, finalEmber.m_FinalRasH, opt.BitsPerChannel() / 8, opt.PngComments(), comments, opt.Id(), opt.Url(), opt.Nick());
 			else if (opt.Format() == "jpg")
-				writeSuccess = WriteJpeg(filename.c_str(), finalImagep, finalEmber.m_FinalRasW, finalEmber.m_FinalRasH, opt.JpegQuality(), opt.JpegComments(), comments, opt.Id(), opt.Url(), opt.Nick());
+				writeSuccess = WriteJpeg(filename.c_str(), finalImagep, finalEmber.m_FinalRasW, finalEmber.m_FinalRasH, int(opt.JpegQuality()), opt.JpegComments(), comments, opt.Id(), opt.Url(), opt.Nick());
 			else if (opt.Format() == "ppm")
 				writeSuccess = WritePpm(filename.c_str(), finalImagep, finalEmber.m_FinalRasW, finalEmber.m_FinalRasH);
 			else if (opt.Format() == "bmp")
@@ -303,7 +307,7 @@ bool EmberRender(EmberOptions& opt)
 
 		if (opt.EmberCL() && opt.DumpKernel())
 		{
-			if (auto rendererCL = dynamic_cast<RendererCL<T, bucketT>*>(renderer.get()))
+			if (auto rendererCL = dynamic_cast<RendererCL<T, float>*>(renderer.get()))
 			{
 				cout << "Iteration kernel: \n" <<
 				rendererCL->IterKernel() << "\n\n" <<
@@ -315,8 +319,7 @@ bool EmberRender(EmberOptions& opt)
 		VerbosePrint("Done.");
 	}
 
-	if (opt.Verbose())
-		t.Toc("\nTotal time: ", true);
+	t.Toc("\nFinished in: ", true);
 
 	return true;
 }
@@ -347,18 +350,18 @@ int _tmain(int argc, _TCHAR* argv[])
 #ifdef DO_DOUBLE
 		if (opt.Bits() == 64)
 		{
-			b = EmberRender<double, float>(opt);
+			b = EmberRender<double>(opt);
 		}
 		else
 #endif
 		if (opt.Bits() == 33)
 		{
-			b = EmberRender<float, float>(opt);
+			b = EmberRender<float>(opt);
 		}
 		else if (opt.Bits() == 32)
 		{
 			cout << "Bits 32/int histogram no longer supported. Using bits == 33 (float)." << endl;
-			b = EmberRender<float, float>(opt);
+			b = EmberRender<float>(opt);
 		}
 	}
 

@@ -62,19 +62,19 @@ public:
 	/// Return the begin time as a double.
 	/// </summary>
 	/// <returns></returns>
-	double BeginTime() { return static_cast<double>(m_BeginTime.time_since_epoch().count()); }
+	double BeginTime() const { return static_cast<double>(m_BeginTime.time_since_epoch().count()); }
 
 	/// <summary>
 	/// Return the end time as a double.
 	/// </summary>
 	/// <returns></returns>
-	double EndTime() { return static_cast<double>(m_EndTime.time_since_epoch().count()); }
+	double EndTime() const { return static_cast<double>(m_EndTime.time_since_epoch().count()); }
 
 	/// <summary>
 	/// Return the elapsed time in milliseconds.
 	/// </summary>
 	/// <returns>The elapsed time in milliseconds as a double</returns>
-	double ElapsedTime()
+	double ElapsedTime() const
 	{
 		duration<double> elapsed = duration_cast<milliseconds, Clock::rep, Clock::period>(m_EndTime - m_BeginTime);
 
@@ -89,7 +89,7 @@ public:
 	/// </summary>
 	/// <param name="ms">The ms</param>
 	/// <returns>The formatted string</returns>
-	string Format(double ms)
+	string Format(double ms) const
 	{
 		stringstream ss;
 

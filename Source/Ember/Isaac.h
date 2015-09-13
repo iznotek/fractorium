@@ -57,7 +57,7 @@ class EMBER_API QTIsaac
 public:
 	enum { N = (1 << ALPHA) };
 	UintBytes m_Cache;
-	int m_LastIndex;
+	size_t m_LastIndex;
 
 	/// <summary>
 	/// Global ISAAC RNG to be used from anywhere. This is not thread safe, so take caution to only
@@ -94,7 +94,7 @@ public:
 		Srand(a, b, c, s);
 		m_LastIndex = 0;
 		m_Cache.Uint = Rand();
-		T temp = RandByte();//Need to call at least once so other libraries can link.
+		RandByte();//Need to call at least once so other libraries can link.
 	}
 
 	/// <summary>
@@ -291,12 +291,12 @@ public:
 	{
 		if (s == nullptr)//Default to using time plus index as the seed if s was nullptr.
 		{
-			for (int i = 0; i < N; i++)
-				m_Rc.randrsl[i] = static_cast<T>(NowMs()) + i;
+			for (size_t i = 0; i < N; i++)
+				m_Rc.randrsl[i] = static_cast<T>(NowMs() + i);
 		}
 		else
 		{
-			for (int i = 0; i < N; i++)
+			for (size_t i = 0; i < N; i++)
 				m_Rc.randrsl[i] = s[i];
 		}
 

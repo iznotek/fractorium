@@ -601,7 +601,7 @@ private:
 	CSimpleGlobTempl(const CSimpleGlobTempl &); // disabled
 	CSimpleGlobTempl & operator=(const CSimpleGlobTempl &); // disabled
 
-	/*! @brief The argv array has it's members stored as either an offset into
+	/*! @brief The argv array has its members stored as either an offset into
 		the string buffer, or as pointers to their string in the buffer. The
 		offsets are used because if the string buffer is dynamically resized,
 		all pointers into that buffer would become invalid.

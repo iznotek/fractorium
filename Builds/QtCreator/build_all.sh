@@ -3,8 +3,8 @@
 REBUILD=''
 NVIDIA=''
 NATIVE=''
-CONCURRENCY='-j9'
-QMAKE=${QMAKE:-qmake}
+CONCURRENCY='-j4'
+QMAKE=${QMAKE:/usr/bin/qmake}
 RELEASE='CONFIG+=release CONFIG-=debug'
 
 while test $# -gt 0

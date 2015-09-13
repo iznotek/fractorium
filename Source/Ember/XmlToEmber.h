@@ -315,7 +315,7 @@ public:
 		//An adjustment of +/- 360 degrees is made until this is true.
 		if (emberSize > 1)
 		{
-			for (uint i = 1; i < emberSize; i++)
+			for (size_t i = 1; i < emberSize; i++)
 			{
 				//Only do this adjustment if not in compat mode..
 				if (embers[i - 1].m_AffineInterp != INTERP_COMPAT && embers[i - 1].m_AffineInterp != INTERP_OLDER)
@@ -362,32 +362,22 @@ public:
 	}
 
 	/// <summary>
-	/// Convert the string to a floating point value and return a bool indicating success.
+	/// Thin wrapper around converting the string to a numeric value and return a bool indicating success.
 	/// See error report for errors.
 	/// </summary>
 	/// <param name="str">The string to convert</param>
 	/// <param name="val">The converted value</param>
 	/// <returns>True if success, else false.</returns>
-	bool Atof(const char* str, T& val)
+	template <typename valT>
+	bool Aton(const char* str, valT& val)
 	{
 		bool b = true;
-		char* endp;
 		const char* loc = __FUNCTION__;
+		std::istringstream istr(str);
 
-		//Reset errno.
-		errno = 0;//Note that this is not thread-safe.
+		istr >> val;
 
-		//Convert the string using strtod().
-		val = T(strtod(str, &endp));
-
-		//Check errno & return string.
-		if (endp != str + strlen(str))
-		{
-			m_ErrorReport.push_back(string(loc) + " : Error converting " + string(str) + ", extra chars");
-			b = false;
-		}
-
-		if (errno)
+		if (istr.bad() || istr.fail())
 		{
 			m_ErrorReport.push_back(string(loc) + " : Error converting " + string(str));
 			b = false;
@@ -396,53 +386,7 @@ public:
 		return b;
 	}
 
-	/// <summary>
-	/// Thin wrapper around Atoi().
-	/// See error report for errors.
-	/// </summary>
-	/// <param name="str">The string to convert</param>
-	/// <param name="val">The converted uinteger value</param>
-	/// <returns>True if success, else false.</returns>
-	bool Atoi(const char* str, uint& val)
-	{
-		return Atoi(str, reinterpret_cast<int&>(val));
-	}
-
-	/// <summary>
-	/// Convert the string to an uinteger value and return a bool indicating success.
-	/// See error report for errors.
-	/// </summary>
-	/// <param name="str">The string to convert</param>
-	/// <param name="val">The converted uinteger value</param>
-	/// <returns>True if success, else false.</returns>
-	bool Atoi(const char* str, int& val)
-	{
-		bool b = true;
-		char* endp;
-		const char* loc = __FUNCTION__;
-
-		//Reset errno.
-		errno = 0;//Note that this is not thread-safe.
-
-		//Convert the string using strtod().
-		val = strtol(str, &endp, 10);
-
-		//Check errno & return string.
-		if (endp != str + strlen(str))
-		{
-			m_ErrorReport.push_back(string(loc) + " : Error converting " + string(str) + ", extra chars");
-			b = false;
-		}
-
-		if (errno)
-		{
-			m_ErrorReport.push_back(string(loc) + " : Error converting " + string(str));
-			b = false;
-		}
-
-		return b;
-	}
-
+	
 	/// <summary>
 	/// Convert an integer to a string.
 	/// Just a wrapper around _itoa_s() which wraps the result in a std::string.
@@ -554,11 +498,11 @@ private:
 	{
 		bool ret = true;
 		bool fromEmber = false;
-		uint newLinear = 0;
+		size_t newLinear = 0;
 		char* attStr;
 		const char* loc = __FUNCTION__;
 		int soloXform = -1;
-		uint i, j, count, index = 0;
+		size_t i, count, index = 0;
 		double vals[16];
 		xmlAttrPtr att, curAtt;
 		xmlNodePtr editNode, childNode, motionNode;
@@ -577,38 +521,38 @@ private:
 			attStr = reinterpret_cast<char*>(xmlGetProp(emberNode, curAtt->name));
 
 			//First parse out simple float reads.
-			if		(ParseAndAssignFloat(curAtt->name, attStr, "time",                  currentEmber.m_Time,                ret)) { }
-			else if (ParseAndAssignFloat(curAtt->name, attStr, "scale",					currentEmber.m_PixelsPerUnit,		ret)) { currentEmber.m_OrigPixPerUnit = currentEmber.m_PixelsPerUnit; }
-			else if (ParseAndAssignFloat(curAtt->name, attStr, "rotate",                currentEmber.m_Rotate,              ret)) { }
-			else if (ParseAndAssignFloat(curAtt->name, attStr, "zoom",                  currentEmber.m_Zoom,                ret)) { }
-			else if (ParseAndAssignFloat(curAtt->name, attStr, "filter",                currentEmber.m_SpatialFilterRadius, ret)) { }
-			else if (ParseAndAssignFloat(curAtt->name, attStr, "temporal_filter_width", currentEmber.m_TemporalFilterWidth, ret)) { }
-			else if (ParseAndAssignFloat(curAtt->name, attStr, "temporal_filter_exp",   currentEmber.m_TemporalFilterExp,   ret)) { }
-			else if (ParseAndAssignFloat(curAtt->name, attStr, "quality",               currentEmber.m_Quality,             ret)) { }
-			else if (ParseAndAssignFloat(curAtt->name, attStr, "brightness",            currentEmber.m_Brightness,          ret)) { }
-			else if (ParseAndAssignFloat(curAtt->name, attStr, "gamma",                 currentEmber.m_Gamma,               ret)) { }
-			else if (ParseAndAssignFloat(curAtt->name, attStr, "highlight_power",       currentEmber.m_HighlightPower,      ret)) { }
-			else if (ParseAndAssignFloat(curAtt->name, attStr, "vibrancy",              currentEmber.m_Vibrancy,            ret)) { }
-			else if (ParseAndAssignFloat(curAtt->name, attStr, "estimator_radius",      currentEmber.m_MaxRadDE,            ret)) { }
-			else if (ParseAndAssignFloat(curAtt->name, attStr, "estimator_minimum",     currentEmber.m_MinRadDE,            ret)) { }
-			else if (ParseAndAssignFloat(curAtt->name, attStr, "estimator_curve",       currentEmber.m_CurveDE,             ret)) { }
-			else if (ParseAndAssignFloat(curAtt->name, attStr, "gamma_threshold",       currentEmber.m_GammaThresh,         ret)) { }
-			else if (ParseAndAssignFloat(curAtt->name, attStr, "cam_zpos",				currentEmber.m_CamZPos,				ret)) { }
-			else if (ParseAndAssignFloat(curAtt->name, attStr, "cam_persp",				currentEmber.m_CamPerspective,      ret)) { }
-			else if (ParseAndAssignFloat(curAtt->name, attStr, "cam_perspective",		currentEmber.m_CamPerspective,      ret)) { }//Apo bug.
-			else if (ParseAndAssignFloat(curAtt->name, attStr, "cam_yaw",				currentEmber.m_CamYaw,				ret)) { }
-			else if (ParseAndAssignFloat(curAtt->name, attStr, "cam_pitch",				currentEmber.m_CamPitch,			ret)) { }
-			else if (ParseAndAssignFloat(curAtt->name, attStr, "cam_dof",				currentEmber.m_CamDepthBlur,        ret)) { }
+			if		(ParseAndAssign(curAtt->name, attStr, "time",                  currentEmber.m_Time,                ret)) { }
+			else if (ParseAndAssign(curAtt->name, attStr, "scale",				   currentEmber.m_PixelsPerUnit,	   ret)) { currentEmber.m_OrigPixPerUnit = currentEmber.m_PixelsPerUnit; }
+			else if (ParseAndAssign(curAtt->name, attStr, "rotate",                currentEmber.m_Rotate,              ret)) { }
+			else if (ParseAndAssign(curAtt->name, attStr, "zoom",                  currentEmber.m_Zoom,                ret)) { }
+			else if (ParseAndAssign(curAtt->name, attStr, "filter",                currentEmber.m_SpatialFilterRadius, ret)) { }
+			else if (ParseAndAssign(curAtt->name, attStr, "temporal_filter_width", currentEmber.m_TemporalFilterWidth, ret)) { }
+			else if (ParseAndAssign(curAtt->name, attStr, "temporal_filter_exp",   currentEmber.m_TemporalFilterExp,   ret)) { }
+			else if (ParseAndAssign(curAtt->name, attStr, "quality",               currentEmber.m_Quality,             ret)) { }
+			else if (ParseAndAssign(curAtt->name, attStr, "brightness",            currentEmber.m_Brightness,          ret)) { }
+			else if (ParseAndAssign(curAtt->name, attStr, "gamma",                 currentEmber.m_Gamma,               ret)) { }
+			else if (ParseAndAssign(curAtt->name, attStr, "highlight_power",       currentEmber.m_HighlightPower,      ret)) { }
+			else if (ParseAndAssign(curAtt->name, attStr, "vibrancy",              currentEmber.m_Vibrancy,            ret)) { }
+			else if (ParseAndAssign(curAtt->name, attStr, "estimator_radius",      currentEmber.m_MaxRadDE,            ret)) { }
+			else if (ParseAndAssign(curAtt->name, attStr, "estimator_minimum",     currentEmber.m_MinRadDE,            ret)) { }
+			else if (ParseAndAssign(curAtt->name, attStr, "estimator_curve",       currentEmber.m_CurveDE,             ret)) { }
+			else if (ParseAndAssign(curAtt->name, attStr, "gamma_threshold",       currentEmber.m_GammaThresh,         ret)) { }
+			else if (ParseAndAssign(curAtt->name, attStr, "cam_zpos",			   currentEmber.m_CamZPos,			   ret)) { }
+			else if (ParseAndAssign(curAtt->name, attStr, "cam_persp",			   currentEmber.m_CamPerspective,      ret)) { }
+			else if (ParseAndAssign(curAtt->name, attStr, "cam_perspective",	   currentEmber.m_CamPerspective,      ret)) { }//Apo bug.
+			else if (ParseAndAssign(curAtt->name, attStr, "cam_yaw",			   currentEmber.m_CamYaw,			   ret)) { }
+			else if (ParseAndAssign(curAtt->name, attStr, "cam_pitch",			   currentEmber.m_CamPitch,			   ret)) { }
+			else if (ParseAndAssign(curAtt->name, attStr, "cam_dof",			   currentEmber.m_CamDepthBlur,        ret)) { }
 
 			//Parse simple int reads.
-			else if (ParseAndAssignInt(curAtt->name, attStr, "palette",          currentEmber.m_Palette.m_Index, ret)) { }
-			else if (ParseAndAssignInt(curAtt->name, attStr, "oversample",       currentEmber.m_Supersample    , ret)) { }
-			else if (ParseAndAssignInt(curAtt->name, attStr, "supersample",      currentEmber.m_Supersample    , ret)) { }
-			else if (ParseAndAssignInt(curAtt->name, attStr, "temporal_samples", currentEmber.m_TemporalSamples, ret)) { }
-			else if (ParseAndAssignInt(curAtt->name, attStr, "sub_batch_size",	 currentEmber.m_SubBatchSize   , ret)) { }
-			else if (ParseAndAssignInt(curAtt->name, attStr, "fuse",			 currentEmber.m_FuseCount	   , ret)) { }
-			else if (ParseAndAssignInt(curAtt->name, attStr, "soloxform",		 soloXform                     , ret)) { }
-			else if (ParseAndAssignInt(curAtt->name, attStr, "new_linear",		 newLinear					   , ret)) { }
+			else if (ParseAndAssign(curAtt->name, attStr, "palette",          currentEmber.m_Palette.m_Index, ret)) { }
+			else if (ParseAndAssign(curAtt->name, attStr, "oversample",       currentEmber.m_Supersample    , ret)) { }
+			else if (ParseAndAssign(curAtt->name, attStr, "supersample",      currentEmber.m_Supersample    , ret)) { }
+			else if (ParseAndAssign(curAtt->name, attStr, "temporal_samples", currentEmber.m_TemporalSamples, ret)) { }
+			else if (ParseAndAssign(curAtt->name, attStr, "sub_batch_size",	  currentEmber.m_SubBatchSize   , ret)) { }
+			else if (ParseAndAssign(curAtt->name, attStr, "fuse",			  currentEmber.m_FuseCount	    , ret)) { }
+			else if (ParseAndAssign(curAtt->name, attStr, "soloxform",		  soloXform                     , ret)) { }
+			else if (ParseAndAssign(curAtt->name, attStr, "new_linear",		  newLinear					    , ret)) { }
 
 			//Parse more complicated reads that have multiple possible values.
 			else if (!Compare(curAtt->name, "interpolation"))
@@ -718,7 +662,7 @@ private:
 
 				for (i = 0; i < 4; i++)
 				{
-					for (j = 0; j < 4; j++)
+					for (glm::length_t j = 0; j < 4; j++)
 					{
 						ss >> currentEmber.m_Curves.m_Points[i][j].x;
 						ss >> currentEmber.m_Curves.m_Points[i][j].y;
@@ -759,7 +703,7 @@ private:
 
 					if (!Compare(curAtt->name, "index"))
 					{
-						Atoi(attStr, index);
+						Aton(attStr, index);
 					}
 					else if(!Compare(curAtt->name, "rgb"))
 					{
@@ -819,7 +763,7 @@ private:
 
 					if (!Compare(curAtt->name, "count"))
 					{
-						Atoi(attStr, count);
+						Aton(attStr, count);
 					}
 					else if (!Compare(curAtt->name, "data"))
 					{
@@ -842,11 +786,6 @@ private:
 				//Make sure BOTH are not specified, otherwise either are ok.
 				int numColors = 0;
 				int numBytes = 0;
-				int index0, index1;
-				T hue0, hue1;
-				T blend = 0.5;
-				index0 = index1 = -1;
-				hue0 = hue1 = 0.0;
 
 				//Loop through the attributes of the palette element.
 				att = childNode->properties;
@@ -863,7 +802,7 @@ private:
 
 					if (!Compare(curAtt->name, "count"))
 					{
-						Atoi(attStr, numColors);
+						Aton(attStr, numColors);
 					}
 					else if (!Compare(curAtt->name, "format"))
 					{
@@ -915,7 +854,7 @@ private:
 
 					if (!Compare(curAtt->name, "kind"))
 					{
-						Atoi(attStr, symKind);
+						Aton(attStr, symKind);
 					}
 					else
 					{
@@ -1016,8 +955,8 @@ private:
 				{
 					attStr = reinterpret_cast<char*>(xmlGetProp(childNode, curAtt->name));
 
-					if		(ParseAndAssignFloat(curAtt->name, attStr, "motion_frequency", motion.m_MotionFreq, ret)) { }
-					else if	(ParseAndAssignFloat(curAtt->name, attStr, "motion_offset", motion.m_MotionOffset, ret)) { }
+					if		(ParseAndAssign(curAtt->name, attStr, "motion_frequency", motion.m_MotionFreq,   ret)) { }
+					else if	(ParseAndAssign(curAtt->name, attStr, "motion_offset",	  motion.m_MotionOffset, ret)) { }
 					else if (!Compare(curAtt->name, "motion_function"))
 					{
 						string func(attStr);
@@ -1135,7 +1074,7 @@ private:
 		bool r = false;
 		T val = 0.0;
 
-		if (Atof(attStr, val))
+		if (Aton(attStr, val))
 		{
 			motion.m_MotionParams.push_back(MotionParam<T>(param, val));
 			r = true;
@@ -1160,7 +1099,7 @@ private:
 		bool success = true;
 		char* attStr;
 		const char* loc = __FUNCTION__;
-		uint j;
+		size_t j;
 		T temp;
 		double a, b, c, d, e, f;
 		double vals[10];
@@ -1180,13 +1119,13 @@ private:
 			attStr = reinterpret_cast<char*>(xmlGetProp(childNode, curAtt->name));
 
 			//First parse out simple float reads.
-			if (ParseAndAssignFloat(curAtt->name, attStr, "weight", xform.m_Weight, success)) { }
-			else if (ParseAndAssignFloat(curAtt->name, attStr, "color_speed", xform.m_ColorSpeed, success)) { }
-			else if (ParseAndAssignFloat(curAtt->name, attStr, "animate", xform.m_Animate, success)) { }
-			else if (ParseAndAssignFloat(curAtt->name, attStr, "opacity", xform.m_Opacity, success)) { }
-			else if (ParseAndAssignFloat(curAtt->name, attStr, "var_color", xform.m_DirectColor, success)) { }
-			else if (ParseAndAssignFloat(curAtt->name, attStr, "motion_frequency", xform.m_MotionFreq, success)) { }
-			else if (ParseAndAssignFloat(curAtt->name, attStr, "motion_offset", xform.m_MotionOffset, success)) { }
+			if		(ParseAndAssign(curAtt->name, attStr, "weight",			  xform.m_Weight, success))		  { }
+			else if (ParseAndAssign(curAtt->name, attStr, "color_speed",	  xform.m_ColorSpeed, success))   { }
+			else if (ParseAndAssign(curAtt->name, attStr, "animate",		  xform.m_Animate, success))      { }
+			else if (ParseAndAssign(curAtt->name, attStr, "opacity",		  xform.m_Opacity, success))      { }
+			else if (ParseAndAssign(curAtt->name, attStr, "var_color",		  xform.m_DirectColor, success))  { }
+			else if (ParseAndAssign(curAtt->name, attStr, "motion_frequency", xform.m_MotionFreq, success))   { }
+			else if (ParseAndAssign(curAtt->name, attStr, "motion_offset",	  xform.m_MotionOffset, success)) { }
 
 			//Parse more complicated reads that have multiple possible values.
 			else if (!Compare(curAtt->name, "name"))
@@ -1198,7 +1137,7 @@ private:
 			{
 				//Deprecated, set both color_speed and animate to this value.
 				//Huh? Either set it or not?
-				Atof(attStr, temp);
+				Aton(attStr, temp);
 				xform.m_ColorSpeed = (1 - temp) / 2;
 				xform.m_Animate = T(temp > 0 ? 0 : 1);
 			}
@@ -1297,7 +1236,7 @@ private:
 				{
 					auto varCopy = var->Copy();
 
-					Atof(attStr, varCopy->m_Weight);
+					Aton(attStr, varCopy->m_Weight);
 					xform.AddVariation(varCopy);
 				}
 				//else
@@ -1321,7 +1260,7 @@ private:
 				for (j = 0; j < xform.TotalVariationCount(); j++)
 					xform.GetVariation(j)->m_Weight = 0;
 
-				if (Atof(attStr, temp))
+				if (Aton(attStr, temp))
 				{
 					uint iTemp = static_cast<uint>(temp);
 
@@ -1349,7 +1288,7 @@ private:
 			{
 				attStr = reinterpret_cast<char*>(xmlGetProp(childNode, curAtt->name));
 
-				if (Atof(attStr, temp))
+				if (Aton(attStr, temp))
 				{
 					for (j = 0; j < xform.TotalVariationCount(); j++)
 						xform.GetVariation(j)->m_Weight = temp;
@@ -1366,7 +1305,7 @@ private:
 		}
 
 		//Now that all xforms have been parsed, go through and try to find params for the parametric variations.
-		for (uint i = 0; i < xform.TotalVariationCount(); i++)
+		for (size_t i = 0; i < xform.TotalVariationCount(); i++)
 		{
 			if (ParametricVariation<T>* parVar = dynamic_cast<ParametricVariation<T>*>(xform.GetVariation(i)))
 			{
@@ -1381,7 +1320,7 @@ private:
 						T val = 0;
 						attStr = CX(xmlGetProp(childNode, curAtt->name));
 
-						if (Atof(attStr, val))
+						if (Aton(attStr, val))
 						{
 							parVar->SetParamVal(name, val);
 						}
@@ -1476,14 +1415,14 @@ private:
 	/// <param name="numColors">The number of colors present</param>
 	/// <param name="chan">The number of channels in each color</param>
 	/// <returns>True if there were no errors, else false.</returns>
-	bool ParseHexColors(char* colstr, Ember<T>& ember, int numColors, int chan)
+	bool ParseHexColors(char* colstr, Ember<T>& ember, size_t numColors, intmax_t chan)
 	{
-		int colorIndex = 0;
-		int colorCount = 0;
+		size_t colorIndex = 0;
+		size_t colorCount = 0;
 		uint r, g, b, a;
 		int ret;
 		char tmps[2];
-		int skip = static_cast<int>(abs(chan));
+		size_t skip = std::abs(chan);
 		bool ok = true;
 		const char* loc = __FUNCTION__;
 
@@ -1539,47 +1478,25 @@ private:
 	}
 
 	/// <summary>
-	/// Wrapper to parse a floating point Xml value and convert it to float.
+	/// Wrapper to parse a numeric Xml string value and convert it.
 	/// </summary>
 	/// <param name="name">The xml tag to parse</param>
 	/// <param name="attStr">The name of the Xml attribute</param>
 	/// <param name="str">The name of the Xml tag</param>
 	/// <param name="val">The parsed value</param>
-	/// <param name="b">Bitwise ANDed with true if name matched str and the call to Atof() succeeded, else false. Used for keeping a running value between successive calls.</param>
-	/// <returns>True if the tag was matched, else false</returns>
-	bool ParseAndAssignFloat(const xmlChar* name, const char* attStr, const char* str, T& val, bool& b)
+	/// <param name="b">Bitwise ANDed with true if name matched str and the conversion succeeded, else false. Used for keeping a running value between successive calls.</param>
+	/// <returns>True if the tag was matched and the conversion succeeded, else false</returns>
+	template <typename valT>
+	bool ParseAndAssign(const xmlChar* name, const char* attStr, const char* str, valT& val, bool& b)
 	{
 		bool ret = false;
 
 		if (!Compare(name, str))
 		{
-			b &= Atof(attStr, val);
-			ret = true;//Means the strcmp() was right, but doesn't necessarily mean the conversion went ok.
-		}
+			istringstream istr(attStr);
 
-		return ret;
-	}
-
-	/// <summary>
-	/// Wrapper to parse an int Xml string value and convert it to an int.
-	/// </summary>
-	/// <param name="name">The xml tag to parse</param>
-	/// <param name="attStr">The name of the Xml attribute</param>
-	/// <param name="str">The name of the Xml tag</param>
-	/// <param name="val">The parsed value</param>
-	/// <param name="b">Bitwise ANDed with true if name matched str and the call to Atoi() succeeded, else false. Used for keeping a running value between successive calls.</param>
-	/// <returns>True if the tag was matched, else false</returns>
-	template <typename intT>
-	bool ParseAndAssignInt(const xmlChar* name, const char* attStr, const char* str, intT& val, bool& b)
-	{
-		bool ret = false;
-		T fval = 0;
-
-		if (!Compare(name, str))
-		{
-			b &= Atof(attStr, fval);
-			val = static_cast<intT>(fval);
-			ret = true;//Means the strcmp() was right, but doesn't necessarily mean the conversion went ok.
+			istr >> val;
+			ret = !istr.bad() && !istr.fail();//Means the Compare() was right, and the conversion succeeded.
 		}
 
 		return ret;

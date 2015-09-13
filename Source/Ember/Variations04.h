@@ -1372,12 +1372,13 @@ public:
 
 	virtual void Func(IteratorHelper<T>& helper, Point<T>& outPoint, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override
 	{
-		int i, j, l, k, m, m1, n, n1;
+		intmax_t l, k;
+		int i, j, m, m1, n, n1;
 		T r, rMin, offsetX, offsetY, x0 = 0, y0 = 0, x, y;
 
 		rMin = 20;
-		m = Floor<T>(helper.In.x / m_Step);
-		n = Floor<T>(helper.In.y / m_Step);
+		m = int(Floor<T>(helper.In.x / m_Step));
+		n = int(Floor<T>(helper.In.y / m_Step));
 
 		for (i = -1; i < 2; i++)
 		{

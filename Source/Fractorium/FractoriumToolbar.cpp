@@ -79,7 +79,14 @@ void Fractorium::OnActionDP(bool checked)
 /// </summary>
 void Fractorium::SyncOptionsToToolbar()
 {
-	if (m_Settings->OpenCL())
+	static bool openCL = !OpenCLInfo::Instance().Devices().empty();
+
+	if (!openCL)
+	{
+		ui.ActionCL->setEnabled(false);
+	}
+
+	if (openCL && m_Settings->OpenCL())
 	{
 		ui.ActionCpu->setChecked(false);
 		ui.ActionCL->setChecked(true);

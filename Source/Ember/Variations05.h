@@ -95,8 +95,8 @@ public:
 
 	virtual void Func(IteratorHelper<T>& helper, Point<T>& outPoint, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override
 	{
-		int m = Floor<T>(T(0.5) * helper.In.x / m_Sc);
-		int n = Floor<T>(T(0.5) * helper.In.y / m_Sc);
+		int m = int(Floor<T>(T(0.5) * helper.In.x / m_Sc));
+		int n = int(Floor<T>(T(0.5) * helper.In.y / m_Sc));
 		T x = helper.In.x - (m * 2 + 1) * m_Sc;
 		T y = helper.In.y - (n * 2 + 1) * m_Sc;
 		T u = Zeps(Hypot(x, y));
@@ -277,7 +277,7 @@ public:
 
 	virtual void Func(IteratorHelper<T>& helper, Point<T>& outPoint, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override
 	{
-		int m, n, iters = 0;
+		intmax_t m, n, iters = 0;
 		T x, y, u;
 
 		do
@@ -293,7 +293,7 @@ public:
 			if (++iters > 10)
 				break;
 		}
-		while ((DiscreteNoise2(int(m + m_Seed), n) > m_Dens) || (u > (T(0.3) + T(0.7) * DiscreteNoise2(m + 10, n + 3)) * m_Sc));
+		while ((DiscreteNoise2(int(m + m_Seed), int(n)) > m_Dens) || (u > (T(0.3) + T(0.7) * DiscreteNoise2(int(m + 10), int(n + 3))) * m_Sc));
 
 		helper.Out.x = m_Weight * (x + (m * 2 + 1) * m_Sc);
 		helper.Out.y = m_Weight * (y + (n * 2 + 1) * m_Sc);
@@ -406,14 +406,14 @@ public:
 
 		Trans(m_X, m_Y, helper.In.x, helper.In.y, &ux, &uy);
 
-		int m = Floor<T>(T(0.5) * ux / m_Sc);
-		int n = Floor<T>(T(0.5) * uy / m_Sc);
+		intmax_t m = Floor<T>(T(0.5) * ux / m_Sc);
+		intmax_t n = Floor<T>(T(0.5) * uy / m_Sc);
 
 		x = ux - (m * 2 + 1) * m_Sc;
 		y = uy - (n * 2 + 1) * m_Sc;
 		u = Hypot(x, y);
 
-		if ((DiscreteNoise2(int(m + m_Seed), n) > m_Dens) || (u > (T(0.3) + T(0.7) * DiscreteNoise2(m + 10, n + 3)) * m_Sc))
+		if ((DiscreteNoise2(int(m + m_Seed), int(n)) > m_Dens) || (u > (T(0.3) + T(0.7) * DiscreteNoise2(int(m + 10), int(n + 3))) * m_Sc))
 		{
 			ux = ux;
 			uy = uy;
@@ -548,7 +548,7 @@ private:
 
 	void CircleR(T* ux, T* vy, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand)
 	{
-		int m, n, iters = 0;
+		intmax_t m, n, iters = 0;
 		T x, y, alpha, u;
 
 		do
@@ -558,14 +558,14 @@ private:
 			m = Floor<T>(T(0.5) * x / m_Sc);
 			n = Floor<T>(T(0.5) * y / m_Sc);
 			alpha = M_2PI * rand.Frand01<T>();
-			u = T(0.3) + T(0.7) * DiscreteNoise2(m + 10, n + 3);
+			u = T(0.3) + T(0.7) * DiscreteNoise2(int(m + 10), int(n + 3));
 			x = u * cos(alpha);
 			y = u * sin(alpha);
 
 			if (++iters > 10)
 				break;
 		}
-		while (DiscreteNoise2(int(m + m_Seed), n) > m_Dens);
+		while (DiscreteNoise2(int(m + m_Seed), int(n)) > m_Dens);
 
 		*ux = x + (m * 2 + 1) * m_Sc;
 		*vy = y + (n * 2 + 1) * m_Sc;
@@ -2704,7 +2704,7 @@ public:
 
 	virtual void Func(IteratorHelper<T>& helper, Point<T>& outPoint, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override
 	{
-		int m, n;
+		intmax_t m, n;
 		T alpha, beta, offsetAl, offsetBe, offsetGa, x, y;
 
 		//Transfer to trilinear coordinates, normalized to real distances from triangle sides.

@@ -1,4 +1,5 @@
 TEMPLATE = lib
+CONFIG += plugin
 CONFIG += shared
 CONFIG -= app_bundle
 CONFIG -= qt

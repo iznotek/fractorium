@@ -78,8 +78,7 @@ void FractoriumEmberControllerBase::Shutdown()
 /// </summary>
 void FractoriumEmberControllerBase::ClearFinalImages()
 {
-	Memset(m_FinalImage[0]);
-	Memset(m_FinalImage[1]);
+	Memset(m_FinalImage);
 	//Unsure if we should also call RendererCL::ClearFinal() as well. At the moment it seems unnecessary.
 }
 
@@ -114,48 +113,42 @@ void FractoriumEmberControllerBase::DeleteRenderer()
 
 /// <summary>
 /// Save the current render results to a file.
-/// This could benefit from QImageWriter, however it's compression capabilities are
+/// This could benefit from QImageWriter, however its compression capabilities are
 /// severely lacking. A Png file comes out larger than a bitmap, so instead use the
 /// Png and Jpg wrapper functions from the command line programs.
 /// This will embed the id, url and nick fields from the options in the image comments.
 /// </summary>
 /// <param name="filename">The full path and filename</param>
-void FractoriumEmberControllerBase::SaveCurrentRender(const QString& filename, bool forcePull)
+/// <param name="comments">The comments to save in the png or jpg</param>
+/// <param name="pixels">The buffer containing the pixels</param>
+/// <param name="width">The width in pixels of the image</param>
+/// <param name="height">The height in pixels of the image</param>
+/// <param name="channels">The number of channels, 3 or 4.</param>
+/// <param name="bpc">The bytes per channel, almost always 1.</param>
+void FractoriumEmberControllerBase::SaveCurrentRender(const QString& filename, const EmberImageComments& comments, vector<byte>& pixels, size_t width, size_t height, size_t channels, size_t bpc)
 {
 	if (filename != "")
 	{
 		bool b = false;
 		uint i, j;
-		uint width = m_Renderer->FinalRasW();
-		uint height = m_Renderer->FinalRasH();
 		byte* data = nullptr;
 		vector<byte> vecRgb;
 		QFileInfo fileInfo(filename);
 		QString suffix = fileInfo.suffix();
 		FractoriumSettings* settings = m_Fractorium->m_Settings;
-		RendererCLBase* rendererCL = dynamic_cast<RendererCLBase*>(m_Renderer.get());
-
-		if (forcePull && rendererCL && m_Renderer->PrepFinalAccumVector(m_FinalImage[m_FinalImageIndex]))
-		{
-			if (!rendererCL->ReadFinal(m_FinalImage[m_FinalImageIndex].data()))
-			{
-				m_Fractorium->ShowCritical("GPU Read Error", "Could not read image from the GPU, aborting image save.", true);
-				return;
-			}
-		}
-
+		
 		//Ensure dimensions are valid.
-		if (m_FinalImage[m_FinalImageIndex].size() < (width * height * m_Renderer->NumChannels() * m_Renderer->BytesPerChannel()))
+		if (pixels.size() < (width * height * channels * bpc))
 		{
 			m_Fractorium->ShowCritical("Save Failed", "Dimensions didn't match, not saving.", true);
 			return;
 		}
 
-		data = m_FinalImage[m_FinalImageIndex].data();//Png and channels == 4.
+		data = pixels.data();//Png and channels == 4.
 		
-		if ((suffix == "jpg" || suffix == "bmp") && m_Renderer->NumChannels() == 4)
+		if ((suffix == "jpg" || suffix == "bmp") && channels)
 		{
-			RgbaToRgb(m_FinalImage[m_FinalImageIndex], vecRgb, width, height);
+			RgbaToRgb(pixels, vecRgb, width, height);
 			
 			data = vecRgb.data();
 		}
@@ -164,7 +157,6 @@ void FractoriumEmberControllerBase::SaveCurrentRender(const QString& filename, b
 		string id = settings->Id().toStdString();
 		string url = settings->Url().toStdString();
 		string nick = settings->Nick().toStdString();
-		EmberImageComments comments = m_Renderer->ImageComments(m_Stats, 0, false, true);
 
 		if (suffix == "png")
 			b = WritePng(s.c_str(), data, width, height, 1, true, comments, id, url, nick);
@@ -369,14 +361,14 @@ bool FractoriumEmberController<T>::Render()
 	if (ProcessState() != ACCUM_DONE)
 	{
 		//if (m_Renderer->Run(m_FinalImage, 0) == RENDER_OK)//Full, non-incremental render for debugging.
-		if (m_Renderer->Run(m_FinalImage[m_FinalImageIndex], 0, m_SubBatchCount, (iterBegin || m_Fractorium->m_Settings->ContinuousUpdate())) == RENDER_OK)//Force output on iterBegin or if the settings specify to always do it.
+		if (m_Renderer->Run(m_FinalImage, 0, m_SubBatchCount, (iterBegin || m_Fractorium->m_Settings->ContinuousUpdate())) == RENDER_OK)//Force output on iterBegin or if the settings specify to always do it.
 		{
 			//The amount to increment sub batch while rendering proceeds is purely empirical.
 			//Change later if better values can be derived/observed.
 			if (m_Renderer->RendererType() == OPENCL_RENDERER)
 			{
-				if (m_SubBatchCount < 3)//More than 3 with OpenCL gives a sluggish UI.
-					m_SubBatchCount++;
+				if (m_SubBatchCount < (4 * m_Devices.size()))//More than 3 with OpenCL gives a sluggish UI.
+					m_SubBatchCount += m_Devices.size();
 			}
 			else
 			{
@@ -445,7 +437,7 @@ bool FractoriumEmberController<T>::Render()
 			//Update it on finish because the rendering process is completely done.
 			if (iterBegin || ProcessState() == ACCUM_DONE)
 			{
-				if (m_FinalImage[m_FinalImageIndex].size() == m_Renderer->FinalBufferSize())//Make absolutely sure the correct amount of data is passed.
+				if (m_FinalImage.size() == m_Renderer->FinalBufferSize())//Make absolutely sure the correct amount of data is passed.
 					gl->update();
 					//gl->repaint();
 				
@@ -504,19 +496,17 @@ bool FractoriumEmberController<T>::Render()
 /// Rendering will be left in a stopped state. The caller is responsible for restarting the render loop again.
 /// </summary>
 /// <param name="renderType">The type of render to create</param>
-/// <param name="platform">The index platform of the platform to use</param>
-/// <param name="device">The index device of the device to use</param>
-/// <param name="outputTexID">The texture ID of the shared OpenGL texture if shared</param>
+/// <param name="devices">The platform,device index pairs of the devices to use</param>
 /// <param name="shared">True if shared with OpenGL, else false. Default: true.</param>
 /// <returns>True if nothing went wrong, else false.</returns>
 template <typename T>
-bool FractoriumEmberController<T>::CreateRenderer(eRendererType renderType, uint platform, uint device, bool shared)
+bool FractoriumEmberController<T>::CreateRenderer(eRendererType renderType, const vector<pair<size_t, size_t>>& devices, bool shared)
 {
 	bool ok = true;
 	FractoriumSettings* s = m_Fractorium->m_Settings;
 	GLWidget* gl = m_Fractorium->ui.GLDisplay;
 
-	if (!m_Renderer.get() || (m_Renderer->RendererType() != renderType) || (m_Platform != platform) || (m_Device != device))
+	if (!m_Renderer.get() || (m_Renderer->RendererType() != renderType) || !Equal(m_Devices, devices))
 	{
 		EmberReport emberReport;
 		vector<string> errorReport;
@@ -524,13 +514,12 @@ bool FractoriumEmberController<T>::CreateRenderer(eRendererType renderType, uint
 		DeleteRenderer();//Delete the renderer and refresh the textures.
 		//Before starting, must take care of allocations.
 		gl->Allocate(true);//Forcing a realloc of the texture is necessary on AMD, but not on nVidia.
-		m_Renderer = unique_ptr<EmberNs::RendererBase>(::CreateRenderer<T, float>(renderType, platform, device, shared, gl->OutputTexID(), emberReport));//Always make bucket type float.
+		m_Renderer = unique_ptr<EmberNs::RendererBase>(::CreateRenderer<T>(renderType, devices, shared, gl->OutputTexID(), emberReport));//Always make bucket type float.
 		errorReport = emberReport.ErrorReport();
 
 		if (errorReport.empty())
 		{
-			m_Platform = platform;//Store values for re-creation later on.
-			m_Device = device;
+			m_Devices = devices;
 			m_OutputTexID = gl->OutputTexID();
 			m_Shared = shared;
 		}
@@ -548,11 +537,13 @@ bool FractoriumEmberController<T>::CreateRenderer(eRendererType renderType, uint
 
 		if (m_RenderType == OPENCL_RENDERER)
 		{
-			m_Fractorium->m_QualitySpin->DoubleClickZero(30);
-			m_Fractorium->m_QualitySpin->DoubleClickNonZero(30);
+			auto val = 30 * m_Fractorium->m_Settings->Devices().size();
 
-			if (m_Fractorium->m_QualitySpin->value() < 30)
-				m_Fractorium->m_QualitySpin->setValue(30);
+			m_Fractorium->m_QualitySpin->DoubleClickZero(val);
+			m_Fractorium->m_QualitySpin->DoubleClickNonZero(val);
+
+			if (m_Fractorium->m_QualitySpin->value() < val)
+				m_Fractorium->m_QualitySpin->setValue(val);
 		}
 		else
 		{
@@ -618,12 +609,11 @@ void Fractorium::ShutdownAndRecreateFromOptions()
 bool Fractorium::CreateRendererFromOptions()
 {
 	bool ok = true;
-	bool useOpenCL = m_Wrapper.CheckOpenCL() && m_Settings->OpenCL();
-
+	bool useOpenCL = m_Info.Ok() && m_Settings->OpenCL();
+	auto v = Devices(m_Settings->Devices());
+	
 	//The most important option to process is what kind of renderer is desired, so do it first.
-	if (!m_Controller->CreateRenderer(useOpenCL ? OPENCL_RENDERER : CPU_RENDERER,
-						 m_Settings->PlatformIndex(),
-						 m_Settings->DeviceIndex()))
+	if (!m_Controller->CreateRenderer((useOpenCL && !v.empty()) ? OPENCL_RENDERER : CPU_RENDERER, v))
 	{
 		//If using OpenCL, will only get here if creating RendererCL failed, but creating a backup CPU Renderer succeeded.
 		ShowCritical("Renderer Creation Error", "Error creating renderer, most likely a GPU problem. Using CPU instead.");

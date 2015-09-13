@@ -90,6 +90,10 @@ int main(int argc, char *argv[])
 		a.installEventFilter(&w);
 		rv = a.exec();
 	}
+	catch (const std::exception& e)
+	{
+		QMessageBox::critical(0, "Fatal Error", QString::fromStdString(e.what()));
+	}
 	catch (const char* e)
 	{
 		QMessageBox::critical(0, "Fatal Error", e);
