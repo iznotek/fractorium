@@ -211,6 +211,7 @@ static bool ReadFile(const char* filename, string& buf, bool nullTerminate = tru
 			}
 
 			fclose(f);
+			f = nullptr;
 		}
 	}
 	catch (const std::exception& e)
