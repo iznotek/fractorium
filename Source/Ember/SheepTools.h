@@ -603,7 +603,7 @@ public:
 	{
 		vector<eVariationId> useVars;
 
-        Random(ember, useVars, static_cast<intmax_t>(m_Rand.Frand<T>(-2, 2)), 0);
+		Random(ember, useVars, static_cast<intmax_t>(m_Rand.Frand<T>(-2, 2)), 0);
 	}
 
 	/// <summary>

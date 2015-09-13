@@ -2532,6 +2532,9 @@
          <attribute name="horizontalHeaderVisible">
           <bool>false</bool>
          </attribute>
+         <attribute name="horizontalHeaderDefaultSectionSize">
+          <number>110</number>
+         </attribute>
          <attribute name="horizontalHeaderHighlightSections">
           <bool>false</bool>
          </attribute>
@@ -3308,8 +3311,8 @@ SpinBox
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>118</width>
-                <height>618</height>
+                <width>243</width>
+                <height>745</height>
                </rect>
               </property>
               <property name="autoFillBackground">
@@ -4965,8 +4968,8 @@ SpinBox
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>133</width>
-                   <height>52</height>
+                   <width>239</width>
+                   <height>676</height>
                   </rect>
                  </property>
                  <property name="sizePolicy">
