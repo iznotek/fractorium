@@ -2604,29 +2604,6 @@
          <property name="autoFillBackground">
           <bool>false</bool>
          </property>
-         <property name="styleSheet">
-          <string notr="true">QTabWidget::pane
-{
-	border: 1px solid #898C95;
-	font: 9pt &quot;Segoe UI&quot;;
-}
-
-QTabWidget::tab-bar
-{
-	bottom: -1px;
-}
-
-DoubleSpinBox
-{
-	font: 9pt &quot;Segoe UI&quot;;
-}
-
-SpinBox
-{
-	font: 9pt &quot;Segoe UI&quot;;
-}
-</string>
-         </property>
          <property name="tabShape">
           <enum>QTabWidget::Triangular</enum>
          </property>

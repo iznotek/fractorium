@@ -44,6 +44,9 @@ void FractoriumEmberController<T>::FillXaos()
 			}
 		}
 	}
+
+	m_Fractorium->ui.XaosTableView->resizeRowsToContents();
+	m_Fractorium->ui.XaosTableView->resizeColumnsToContents();
 }
 
 /// <summary>
@@ -199,6 +202,8 @@ void Fractorium::OnRandomXaosButtonClicked(bool checked) { m_Controller->RandomX
 void Fractorium::OnXaosRowDoubleClicked(int logicalIndex)
 {
 	ToggleTableRow(ui.XaosTableView, logicalIndex);
+	ui.XaosTableView->resizeRowsToContents();
+	ui.XaosTableView->resizeColumnsToContents();
 }
 
 /// <summary>
@@ -209,6 +214,8 @@ void Fractorium::OnXaosRowDoubleClicked(int logicalIndex)
 void Fractorium::OnXaosColDoubleClicked(int logicalIndex)
 {
 	ToggleTableCol(ui.XaosTableView, logicalIndex);
+	ui.XaosTableView->resizeRowsToContents();
+	ui.XaosTableView->resizeColumnsToContents();
 }
 
 template class FractoriumEmberController<float>;
