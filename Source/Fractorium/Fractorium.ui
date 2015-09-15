@@ -30,7 +30,7 @@
     <normaloff>:/Fractorium/Icons/010425-3d-transparent-glass-icon-animals-spiderweb2.png</normaloff>:/Fractorium/Icons/010425-3d-transparent-glass-icon-animals-spiderweb2.png</iconset>
   </property>
   <property name="autoFillBackground">
-   <bool>true</bool>
+   <bool>false</bool>
   </property>
   <property name="styleSheet">
    <string notr="true"/>
@@ -52,7 +52,7 @@
     <bool>true</bool>
    </property>
    <property name="autoFillBackground">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="frameShape">
     <enum>QFrame::NoFrame</enum>
@@ -2593,11 +2593,6 @@
            <height>0</height>
           </size>
          </property>
-         <property name="font">
-          <font>
-           <family>MS Shell Dlg 2</family>
-          </font>
-         </property>
          <property name="toolTip">
           <string/>
          </property>
@@ -2619,6 +2614,9 @@
           </property>
           <property name="toolTip">
            <string/>
+          </property>
+          <property name="autoFillBackground">
+           <bool>true</bool>
           </property>
           <attribute name="title">
            <string>Color</string>
@@ -3245,7 +3243,7 @@
            <string/>
           </property>
           <property name="autoFillBackground">
-           <bool>false</bool>
+           <bool>true</bool>
           </property>
           <attribute name="title">
            <string>Affine</string>
@@ -3288,8 +3286,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>243</width>
-                <height>745</height>
+                <width>239</width>
+                <height>742</height>
                </rect>
               </property>
               <property name="autoFillBackground">
@@ -4608,6 +4606,9 @@
           <property name="toolTip">
            <string/>
           </property>
+          <property name="autoFillBackground">
+           <bool>true</bool>
+          </property>
           <attribute name="title">
            <string>Variations</string>
           </attribute>
@@ -4923,7 +4924,7 @@
                  </sizepolicy>
                 </property>
                 <property name="autoFillBackground">
-                 <bool>true</bool>
+                 <bool>false</bool>
                 </property>
                 <property name="frameShape">
                  <enum>QFrame::NoFrame</enum>
@@ -4945,8 +4946,8 @@
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>239</width>
-                   <height>676</height>
+                   <width>235</width>
+                   <height>673</height>
                   </rect>
                  </property>
                  <property name="sizePolicy">
@@ -5115,6 +5116,9 @@
               <number>0</number>
              </property>
              <widget class="QWidget" name="InfoSummaryTab">
+              <property name="autoFillBackground">
+               <bool>true</bool>
+              </property>
               <attribute name="title">
                <string>Summary</string>
               </attribute>
@@ -5445,6 +5449,9 @@
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
+              </property>
+              <property name="autoFillBackground">
+               <bool>true</bool>
               </property>
               <attribute name="title">
                <string>Bounds</string>
@@ -6058,7 +6065,7 @@
    </attribute>
    <widget class="QWidget" name="DockWidgetContents">
     <property name="autoFillBackground">
-     <bool>true</bool>
+     <bool>false</bool>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
      <property name="spacing">
