@@ -300,6 +300,7 @@
     <ClInclude Include="..\..\..\Source\Ember\Isaac.h" />
     <ClInclude Include="..\..\..\Source\Ember\Timing.h" />
     <ClInclude Include="..\..\..\Source\Ember\XmlToEmber.h" />
+    <ClInclude Include="resource1.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\Ember\Affine2D.cpp" />
@@ -323,6 +324,9 @@
     <ProjectReference Include="..\..\..\..\tbb\build\vs2010\tbb.vcxproj">
       <Project>{f62787dd-1327-448b-9818-030062bcfaa5}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Ember.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

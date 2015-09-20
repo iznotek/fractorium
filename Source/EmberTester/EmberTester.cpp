@@ -1924,10 +1924,13 @@ int _tmain(int argc, _TCHAR* argv[])
 	Timing t(4);
 	QTIsaac<ISAAC_SIZE, ISAAC_INT> rand(1, 2, 3);
 	mt19937 meow(1729);
+	MakeTestAllVarsRegPrePostComboFile("testallvarsout.flame");
+	return 0;
 
-	TestThreadedKernel();
 
-	/*PaletteList<float> palf;
+	/*TestThreadedKernel();
+
+	PaletteList<float> palf;
 	Palette<float>* pal = palf.GetRandomPalette();
 
 	cout << pal->Size() << endl;
@@ -2033,9 +2036,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	//TestCross<double>(rand.Frand<double>(-5, 5), rand.Frand<double>(-5, 5), rand.Frand<double>(-5, 5));
 	//TestCross<double>(rand.Frand<double>(-5, 5), rand.Frand<double>(-5, 5), rand.Frand<double>(-5, 5));
 	//TestCross<double>(rand.Frand<double>(-5, 5), rand.Frand<double>(-5, 5), rand.Frand<double>(-5, 5));
-	//MakeTestAllVarsRegPrePostComboFile("testallvarsout.flame");
-	//return 0;
-
+	
 	//std::complex<double> cd, cd2;
 
 	//cd2 = sin(cd);

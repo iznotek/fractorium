@@ -116,6 +116,9 @@
     <ClInclude Include="..\..\..\Source\Ember\EmberMotion.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="resource1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\Ember\DllMain.cpp">
@@ -136,5 +139,8 @@
     <ClCompile Include="..\..\..\Source\Ember\RendererBase.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Ember.rc" />
   </ItemGroup>
 </Project>

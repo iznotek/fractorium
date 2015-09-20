@@ -316,6 +316,9 @@
     <ClInclude Include="..\..\..\Source\EmberCL\EmberCLPch.h" />
     <ClInclude Include="..\..\..\Source\EmberCL\RendererClDevice.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="EmberCL.rc" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

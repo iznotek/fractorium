@@ -53,6 +53,9 @@
       <Extensions>cpp;moc</Extensions>
       <SourceControlFiles>False</SourceControlFiles>
     </Filter>
+    <Filter Include="Dialogs\Qss">
+      <UniqueIdentifier>{95078dd1-1c6e-476d-b565-cc844cef63d2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\Fractorium\main.cpp">

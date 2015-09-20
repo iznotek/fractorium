@@ -1,4 +1,240 @@
-0.4.1.9 Beta
+0.9.9.0 Beta 09/19/2015 (Major contributions from Simon Detheridge)
+--User changes
+	-Add option to display affines in polar coords.
+	-Show OpenCL program build errors on info tab, when compilation fails.
+	-Add color curves adjustment widget and corresponding entry in the flame xml file.
+	-Add the ability to delete/select an ember at a given index in EmberFile with delete and enter keys.
+	-Add the ability to save ember Xmls to an unique automatically generated name after the first time the user has specified a name.
+	-Add automatic filename padding to animations in EmberAnimate and Fractorium.
+	-Allow for multiple palette files rather than hard coding to flam3-palettes.xml.
+	-Make xaos display a matrix in its own tab rather than a single column in the xforms tab.
+	-Remove xaos from/to button since it's no longer applicable.
+	-Add the ability to apply operations to a selection of xforms, rather than just the current one.
+	-Add the ability to set the current xform by pressing F1 - F32.
+	-Add the ability to toggle an entire row or column of xaos values.
+	-Add the ability to click the right mouse button and drag to adjust values in spinners.
+	-Allow for toggling row and column of affine tables.
+	-Add the ability to copy and paste xforms between flames.
+	-Allow for setting rendering thread priorities.
+	-Show estimated time left on the final render dialog.
+	-Sort palette list by name, instead of by index in the palette file.
+	-Sorting can be flipped by clicking the column headers of the palette table.
+	-Allow for detaching of top level tabs in the dock widget so workspaces can be customized and saved between runs.
+	-Add linked xform support, with new button and icon on the xforms tab.
+	-Add an additional animation motion function named Saw (Simon Detheridge).
+	-Add motion support at the ember level instead of just individual xforms (Simon Detheridge).
+	-Add an offset to existing motion elements, to start them partway through their cycle.
+	-Add Summary tab to the info dock, place existing bounds related info in a new Bounds tab.
+	-Add a toolbar with the most common actions on it, remove old toolbar at the top of the library tab.
+	-Add variations filter/selection dialog that applied to randoms and is also saved in the settings.
+	-Remove Hue as a saved parameter, as well as animation parameters associated with it. It's now a GUI-only field that is never saved.
+	-Make histogram, density filter buffer, and all associated fields always float, even when using double. In that case, only the iteration calculations are now double. Suggested by Thomas Ludwig.
+	-Print all three kernels in EmberRender when the --dump_kernel option is specified.
+	-Add Simon Detheridge's name to the About Box.
+	-Add support for multiple GPU devices.
+		--These options are present in the command line and in Fractorium.
+		--Change scheme of specifying devices from platform, device to just total device index.
+			---Single number on the command line.
+			---Change from combo boxes for device selection to a table of all devices in Fractorium.
+	-Temporal samples defaults to 100 instead of 1000 which was needless overkill.
+	-Make combo boxes have zero margins, they were getting clipped on Linux.
+	-Make xform weight cell slightly wider, it was getting clipped on Linux.
+	-Adjust height of final render dialog to make it look better on Linux.
+	
+--Bug Fixes
+	-Fix status bar height on retina displays.
+	-Reduce the amount of ComputeCamera() and MakeDmap() calls on each incremental iter that doesn't use temporal samples.
+	-Fix clamping bug with DE filter widths.
+	-Prevent extra newline in EmberRender when only rendering a single image.
+	-Add and call ClearFinalImages() to clear buffers in controller to fix bug where previous CPU render would be shown for a split second when switching from OpenCL back to CPU.
+	-Refactor ember library pointer syncing to a function SyncPointers().
+	-Use a non-imbued stringstream to generate output filename.
+	-Fix NAN in equalized weight calculation when all weights are set to 0.
+	-Prevent xform index flickering whenever changing the number of xforms.
+	-Fix tab tool tips again.
+	-Only correct variation names/params during parsing when the source of the Xml file is not from Ember/Fractorium.
+	-Order of affine scale up/down buttons was reversed from what's intuitive.
+	-Projection was not properly being set when animating flames with 3D parameters.
+	-Eliminate delay when switching between single and double precision.
+	-Convert motion_frequency to floating point.
+	-Make loops and motion_frequency params to EmberGenome work correctly, and convert to double.
+	-Allow for empty fields in template files.
+	-Better application wide exception handling and diagnostics.
+	-Put Nvidia block size in DE back to 24 where it used to be. Nvidia fails when it's 32.
+	-Fix misspelling of the word "Rendering" in failure messages in final render dialog.
+	-Properly disable add final xform button when a final xform is present.
+	-Move some kernel initialization to a place where it's done once per render, rather than on every interactive iter chunk.
+	-FractoriumXformsColor.cpp: Checking for null pixmap pointer is not enough, must also check if the underlying buffer is null via call to QPixmap::isNull().
+	-Remove some old style sheet code on the xforms tab that doesn't seem to make sense and was probably just a workaround for a transient Qt bug, of which there are hundreds.
+	-Set auto fill background for all of the nested tabs on the ui. This has ping ponged back and forth since the beginning of this project.
+	
+--Code Changes
+	-General code cleanup in many places.
+	-Major work to build on Mac and Linux.
+	-Better use of const functions.
+	-Force all float literals in OpenCL variations to correct precision.
+	-Remove ReadMe.txt from all project files.
+	-Provide functions to return the kernels from RendererCL to assist with diagnostics and debugging.
+	-Remove unnecessary resize() in Interpolate().
+	-Explicitly namespace calls to sqrt() and isnan().
+	-Clean up strange nested usage of Update([&]()) calls when changing xform color index via either the spinner or scroll bar. Made no sense.
+	-Make ISAAC RandBit() use RandByte() to be slightly more efficient.
+	-Put FillXforms() in the controller where it belongs, rather than the main window class.
+	-Add UpdateXform() function to the controller to handle applying operations to multiple xforms.
+	-Remove the word "Current" out of most xform related functions because they now operate on whatever is selected.
+	-Properly use Update() for various xform operations whereas before it was manually calling UpdateRender().
+	-Also properly use Update() in places where it was erroneously using UpdateXform() for things that did not involve xforms.
+	-Block signals in FillXaosTable().
+	-Add new file named FractoriumXformsSelect.cpp to handle new xform selection code.
+	-Remove ForEach() wrappers and replace with range based for loops with auto.
+	-Replace every regular for loop with a range based one where applicable. Note this doesn't work everywhere.
+	-Make event filter application wide.
+	-Add parameter to FillXforms() to specify the index to select, default 0.
+	-Rename some scroll areas and layouts to names that make sense, rather than their designer defaults.
+	-Fix some pedantic gcc errors about missing template keyword.
+	-Use QTableView instead of QTableWidget for the xaos table.
+	-Remove unnecessary connect() statement in Variations tab.
+	-Variation tree and associated widgets no longer actually contain variation objects, only IDs.
+	-Refactor code to make a color visible on a background into VisibleColor() in FractoriumCommon.h
+	-Add IsXformLinked() to determine if an xform is linked to another.
+	-Remove SetPaletteRefTable() and GetQRgbFromPaletteIndex() from FractoriumEmberControllerBase and its derivations, unused.
+	-Add FillSummary() to FractoriumEmberController. Call in Update(), UpdateXform() and other places where values are changed to force an update of the summary view.
+	-Add export statements to FractoriumInfo.cpp.
+	-Remove image parameter from SetPaletteTableItem(), it was a bad design.
+	-Refactor code to get a palette color at a given index and convert it to a QColor to ColorIndexToQColor().
+	-Remove a file named Fractorium.aps which had been erroneously committed a year ago.
+	-Use qobject_cast instead of dynamic_cast where appropriate.
+	-Add more override keyword where appropriate.
+	-Add small function ShutdownAndRecreateFromOptions() to wrap shutting down the timer and recreating the renderer.
+	-Use the overridden accept() and reject() functions more consistently across dialogs.
+	-De-templatized DEOpenCLKernelCreator and FinalAccumOpenCLKernelCreator. They now just take a bool as a parameter to specify double precision.
+	-To accommodate the buffers being float, introduce a new #define types in EmberCL called real4_bucket, and real4reals_bucket.
+	-Density and spatial filtering structs now use this type.
+	-ConvertDensityFilter() and ConvertSpatialFilter() no longer return a value, they just assign to the member.
+	-Make ConvertCarToRas() just assign to the member rather than return a struct.
+	-Make kernel string accessor functions in IterOpenCLKernelCreator, FinalAccumOpenCLKernelCreator and DEOpenCLKernelCreator be const and return a const string reference.
+	-Don't include atomic string unless locking on the GPU, which is never.
+	-Add bool to Alloc() to only allocate memory for the histogram. Needed for multi-GPU.
+	-Ember.h: Add case for FLAME_MOTION_NONE and default in ApplyFlameMotion().
+	-EmberMotion.h: Call base constructor.
+	-EmberPch.h: #pragma once only on Windows.
+	-EmberToXml.h:
+	--Handle different types of exceptions.
+	--Add default cases to ToString().
+	-Isaac.h: Remove unused variable in constructor.
+	-Point.h: Call base constructor in Color().
+	-Renderer.h/cpp:
+	--Add bool to Alloc() to only allocate memory for the histogram. Needed for multi-GPU.
+	--Make CoordMap() return a const ref, not a pointer.
+	-SheepTools.h:
+	--Use 64-bit types like the rest of the code already does.
+	--Fix some comment misspellings.
+	-Timing.h: Make BeginTime(), EndTime(), ElapsedTime() and Format() be const functions.
+	-Utils.h:
+	--Add new functions Equal() and Split().
+	--Handle more exception types in ReadFile().
+	--Get rid of most legacy blending of C and C++ argument parsing.
+	-XmlToEmber.h:
+	--Get rid of most legacy blending of C and C++ code from flam3.
+	--Remove some unused variables.
+	-EmberAnimate:
+	--Support multi-GPU processing that alternates full frames between devices.
+	--Use OpenCLInfo instead of OpenCLWrapper for --openclinfo option.
+	--Remove bucketT template parameter, and hard code float in its place.
+	--If a render fails, exit since there is no point in continuing an animation with a missing frame.
+	--Pass variables to threaded save better, which most likely fixes a very subtle bug that existed before.
+	--Remove some unused variables.
+	-EmberGenome, EmberRender:
+	--Support multi-GPU processing that alternates full frames between devices.
+	--Use OpenCLInfo instead of OpenCLWrapper for --openclinfo option.
+	--Remove bucketT template parameter, and hard code float in its place.
+	-EmberRender:
+	--Support multi-GPU processing that alternates full frames between devices.
+	--Use OpenCLInfo instead of OpenCLWrapper for --openclinfo option.
+	--Remove bucketT template parameter, and hard code float in its place.
+	--Only print values when not rendering with OpenCL, since they're always 0 in that case.
+	-EmberCLPch.h:
+	--#pragma once only on Windows.
+	--#include <atomic>.
+	-IterOpenCLKernelCreator.h: Add new kernel for summing two histograms. This is needed for multi-GPU.
+	-OpenCLWrapper.h:
+	--Move all OpenCL info related code into its own class OpenCLInfo.
+	--Add members to cache the values of global memory size and max allocation size.
+	-RendererCL.h/cpp:
+	--Redesign to accomodate multi-GPU.
+	--Constructor now takes a vector of devices.
+	--Remove DumpErrorReport() function, it's handled in the base.
+	--ClearBuffer(), ReadPoints(), WritePoints(), ReadHist() and WriteHist() now optionally take a device index as a parameter.
+	--MakeDmap() override and m_DmapCL member removed because it no longer applies since the histogram is always float since the last commit.
+	--Add new function SumDeviceHist() to sum histograms from two devices by first copying to a temporary on the host, then a temporary on the device, then summing.
+	--m_Calls member removed, as it's now per-device.
+	--OpenCLWrapper removed.
+	--m_Seeds member is now a vector of vector of seeds, to accomodate a separate and different array of seeds for each device.
+	--Added member m_Devices, a vector of unique_ptr of RendererCLDevice.
+	-EmberCommon.h
+	--Added Devices() function to convert from a vector of device indices to a vector of platform,device indices.
+	--Changed CreateRenderer() to accept a vector of devices to create a single RendererCL which will split work across multiple devices.
+	--Added CreateRenderers() function to accept a vector of devices to create multiple RendererCL, each which will render on a single device.
+	--Add more comments to some existing functions.
+	-EmberCommonPch.h: #pragma once only on Windows.
+	-EmberOptions.h:
+	--Remove --platform option, it's just sequential device number now with the --device option.
+	--Make --out be OPT_USE_RENDER instead of OPT_RENDER_ANIM since it's an error condition when animating. It makes no sense to write all frames to a single image.
+	--Add Devices() function to parse comma separated --device option string and return a vector of device indices.
+	--Make int and uint types be 64-bit, so intmax_t and size_t.
+	--Make better use of macros.
+	-JpegUtils.h: Make string parameters to WriteJpeg() and WritePng() be const ref.
+	-All project files: Turn off buffer security check option in Visual Studio (/Gs-)
+	-deployment.pri: Remove the line OTHER_FILES +=, it's pointless and was causing problems.
+	-Ember.pro, EmberCL.pro: Add CONFIG += plugin, otherwise it wouldn't link.
+	-EmberCL.pro: Add new files for multi-GPU support.
+	-build_all.sh: use -j4 and QMAKE=${QMAKE:/usr/bin/qmake}
+	-shared_settings.pri:
+	-Add version string.
+	-Remove old DESTDIR definitions.
+	-Add the following lines or else nothing would build:
+	CONFIG(release, debug|release) {
+		CONFIG += warn_off
+		DESTDIR = ../../../Bin/release
+	}
+	
+	CONFIG(debug, debug|release) {
+		DESTDIR = ../../../Bin/debug
+	}
+	
+	QMAKE_POST_LINK += $$quote(cp --update ../../../Data/flam3-palettes.xml $${DESTDIR}$$escape_expand(\n\t))
+	LIBS += -L/usr/lib -lpthread
+	-AboutDialog.ui: Another futile attempt to make it look correct on Linux.
+	-FinalRenderDialog.h/cpp:
+	--Add support for multi-GPU.
+	--Change from combo boxes for device selection to a table of all devices.
+	--Ensure device selection makes sense.
+	--Remove "FinalRender" prefix of various function names, it's implied given the context.
+	-FinalRenderEmberController.h/cpp:
+	--Add support for multi-GPU.
+	--Change m_FinishedImageCount to be atomic.
+	--Move CancelRender() from the base to FinalRenderEmberController<T>.
+	--Refactor RenderComplete() to omit any progress related functionality or image saving since it can be potentially ran in a thread.
+	--Consolidate setting various renderer fields into SyncGuiToRenderer().
+	-Fractorium.cpp: Allow for resizing of the options dialog to show the entire device table.
+	-FractoriumCommon.h: Add various functions to handle a table showing the available OpenCL devices on the system.
+	-FractoriumEmberController.h/cpp: Remove m_FinalImageIndex, it's no longer needed.
+	-FractoriumRender.cpp: Scale the interactive sub batch count and quality by the number of devices used.
+	-FractoriumSettings.h/cpp:
+	--Temporal samples defaults to 100 instead of 1000 which was needless overkill.
+	--Add multi-GPU support, remove old device,platform pair.
+	-FractoriumToolbar.cpp: Disable OpenCL toolbar button if there are no devices present on the system.
+	-FractoriumOptionsDialog.h/cpp:
+	--Add support for multi-GPU.
+	--Consolidate more assignments in DataToGui().
+	--Enable/disable CPU/OpenCL items in response to OpenCL checkbox event.
+	-Misc: Convert almost everything to size_t for unsigned, intmax_t for signed.
+	-Upgrade Intel Threading Building Blocks library to 4.4
+	-Upgrade glm to 0.9.7
+	-Add version resource files to Ember and EmberCL projects.
+	-Update copyright to 2015 for all version resources.
+	
+0.4.1.8 Beta 01/23/2015
 --User changes
 	Thread image writing in EmberAnimate and when doing animation sequence in final render dialog.
 	Add total time output for verbose mode in EmberAnimate to match EmberRender.

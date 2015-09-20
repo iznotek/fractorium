@@ -22,10 +22,10 @@ FractoriumVariationsDialog::FractoriumVariationsDialog(FractoriumSettings* setti
 	table->verticalHeader()->setSectionsClickable(true);
 	table->horizontalHeader()->setSectionsClickable(true);
 	table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-	connect(table, SIGNAL(itemChanged(QTableWidgetItem*)), this, SLOT(OnVariationsTableItemChanged(QTableWidgetItem*)), Qt::QueuedConnection);
-	connect(ui.SelectAllButton, SIGNAL(clicked(bool)), this, SLOT(OnSelectAllButtonClicked(bool)), Qt::QueuedConnection);
-	connect(ui.InvertSelectionButton, SIGNAL(clicked(bool)), this, SLOT(OnInvertSelectionButtonClicked(bool)), Qt::QueuedConnection);
-	connect(ui.SelectNoneButton, SIGNAL(clicked(bool)), this, SLOT(OnSelectNoneButtonClicked(bool)), Qt::QueuedConnection);
+	connect(table,					  SIGNAL(itemChanged(QTableWidgetItem*)), this, SLOT(OnVariationsTableItemChanged(QTableWidgetItem*)), Qt::QueuedConnection);
+	connect(ui.SelectAllButton,		  SIGNAL(clicked(bool)),				  this, SLOT(OnSelectAllButtonClicked(bool)),				   Qt::QueuedConnection);
+	connect(ui.InvertSelectionButton, SIGNAL(clicked(bool)),				  this, SLOT(OnInvertSelectionButtonClicked(bool)),			   Qt::QueuedConnection);
+	connect(ui.SelectNoneButton,	  SIGNAL(clicked(bool)),				  this, SLOT(OnSelectNoneButtonClicked(bool)),				   Qt::QueuedConnection);
 }
 
 /// <summary>
