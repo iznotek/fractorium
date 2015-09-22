@@ -1,3 +1,7 @@
+0.9.9.0 Beta 09/21/2015
+--Bug fixes:
+	-Fix crash on startup when no GPU present.
+
 0.9.9.0 Beta 09/19/2015 (Major contributions from Simon Detheridge)
 --User changes
 	-Add option to display affines in polar coords.

@@ -84,6 +84,8 @@ FractoriumFinalRenderDialog::FractoriumFinalRenderDialog(FractoriumSettings* set
 	connect(ui.StopRenderButton,  SIGNAL(clicked(bool)), this, SLOT(OnCancelRenderClicked(bool)), Qt::QueuedConnection);
 
 	table = ui.DeviceTable;
+	table->clearContents();
+	table->setRowCount(0);
 
 	if (m_Info.Ok() && !m_Info.Devices().empty())
 	{

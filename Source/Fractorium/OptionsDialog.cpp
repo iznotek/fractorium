@@ -35,6 +35,8 @@ FractoriumOptionsDialog::FractoriumOptionsDialog(FractoriumSettings* settings, Q
 	ui.OptionsIdentityTable->setCellWidget(2, 1, m_NickEdit);
 
 	table = ui.DeviceTable;
+	table->clearContents();
+	table->setRowCount(0);
 
 	if (m_Info.Ok() && !m_Info.Devices().empty())
 	{
