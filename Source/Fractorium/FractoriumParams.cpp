@@ -546,11 +546,7 @@ void FractoriumEmberController<T>::FillParamTablesAndPalette()
 	m_Fractorium->m_AffineInterpTypeCombo->SetCurrentIndexStealth(m_Ember.m_AffineInterp);
 	m_Fractorium->m_InterpTypeCombo->SetCurrentIndexStealth(m_Ember.m_Interp);
 
-	//Xaos.
-	FillXaos();
-
-	//Palette.
-
+	//Palette related items:
 	//The temp palette is assigned the palette read when the file was parsed/saved. The user can apply adjustments on the GUI later.
 	//These adjustments will be applied to the temp palette, then assigned back to m_Ember.m_Palette.
 	//Normally, the temp palette is assigned whenever the user clicks on a palette cell. But since this is not

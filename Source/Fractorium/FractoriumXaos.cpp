@@ -138,13 +138,10 @@ void Fractorium::FillXaosTable()
 
 	m_XaosTableModel->setHorizontalHeaderLabels(hl);
 	m_XaosTableModel->setVerticalHeaderLabels(vl);
-
 	ui.XaosTableView->setModel(m_XaosTableModel);
 	ui.XaosTableView->setItemDelegate(m_XaosTableItemDelegate);
-	ui.XaosTableView->resizeRowsToContents();
-	ui.XaosTableView->resizeColumnsToContents();
-
 	SetTabOrder(this, ui.ClearXaosButton, ui.RandomXaosButton);
+	m_Controller->FillXaos();
 	ui.XaosTableView->blockSignals(false);
 	
 	if (oldModel)
