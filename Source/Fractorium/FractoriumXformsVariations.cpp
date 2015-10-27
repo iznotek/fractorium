@@ -239,7 +239,6 @@ void FractoriumEmberController<T>::VariationSpinBoxValueChanged(double d)//Would
 				if (xformVar)
 					xform->DeleteVariationById(var->VariationId());
 
-				//widgetItem->setBackgroundColor(0, Qt::darkGray);//Ensure background is always white if weight goes to zero.
 				widgetItem->setBackgroundColor(0, QColor(255, 255, 255));//Ensure background is always white if weight goes to zero.
 			}
 			else
@@ -256,7 +255,6 @@ void FractoriumEmberController<T>::VariationSpinBoxValueChanged(double d)//Would
 
 					newVar->m_Weight = d;
 					xform->AddVariation(newVar);
-					//widgetItem->setBackgroundColor(0, Qt::darkGray);//Set background to gray when a variation has non-zero weight in this xform.
 					widgetItem->setBackgroundColor(0, QColor(200, 200, 200));//Set background to gray when a variation has non-zero weight in this xform.
 
 					//If they've added a new parametric variation, then grab the values currently in the spinners

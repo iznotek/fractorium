@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <?define ProductVersion="0.9.9.1" ?>
+  <?define ProductVersion="0.9.9.2" ?>
   <?define ProductName="Fractorium Beta $(var.ProductVersion) ($(var.GpuType))" ?>
   <?define UpgradeCode="{4714cd15-bfba-44f6-8059-9e1466ebfa6e}"?>
   <?define Manufacturer="Fractorium"?>
@@ -13,7 +13,7 @@
   <!--
   Change this for every release.
   -->
-  <?define ProductCode="{4BFD3388-4BB3-4389-BB83-924CC83385B3}"?>
+  <?define ProductCode="{F59721C4-C46D-4FFF-BEA4-803FA3BD0BFE}"?>
   
   <Product Id="$(var.ProductCode)" Name="$(var.ProductName)" Language="1033" Version="$(var.ProductVersion)" Manufacturer="$(var.Manufacturer)" UpgradeCode="$(var.UpgradeCode)">
     <Package
@@ -160,6 +160,9 @@
       </Component>
       <Component Id="flam3palettes.xml" Guid="d3adb0bb-14ef-4923-99d9-a5784b7ef04e">
         <File Id="flam3palettes.xml" Source="$(var.SolutionDir)..\..\..\Data\flam3-palettes.xml" KeyPath="yes" Checksum="yes" />
+      </Component>
+      <Component Id="dark.qss" Guid="c120ace3-5fab-416f-b7f1-a8d9e3e0f061">
+        <File Id="dark.qss" Source="$(var.SolutionDir)..\..\..\Data\dark.qss" KeyPath="yes" Checksum="yes" ReadOnly="yes"/>
       </Component>
       <Component Id="VersionHistory.txt" Guid="8b031217-9e7d-4700-9ab8-2593a4e002b6">
         <File Id="VersionHistory.txt" Source="$(var.SolutionDir)..\..\..\Data\Version History.txt" KeyPath="yes" Checksum="yes" />

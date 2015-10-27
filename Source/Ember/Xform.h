@@ -370,7 +370,7 @@ public:
 		{
 			for (auto v : variations)
 			{
-				if (v != nullptr && v->VariationId() == id)
+				if (v && v->VariationId() == id)
 				{
 					var = v;
 					keepGoing = false;
@@ -395,7 +395,7 @@ public:
 		{
 			for (auto v : variations)
 			{
-				if (v != nullptr && v->Name() == name)
+				if (v && v->Name() == name)
 				{
 					var = v;
 					keepGoing = false;
@@ -447,7 +447,7 @@ public:
 		{
 			for (size_t i = 0; i < variations.size(); i++)
 			{
-				if (variations[i] != nullptr && variations[i]->VariationId() == id)
+				if (variations[i] && variations[i]->VariationId() == id)
 				{
 					delete variations[i];
 					variations.erase(variations.begin() + i);
@@ -768,7 +768,7 @@ public:
 
 				//At this point, we've added if needed, or just applied the motion func to the weight.
 				//Now apply the motion func to the params if needed.
-				if (motParVar != nullptr)
+				if (motParVar)
 				{
 					auto parVar = dynamic_cast<ParametricVariation<T>*>(var);
 					auto params = parVar->Params();

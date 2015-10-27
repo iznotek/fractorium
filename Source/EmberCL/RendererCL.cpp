@@ -759,7 +759,7 @@ eRenderStatus RendererCL<T, bucketT>::AccumulatorToFinalImage(byte* pixels, size
 {
 	eRenderStatus status = RunFinalAccum();
 
-	if (status == RENDER_OK && pixels != nullptr && !m_Devices.empty() && !m_Devices[0]->m_Wrapper.Shared())
+	if (status == RENDER_OK && pixels && !m_Devices.empty() && !m_Devices[0]->m_Wrapper.Shared())
 	{
 		pixels += finalOffset;
 

@@ -54,7 +54,7 @@
       <SourceControlFiles>False</SourceControlFiles>
     </Filter>
     <Filter Include="Dialogs\Qss">
-      <UniqueIdentifier>{95078dd1-1c6e-476d-b565-cc844cef63d2}</UniqueIdentifier>
+      <UniqueIdentifier>{5ba9fccd-8922-4037-956f-d57177a43700}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -271,6 +271,51 @@
     <ClCompile Include="GeneratedFiles\ReleaseNvidia\moc_VariationsDialog.cpp">
       <Filter>Generated Files\ReleaseNvidia</Filter>
     </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_QssDialog.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_QssDialog.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\ReleaseNvidia\moc_QssDialog.cpp">
+      <Filter>Generated Files\ReleaseNvidia</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Fractorium\QssDialog.cpp">
+      <Filter>Dialogs\Qss</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Fractorium\csshighlighter.cpp">
+      <Filter>Dialogs\Qss</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Fractorium\qcssparser.cpp">
+      <Filter>Dialogs\Qss</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Fractorium\QssTextEdit.cpp">
+      <Filter>Dialogs\Qss</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_QssTextEdit.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_QssTextEdit.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\ReleaseNvidia\moc_QssTextEdit.cpp">
+      <Filter>Generated Files\ReleaseNvidia</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Fractorium\qcssscanner.h">
+      <Filter>Dialogs\Qss</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Fractorium\qcssscanner.cpp">
+      <Filter>Dialogs\Qss</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_csshighlighter.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_csshighlighter.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\ReleaseNvidia\moc_csshighlighter.cpp">
+      <Filter>Generated Files\ReleaseNvidia</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GeneratedFiles\ui_Fractorium.h">
@@ -317,6 +362,15 @@
     </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_VariationsDialog.h">
       <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GeneratedFiles\ui_QssDialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Fractorium\qcssparser.h">
+      <Filter>Dialogs\Qss</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Fractorium\qfunctions.h">
+      <Filter>Dialogs\Qss</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -385,6 +439,18 @@
     </CustomBuild>
     <CustomBuild Include="..\..\..\Source\Fractorium\VariationsDialog.h">
       <Filter>Dialogs</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\Source\Fractorium\QssDialog.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\Source\Fractorium\QssDialog.h">
+      <Filter>Dialogs\Qss</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\Source\Fractorium\QssTextEdit.h">
+      <Filter>Dialogs\Qss</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\Source\Fractorium\csshighlighter.h">
+      <Filter>Dialogs\Qss</Filter>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>

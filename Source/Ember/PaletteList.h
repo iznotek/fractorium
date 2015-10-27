@@ -49,7 +49,7 @@ public:
 			{
 				xmlDocPtr doc = xmlReadMemory(static_cast<const char*>(buf.data()), int(buf.size()), filename.c_str(), nullptr, XML_PARSE_NONET);
 
-				if (doc != nullptr)
+				if (doc)
 				{
 					auto rootNode = xmlDocGetRootElement(doc);
 					auto pfilename = shared_ptr<string>(new string(filename));

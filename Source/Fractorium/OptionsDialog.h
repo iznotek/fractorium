@@ -47,6 +47,7 @@ private:
 	bool ShowAllXforms();
 	bool AutoUnique();
 	uint ThreadCount();
+	uint RandomCount();
 	void DataToGui();
 	void GuiToData();
 

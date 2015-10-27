@@ -34,7 +34,7 @@ public:
 	/// <param name="option">Unused</param>
 	/// <param name="index">unused</param>
 	/// <returns>The DoubleSpinBox member</returns>
-	QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const override
+	virtual QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const override
 	{
 		m_SpinBox->setParent(parent);
 
@@ -46,7 +46,7 @@ public:
 	/// </summary>
 	/// <param name="editor">Unused</param>
 	/// <param name="index">Unused</param>
-	void destroyEditor(QWidget* editor, const QModelIndex& index) const override
+	virtual void destroyEditor(QWidget* editor, const QModelIndex& index) const override
 	{
 	}
 
@@ -55,7 +55,7 @@ public:
 	/// </summary>
 	/// <param name="editor">Unused</param>
 	/// <param name="index">Unused</param>
-	void setEditorData(QWidget* editor, const QModelIndex& index) const override
+	virtual void setEditorData(QWidget* editor, const QModelIndex& index) const override
 	{
 		QPoint p(index.row(), index.column());
 		auto value = index.model()->data(index, Qt::EditRole).toDouble();
@@ -70,7 +70,7 @@ public:
 	/// <param name="editor">Unused</param>
 	/// <param name="model">The model whose value will be set</param>
 	/// <param name="index">The cell index of the model</param>
-	void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const override
+	virtual void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const override
 	{
 		model->setData(index, m_SpinBox->value(), Qt::EditRole);
 	}
@@ -81,7 +81,7 @@ public:
 	/// <param name="editor">The DoubleSpinBox member</param>
 	/// <param name="option">Contains the rectangle to be used for the geometry of the DoubleSpinBox</param>
 	/// <param name="index">Unused</param>
-	void updateEditorGeometry(QWidget* editor, const QStyleOptionViewItem& option, const QModelIndex& index) const override
+	virtual void updateEditorGeometry(QWidget* editor, const QStyleOptionViewItem& option, const QModelIndex& index) const override
 	{
 		editor->setGeometry(option.rect);
 	}

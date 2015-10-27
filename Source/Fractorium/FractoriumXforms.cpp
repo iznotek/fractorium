@@ -31,32 +31,6 @@ void Fractorium::InitXformsUI()
 	connect(ui.XformWeightNameTable, SIGNAL(cellChanged(int, int)), this, SLOT(OnXformNameChanged(int, int)), Qt::QueuedConnection);
 
 	ui.CurrentXformCombo->setProperty("soloxform", -1);
-/*
-	ui.XformsTabWidget->setStyleSheet(
-		
-	"QTabWidget::pane \n"
-		"{\n"
-		"	border: 5px solid #898C95;\n"
-		"	font: 9pt &quot;Segoe UI&quot;;\n"
-		"}\n"
-		"\n"
-		"QTabWidget::tab-bar \n"
-		"{\n"
-		"	bottom: -8px;\n"
-		"}\n"
-		"\n"
-		"DoubleSpinBox \n"
-		"{\n"
-		"	font: 9pt &quot;Segoe UI&quot;;\n"
-		"}\n"
-		"\n"
-		"SpinBox \n"
-		"{\n"
-		"	font: 9pt &quot;Segoe UI&quot;;\n"
-		"}"
-		);
-		*/
-	
 #ifndef WIN32    
 	//For some reason linux makes these 24x24, even though the designer explicitly says 16x16.
 	ui.AddXformButton->setIconSize(QSize(16, 16));

@@ -38,7 +38,7 @@ FractoriumFinalRenderDialog::FractoriumFinalRenderDialog(FractoriumSettings* set
 	connect(ui.FinalRenderScaleNoneRadioButton,	   SIGNAL(toggled(bool)),			 this, SLOT(OnScaleRadioButtonChanged(bool)),			 Qt::QueuedConnection);
 	connect(ui.FinalRenderScaleWidthRadioButton,   SIGNAL(toggled(bool)),			 this, SLOT(OnScaleRadioButtonChanged(bool)),			 Qt::QueuedConnection);
 	connect(ui.FinalRenderScaleHeightRadioButton,  SIGNAL(toggled(bool)),			 this, SLOT(OnScaleRadioButtonChanged(bool)),			 Qt::QueuedConnection);
-	connect(ui.DeviceTable,						   SIGNAL(cellChanged(int, int)),	 this, SLOT(OnDeviceTableCellChanged(int, int)),		 Qt::QueuedConnection);
+	connect(ui.FinalRenderDeviceTable,			   SIGNAL(cellChanged(int, int)),	 this, SLOT(OnDeviceTableCellChanged(int, int)),		 Qt::QueuedConnection);
 
 	SetupSpinner<DoubleSpinBox, double>(ui.FinalRenderSizeTable, this, row, 1, m_WidthScaleSpin,  spinHeight, 0.001, 99.99, 0.1, SIGNAL(valueChanged(double)), SLOT(OnWidthScaleChanged(double)), true, 1.0, 1.0, 1.0);
 	SetupSpinner<DoubleSpinBox, double>(ui.FinalRenderSizeTable, this, row, 1, m_HeightScaleSpin, spinHeight, 0.001, 99.99, 0.1, SIGNAL(valueChanged(double)), SLOT(OnHeightScaleChanged(double)), true, 1.0, 1.0, 1.0);
@@ -79,11 +79,11 @@ FractoriumFinalRenderDialog::FractoriumFinalRenderDialog(FractoriumSettings* set
 	connect(m_PrefixEdit, SIGNAL(textChanged(const QString&)), this, SLOT(OnPrefixChanged(const QString&)), Qt::QueuedConnection);
 	connect(m_SuffixEdit, SIGNAL(textChanged(const QString&)), this, SLOT(OnSuffixChanged(const QString&)), Qt::QueuedConnection);
 
-	ui.StartRenderButton->disconnect(SIGNAL(clicked(bool)));
-	connect(ui.StartRenderButton, SIGNAL(clicked(bool)), this, SLOT(OnRenderClicked(bool)),		  Qt::QueuedConnection);
-	connect(ui.StopRenderButton,  SIGNAL(clicked(bool)), this, SLOT(OnCancelRenderClicked(bool)), Qt::QueuedConnection);
+	ui.FinalRenderStartButton->disconnect(SIGNAL(clicked(bool)));
+	connect(ui.FinalRenderStartButton, SIGNAL(clicked(bool)), this, SLOT(OnRenderClicked(bool)),		  Qt::QueuedConnection);
+	connect(ui.FinalRenderStopButton,  SIGNAL(clicked(bool)), this, SLOT(OnCancelRenderClicked(bool)), Qt::QueuedConnection);
 
-	table = ui.DeviceTable;
+	table = ui.FinalRenderDeviceTable;
 	table->clearContents();
 	table->setRowCount(0);
 
@@ -162,7 +162,7 @@ FractoriumFinalRenderDialog::FractoriumFinalRenderDialog(FractoriumSettings* set
 	w = SetTabOrder(this, w, ui.FinalRenderDoAllCheckBox);
 	w = SetTabOrder(this, w, ui.FinalRenderDoSequenceCheckBox);
 	w = SetTabOrder(this, w, ui.FinalRenderCurrentSpin);
-	w = SetTabOrder(this, w, ui.DeviceTable);
+	w = SetTabOrder(this, w, ui.FinalRenderDeviceTable);
 	w = SetTabOrder(this, w, ui.FinalRenderThreadCountSpin);
 	w = SetTabOrder(this, w, ui.FinalRenderThreadPriorityComboBox);
 	w = SetTabOrder(this, w, ui.FinalRenderApplyToAllCheckBox);
@@ -183,9 +183,9 @@ FractoriumFinalRenderDialog::FractoriumFinalRenderDialog(FractoriumSettings* set
 	w = SetTabOrder(this, w, m_PrefixEdit);
 	w = SetTabOrder(this, w, m_SuffixEdit);
 	w = SetTabOrder(this, w, ui.FinalRenderTextOutput);
-	w = SetTabOrder(this, w, ui.StartRenderButton);
-	w = SetTabOrder(this, w, ui.StopRenderButton);
-	w = SetTabOrder(this, w, ui.CloseButton);
+	w = SetTabOrder(this, w, ui.FinalRenderStartButton);
+	w = SetTabOrder(this, w, ui.FinalRenderStopButton);
+	w = SetTabOrder(this, w, ui.FinalRenderCloseButton);
 }
 
 /// <summary>
@@ -228,7 +228,7 @@ double FractoriumFinalRenderDialog::Quality() { return m_QualitySpin->value(); }
 uint FractoriumFinalRenderDialog::TemporalSamples() { return m_TemporalSamplesSpin->value(); }
 uint FractoriumFinalRenderDialog::Supersample() { return m_SupersampleSpin->value(); }
 uint FractoriumFinalRenderDialog::Strips() { return m_StripsSpin->value(); }
-QList<QVariant> FractoriumFinalRenderDialog::Devices() { return DeviceTableToSettings(ui.DeviceTable); }
+QList<QVariant> FractoriumFinalRenderDialog::Devices() { return DeviceTableToSettings(ui.FinalRenderDeviceTable); }
 
 /// <summary>
 /// Capture the current state of the Gui.
@@ -347,8 +347,9 @@ void FractoriumFinalRenderDialog::OnOpenCLCheckBoxStateChanged(int state)
 {
 	bool checked = state == Qt::Checked;
 
-	ui.DeviceTable->setEnabled(checked);
+	ui.FinalRenderDeviceTable->setEnabled(checked);
 	ui.FinalRenderThreadCountSpin->setEnabled(!checked);
+	ui.FinalRenderThreadPriorityLabel->setEnabled(!checked);
 	ui.FinalRenderThreadPriorityComboBox->setEnabled(!checked);
 	SetMemory();
 }
@@ -480,9 +481,9 @@ void FractoriumFinalRenderDialog::OnScaleRadioButtonChanged(bool checked)
 /// <param name="col">The column of the cell</param>
 void FractoriumFinalRenderDialog::OnDeviceTableCellChanged(int row, int col)
 {
-	if (auto item = ui.DeviceTable->item(row, col))
+	if (auto item = ui.FinalRenderDeviceTable->item(row, col))
 	{
-		HandleDeviceTableCheckChanged(ui.DeviceTable, row, col);
+		HandleDeviceTableCheckChanged(ui.FinalRenderDeviceTable, row, col);
 		SetMemory();
 	}
 }
@@ -497,7 +498,7 @@ void FractoriumFinalRenderDialog::OnDeviceTableRadioToggled(bool checked)
 {
 	int row;
 	auto s = sender();
-	auto table = ui.DeviceTable;
+	auto table = ui.FinalRenderDeviceTable;
 	QRadioButton* radio = nullptr;
 
 	if (s)
@@ -506,7 +507,7 @@ void FractoriumFinalRenderDialog::OnDeviceTableRadioToggled(bool checked)
 			if (radio = qobject_cast<QRadioButton*>(table->cellWidget(row, 1)))
 				if (s == radio)
 				{
-					HandleDeviceTableCheckChanged(ui.DeviceTable, row, 1);
+					HandleDeviceTableCheckChanged(ui.FinalRenderDeviceTable, row, 1);
 					break;
 				}
 	}

@@ -1084,7 +1084,7 @@ int GLEmberController<T>::UpdateHover(v3T& glCoords)
 	m_HoverType = HoverNone;
 
 	//If there's a selected/current xform, check it first so it gets precedence over the others.
-	if (m_SelectedXform != nullptr)
+	if (m_SelectedXform)
 	{
 		//These checks prevent highlighting the pre/post selected xform circle, when one is set to show all, and the other
 		//is set to show current, and the user hovers over another xform, but doesn't select it, then moves the mouse

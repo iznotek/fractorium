@@ -544,7 +544,7 @@ public:
 	static void InterpParametricVar(vector<ParametricVariation<T>*>& first, ParametricVariation<T>* second, vector<T>& c)
 	{
 		//First, make sure the variation vector is the same size as the coefficient vector.
-		if (second != nullptr && first.size() == c.size())
+		if (second && first.size() == c.size())
 		{
 			second->Clear();
 			auto secondParams = second->Params();

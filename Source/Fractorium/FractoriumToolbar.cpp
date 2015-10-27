@@ -1,5 +1,6 @@
 #include "FractoriumPch.h"
 #include "Fractorium.h"
+#include "QssDialog.h"
 
 /// <summary>
 /// Initialize the toolbar UI.
@@ -15,10 +16,11 @@ void Fractorium::InitToolbarUI()
 	spGroup->addAction(ui.ActionDP);
 
 	SyncOptionsToToolbar();
-	connect(ui.ActionCpu, SIGNAL(triggered(bool)), this, SLOT(OnActionCpu(bool)), Qt::QueuedConnection);
-	connect(ui.ActionCL,  SIGNAL(triggered(bool)), this, SLOT(OnActionCL(bool)),  Qt::QueuedConnection);
-	connect(ui.ActionSP,  SIGNAL(triggered(bool)), this, SLOT(OnActionSP(bool)),  Qt::QueuedConnection);
-	connect(ui.ActionDP,  SIGNAL(triggered(bool)), this, SLOT(OnActionDP(bool)),  Qt::QueuedConnection);
+	connect(ui.ActionCpu,	SIGNAL(triggered(bool)), this, SLOT(OnActionCpu(bool)),	  Qt::QueuedConnection);
+	connect(ui.ActionCL,	SIGNAL(triggered(bool)), this, SLOT(OnActionCL(bool)),	  Qt::QueuedConnection);
+	connect(ui.ActionSP,	SIGNAL(triggered(bool)), this, SLOT(OnActionSP(bool)),	  Qt::QueuedConnection);
+	connect(ui.ActionDP,	SIGNAL(triggered(bool)), this, SLOT(OnActionDP(bool)),	  Qt::QueuedConnection);
+	connect(ui.ActionStyle, SIGNAL(triggered(bool)), this, SLOT(OnActionStyle(bool)), Qt::QueuedConnection);
 }
 
 /// <summary>
@@ -71,6 +73,15 @@ void Fractorium::OnActionDP(bool checked)
 		m_Settings->Double(true);
 		ShutdownAndRecreateFromOptions();
 	}
+}
+
+/// <summary>
+/// Called when the show style button is clicked.
+/// </summary>
+/// <param name="checked">Ignored</param>
+void Fractorium::OnActionStyle(bool checked)
+{
+	m_QssDialog->show();
 }
 
 /// <summary>

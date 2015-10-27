@@ -12,10 +12,11 @@ void Fractorium::InitXaosUI()
 	ui.XaosTableView->horizontalHeader()->setSectionsClickable(true);
 
 	m_XaosSpinBox = new DoubleSpinBox(nullptr, spinHeight, 0.1);
-	m_XaosSpinBox->setFixedWidth(35);
 	m_XaosSpinBox->DoubleClick(true);
 	m_XaosSpinBox->DoubleClickZero(1);
 	m_XaosSpinBox->DoubleClickNonZero(0);
+	m_XaosSpinBox->setDecimals(6);
+	m_XaosSpinBox->setObjectName("XaosSpinBox");
 
 	m_XaosTableModel = nullptr;
 	m_XaosTableItemDelegate = new DoubleSpinBoxTableItemDelegate(m_XaosSpinBox, this);
@@ -146,6 +147,12 @@ void Fractorium::FillXaosTable()
 	
 	if (oldModel)
 		delete oldModel;
+
+	//Needed to get the dark stylesheet to correctly color the top left corner button.
+	auto widgetList = ui.XaosTableView->findChildren<QAbstractButton*>();
+
+	for (auto& it : widgetList)
+		it->setEnabled(true);
 }
 
 /// <summary>

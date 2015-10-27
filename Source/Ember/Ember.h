@@ -180,7 +180,7 @@ public:
 		SetProjFunc();
 		ClearEdit();
 
-		if (ember.m_Edits != nullptr)
+		if (ember.m_Edits)
 			m_Edits = xmlCopyDoc(ember.m_Edits, 1);
 
 		CopyVec(m_EmberMotionElements, ember.m_EmberMotionElements);
@@ -858,7 +858,7 @@ public:
 
 				var->m_Weight = 0;
 
-				if (parVar != nullptr)
+				if (parVar)
 					parVar->Clear();
 
 				for (size_t k = 0; k < size; k++)//For each ember in the list.
@@ -869,17 +869,17 @@ public:
 					{
 						Variation<T>* tempVar = tempXform->GetVariationById(var->VariationId());//See if the variation at this xform index exists in that ember at this xform index.
 
-						if (tempVar != nullptr)
+						if (tempVar)
 						{
 							//Interp weight.
 							var->m_Weight += tempVar->m_Weight * coefs[k];
 
 							//If it was a parametric variation, interp params.
-							if (parVar != nullptr)
+							if (parVar)
 							{
 								ParametricVariation<T>* tempParVar = dynamic_cast<ParametricVariation<T>*>(tempVar);
 
-								if (tempParVar != nullptr && (parVar->ParamCount() == tempParVar->ParamCount()))//This check will should always be true, but just check to be absolutely sure to avoid clobbering memory.
+								if (tempParVar && (parVar->ParamCount() == tempParVar->ParamCount()))//This check will should always be true, but just check to be absolutely sure to avoid clobbering memory.
 								{
 									auto params = parVar->Params();
 									auto tempParams = tempParVar->Params();
@@ -1461,7 +1461,7 @@ public:
 	/// </summary>
 	void ClearEdit()
 	{
-		if (m_Edits != nullptr)
+		if (m_Edits)
 			xmlFreeDoc(m_Edits);
 
 		m_Edits = nullptr;

@@ -46,11 +46,9 @@ void FractoriumSettings::EnsureDefaults()
 
 	FinalThreadPriority(Clamp<int>(FinalThreadPriority(), (int)eThreadPriority::LOWEST, (int)eThreadPriority::HIGHEST));
 	
-	if (CpuSubBatch() < 1)
-		CpuSubBatch(1);
-
-	if (OpenCLSubBatch() < 1)
-		OpenCLSubBatch(1);
+	CpuSubBatch(std::max(1u, CpuSubBatch()));
+	OpenCLSubBatch(std::max(1u, OpenCLSubBatch()));
+	RandomCount(std::max(1u, RandomCount()));
 
 	if (FinalScale() > SCALE_HEIGHT)
 		FinalScale(0);
@@ -124,6 +122,9 @@ void FractoriumSettings::CpuSubBatch(uint i)					 { setValue(CPUSUBBATCH, i);			
 																 
 uint FractoriumSettings::OpenCLSubBatch()						 { return value(OPENCLSUBBATCH).toUInt();  }
 void FractoriumSettings::OpenCLSubBatch(uint i)					 { setValue(OPENCLSUBBATCH, i);			   }
+																 
+uint FractoriumSettings::RandomCount()							 { return value(RANDOMCOUNT).toUInt();	   }
+void FractoriumSettings::RandomCount(uint i)					 { setValue(RANDOMCOUNT, i);			   }
 
 /// <summary>
 /// Final render settings.
@@ -232,3 +233,7 @@ void FractoriumSettings::SaveAutoUnique(bool b)						  { setValue(AUTOUNIQUE, b)
 
 QMap<QString, QVariant> FractoriumSettings::Variations()			  { return value(UIVARIATIONS).toMap();	   }
 void FractoriumSettings::Variations(const QMap<QString, QVariant>& m) { setValue(UIVARIATIONS, m);			   }
+
+QString FractoriumSettings::Theme()									  { return value(STYLETHEME).toString();   }
+void FractoriumSettings::Theme(const QString& s)					  { setValue(STYLETHEME, s);			   }
+

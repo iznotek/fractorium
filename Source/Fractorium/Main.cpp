@@ -30,63 +30,10 @@ int main(int argc, char *argv[])
 	putenv(const_cast<char*>("GPU_MAX_ALLOC_PERCENT=100"));
 #endif
 	
-#ifndef WIN32
-	a.setStyleSheet("QGroupBox { border: 1px solid gray; border-radius: 3px; margin-top: 1.1em; background-color: transparent; } \n"
-	"QTabBar::tab { height: 2.8ex; } \n"
-	"QGroupBox::title "
-	"{"
-	 "  background-color: transparent;"
-	 "  subcontrol-origin: margin; "
-	 //"  left: 3px; "
-	 "  subcontrol-position: top left;"
-	 "  padding: 0 3px 0 3px;"
-	 //"    padding: 2px;"
-	 "} \n"
-	 "QComboBox { margin-top: 0px; padding-bottom: 0px; }"
-	 );
-#endif
-
 	int rv = -1;
 
 	try
 	{
-		//a.setStyle(QStyleFactory::create("Fusion"));
-		//QPalette darkPalette;
-		/*darkPalette.setColor(QPalette::Window, QColor(53, 53, 53));
-		darkPalette.setColor(QPalette::WindowText, Qt::white);
-		darkPalette.setColor(QPalette::Base, QColor(25, 25, 25));
-		darkPalette.setColor(QPalette::AlternateBase, QColor(53, 53, 53));
-		darkPalette.setColor(QPalette::ToolTipBase, Qt::white);
-		darkPalette.setColor(QPalette::ToolTipText, Qt::white);
-		darkPalette.setColor(QPalette::Text, Qt::white);
-		darkPalette.setColor(QPalette::Button, QColor(53, 53, 53));
-		darkPalette.setColor(QPalette::ButtonText, Qt::white);
-		darkPalette.setColor(QPalette::BrightText, Qt::red);
-		darkPalette.setColor(QPalette::Link, QColor(42, 130, 218));
-
-		darkPalette.setColor(QPalette::Highlight, QColor(42, 130, 218));
-		darkPalette.setColor(QPalette::HighlightedText, Qt::black);;*/
-
-		//darkPalette.setColor(QPalette::, Qt::lightGray);
-		//darkPalette.setColor(QPalette::Window, Qt::darkGray);
-		//darkPalette.setColor(QPalette::Disabled, QPalette::WindowText, Qt::red);
-		//darkPalette.setColor(QPalette::Disabled, QPalette::ButtonText, Qt::blue);//Works for disabled buttons, but not for disabled menus.
-
-		//a.setPalette(darkPalette);
-		//a.setStyleSheet("QToolTip { color: #ffffff; background-color: darkgray; border: 1px solid white; }");
-		//a.setStyleSheet("QTableWidget { border-color: darkgray; }")
-		//QString s;
-
-		//s = "QTableView, QSpinBox, QDoubleSpinBox, QGroupBox, QTreeWidget { background-color: darkGray; } ";
-		//s += "QComboBox, QTextEdit, QLineEdit { background - color: lightGray; } ";
-		//s += "QTabWidget { window-color: darkGray; } ";
-		//a.setStyleSheet("{ color: rgb(85, 170, 0); }");
-		//a.setStyleSheet("GLWidget { background-color: darkgray; }");
-		//a.setStyleSheet("QTableView, QDoubleSpinBox { background-color: darkgray; }");//Works!
-		//a.setStyleSheet(s);//Works!
-		//a.setStyleSheet("QTableView, QSpinBox, QDoubleSpinBox, QTreeWidget, QTreeWidgetItem { background-color: darkgray; }");//QTreeWidgetItem not needed.
-		//a.setStyleSheet("QTableView, DoubleSpinBox { background-color: darkgray; }");//Works!
-
 		Fractorium w;
 		w.show();
 		a.installEventFilter(&w);

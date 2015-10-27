@@ -6,22 +6,22 @@
 /// </summary>
 void Fractorium::InitInfoUI()
 {
-	auto treeHeader = ui.SummaryTreeWidget->header();
-	auto tableHeader = ui.SummaryTableWidget->horizontalHeader();
+	auto treeHeader = ui.SummaryTree->header();
+	auto tableHeader = ui.SummaryTable->horizontalHeader();
 
 	treeHeader->setVisible(true);
 	treeHeader->setSectionsClickable(true);
 	treeHeader->setSectionResizeMode(QHeaderView::ResizeToContents);
 	connect(treeHeader, SIGNAL(sectionClicked(int)), this, SLOT(OnSummaryTreeHeaderSectionClicked(int)), Qt::QueuedConnection);
 	connect(tableHeader, SIGNAL(sectionResized(int, int, int)), this, SLOT(OnSummaryTableHeaderResized(int, int, int)), Qt::QueuedConnection);
-	SetFixedTableHeader(ui.SummaryTableWidget->verticalHeader());
+	SetFixedTableHeader(ui.SummaryTable->verticalHeader());
 
-	ui.SummaryTableWidget->setItem(0, 0, m_InfoNameItem = new QTableWidgetItem(""));
-	ui.SummaryTableWidget->setItem(1, 0, m_InfoPaletteItem = new QTableWidgetItem(""));
-	ui.SummaryTableWidget->setItem(2, 0, m_Info3dItem = new QTableWidgetItem(""));
-	ui.SummaryTableWidget->setItem(3, 0, m_InfoXaosItem = new QTableWidgetItem(""));
-	ui.SummaryTableWidget->setItem(4, 0, m_InfoXformCountItem = new QTableWidgetItem(""));
-	ui.SummaryTableWidget->setItem(5, 0, m_InfoFinalXformItem = new QTableWidgetItem(""));
+	ui.SummaryTable->setItem(0, 0, m_InfoNameItem = new QTableWidgetItem(""));
+	ui.SummaryTable->setItem(1, 0, m_InfoPaletteItem = new QTableWidgetItem(""));
+	ui.SummaryTable->setItem(2, 0, m_Info3dItem = new QTableWidgetItem(""));
+	ui.SummaryTable->setItem(3, 0, m_InfoXaosItem = new QTableWidgetItem(""));
+	ui.SummaryTable->setItem(4, 0, m_InfoXformCountItem = new QTableWidgetItem(""));
+	ui.SummaryTable->setItem(5, 0, m_InfoFinalXformItem = new QTableWidgetItem(""));
 }
 
 /// <summary>
@@ -34,7 +34,7 @@ void Fractorium::InitInfoUI()
 void Fractorium::OnSummaryTableHeaderResized(int logicalIndex, int oldSize, int newSize)
 {
 	QPixmap pixmap = QPixmap::fromImage(m_Controller->FinalPaletteImage());//Create a QPixmap out of the QImage, will be empty on startup.
-	SetPaletteTableItem(&pixmap, ui.SummaryTableWidget, m_InfoPaletteItem, 1, 0);
+	SetPaletteTableItem(&pixmap, ui.SummaryTable, m_InfoPaletteItem, 1, 0);
 }
 
 /// <summary>
@@ -44,7 +44,7 @@ void Fractorium::OnSummaryTableHeaderResized(int logicalIndex, int oldSize, int 
 /// <param name="logicalIndex">The column which was clicked</param>
 void Fractorium::OnSummaryTreeHeaderSectionClicked(int logicalIndex)
 {
-	auto tree = ui.SummaryTreeWidget;
+	auto tree = ui.SummaryTree;
 
 	if (logicalIndex)
 		tree->expandAll();
@@ -73,8 +73,8 @@ void FractoriumEmberController<T>::FillSummary()
 	size_t x = 0, total = m_Ember.TotalXformCount();
 	Xform<T>* xform = nullptr;
 	QColor color;
-	auto table = m_Fractorium->ui.SummaryTableWidget;
-	auto tree = m_Fractorium->ui.SummaryTreeWidget;
+	auto table = m_Fractorium->ui.SummaryTable;
+	auto tree = m_Fractorium->ui.SummaryTree;
 	QVariantList states;
 	QTreeWidgetItemIterator it(tree);
 

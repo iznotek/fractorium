@@ -1410,8 +1410,8 @@ template <typename T, typename bucketT> size_t Renderer<T, bucketT>::FuseCount()
 /// Non-virtual iterator wrappers.
 /// </summary>
 
-template <typename T, typename bucketT> const byte* Renderer<T, bucketT>::XformDistributions() 		  const { return m_Iterator != nullptr ? m_Iterator->XformDistributions() : nullptr; }
-template <typename T, typename bucketT> size_t		Renderer<T, bucketT>::XformDistributionsSize()    const { return m_Iterator != nullptr ? m_Iterator->XformDistributionsSize() : 0; }
+template <typename T, typename bucketT> const byte* Renderer<T, bucketT>::XformDistributions() 		  const { return m_Iterator ? m_Iterator->XformDistributions() : nullptr; }
+template <typename T, typename bucketT> size_t		Renderer<T, bucketT>::XformDistributionsSize()    const { return m_Iterator ? m_Iterator->XformDistributionsSize() : 0; }
 template <typename T, typename bucketT> Point<T>*   Renderer<T, bucketT>::Samples(size_t threadIndex) const { return threadIndex < m_Samples.size() ? const_cast<Point<T>*>(m_Samples[threadIndex].data()) : nullptr; }
 
 /// <summary>

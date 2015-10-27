@@ -296,7 +296,7 @@ public:
 			}
 		}
 
-		if (doEdits && ember.m_Edits != nullptr)
+		if (doEdits && ember.m_Edits)
 			os << ToString(xmlDocGetRootElement(ember.m_Edits), 1, true, printEditDepth);
 
 		os << "</flame>\n";
@@ -448,7 +448,7 @@ public:
 			os.str("");
 
 			//Check for errors.
-			if (commentDoc != nullptr)
+			if (commentDoc)
 			{
 
 				//Loop through the children of the new document and copy them into the rootNode.

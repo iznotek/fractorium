@@ -19,6 +19,7 @@
 #define OPENCLDEFILTER       "render/opencldefilter"
 #define CPUSUBBATCH		     "render/cpusubbatch"
 #define OPENCLSUBBATCH	     "render/openclsubbatch"
+#define RANDOMCOUNT			 "render/randomcount"
 
 #define FINALEARLYCLIP       "finalrender/earlyclip"
 #define FINALYAXISUP         "finalrender/finalyaxisup"
@@ -59,6 +60,8 @@
 #define IDENTITYNICK		 "identity/nick"
 
 #define UIVARIATIONS		 "ui/variations"
+
+#define STYLETHEME			 "style/theme"
 
 /// <summary>
 /// Class for preserving various program options between
@@ -111,6 +114,9 @@ public:
 	uint OpenCLSubBatch();
 	void OpenCLSubBatch(uint i);
 	
+	uint RandomCount();
+	void RandomCount(uint i);
+
 	bool FinalEarlyClip();
 	void FinalEarlyClip(bool b);
 	
@@ -206,4 +212,7 @@ public:
 
 	QMap<QString, QVariant> Variations();
 	void Variations(const QMap<QString, QVariant>& m);
+
+	QString Theme();
+	void Theme(const QString& s);
 };

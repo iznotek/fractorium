@@ -45,7 +45,7 @@
     <number>6</number>
    </property>
    <item>
-    <widget class="QScrollArea" name="scrollArea">
+    <widget class="QScrollArea" name="FinalRenderScrollArea">
      <property name="focusPolicy">
       <enum>Qt::NoFocus</enum>
      </property>
@@ -58,7 +58,7 @@
      <property name="widgetResizable">
       <bool>true</bool>
      </property>
-     <widget class="QWidget" name="scrollAreaWidgetContents">
+     <widget class="QWidget" name="FinalRenderScrollAreaWidgetContents">
       <property name="geometry">
        <rect>
         <x>0</x>
@@ -84,7 +84,7 @@
         <number>0</number>
        </property>
        <item>
-        <layout class="QGridLayout" name="gridLayout" columnstretch="0,0">
+        <layout class="QGridLayout" name="FinalRenderGridLayout" columnstretch="0,0">
          <item row="0" column="0">
           <widget class="QCheckBox" name="FinalRenderEarlyClipCheckBox">
            <property name="toolTip">
@@ -168,7 +168,7 @@
         </layout>
        </item>
        <item>
-        <layout class="QGridLayout" name="gridLayout_3">
+        <layout class="QGridLayout" name="FinalRenderGridLayout2">
          <property name="sizeConstraint">
           <enum>QLayout::SetNoConstraint</enum>
          </property>
@@ -240,7 +240,7 @@
         </layout>
        </item>
        <item>
-        <widget class="QTableWidget" name="DeviceTable">
+        <widget class="QTableWidget" name="FinalRenderDeviceTable">
          <property name="sizePolicy">
           <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
            <horstretch>0</horstretch>
@@ -461,13 +461,13 @@
             <property name="minimumSize">
              <size>
               <width>0</width>
-              <height>46</height>
+              <height>45</height>
              </size>
             </property>
             <property name="maximumSize">
              <size>
               <width>16777215</width>
-              <height>46</height>
+              <height>45</height>
              </size>
             </property>
             <property name="focusPolicy">
@@ -670,13 +670,13 @@
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>200</height>
+           <height>199</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
            <width>16777215</width>
-           <height>200</height>
+           <height>199</height>
           </size>
          </property>
          <property name="focusPolicy">
@@ -939,7 +939,7 @@
         </widget>
        </item>
        <item>
-        <layout class="QGridLayout" name="gridLayout_2" rowstretch="0,0,0,0" columnstretch="1,4">
+        <layout class="QGridLayout" name="FinalRenderGridLayout3" rowstretch="0,0,0,0" columnstretch="1,4">
          <property name="sizeConstraint">
           <enum>QLayout::SetDefaultConstraint</enum>
          </property>
@@ -1105,7 +1105,7 @@
           </spacer>
          </item>
          <item>
-          <widget class="QPushButton" name="StartRenderButton">
+          <widget class="QPushButton" name="FinalRenderStartButton">
            <property name="focusPolicy">
             <enum>Qt::TabFocus</enum>
            </property>
@@ -1118,7 +1118,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="StopRenderButton">
+          <widget class="QPushButton" name="FinalRenderStopButton">
            <property name="focusPolicy">
             <enum>Qt::TabFocus</enum>
            </property>
@@ -1128,7 +1128,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="CloseButton">
+          <widget class="QPushButton" name="FinalRenderCloseButton">
            <property name="focusPolicy">
             <enum>Qt::TabFocus</enum>
            </property>
@@ -1165,14 +1165,14 @@
   <tabstop>FinalRenderOpenCLCheckBox</tabstop>
   <tabstop>FinalRenderParamsTable</tabstop>
   <tabstop>FinalRenderTextOutput</tabstop>
-  <tabstop>StartRenderButton</tabstop>
-  <tabstop>StopRenderButton</tabstop>
-  <tabstop>CloseButton</tabstop>
+  <tabstop>FinalRenderStartButton</tabstop>
+  <tabstop>FinalRenderStopButton</tabstop>
+  <tabstop>FinalRenderCloseButton</tabstop>
  </tabstops>
  <resources/>
  <connections>
   <connection>
-   <sender>StartRenderButton</sender>
+   <sender>FinalRenderStartButton</sender>
    <signal>clicked()</signal>
    <receiver>FinalRenderDialog</receiver>
    <slot>accept()</slot>
@@ -1188,7 +1188,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>CloseButton</sender>
+   <sender>FinalRenderCloseButton</sender>
    <signal>clicked()</signal>
    <receiver>FinalRenderDialog</receiver>
    <slot>reject()</slot>

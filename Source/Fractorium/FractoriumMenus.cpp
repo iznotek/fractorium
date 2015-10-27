@@ -82,7 +82,7 @@ void FractoriumEmberController<T>::NewFlock(size_t count)
 /// <param name="checked">Ignored</param>
 void Fractorium::OnActionNewFlock(bool checked)
 {
-	m_Controller->NewFlock(10);
+	m_Controller->NewFlock(m_Settings->RandomCount());
 	m_Controller->SetEmber(0);
 }
 
@@ -285,7 +285,7 @@ void FractoriumEmberController<T>::SaveCurrentAsXml()
 		ApplyXmlSavingTemplate(ember);
 		ember.m_Edits = writer.CreateNewEditdoc(&ember, nullptr, "edit", s->Nick().toStdString(), s->Url().toStdString(), s->Id().toStdString(), "", 0, 0);
 
-		if (tempEdit != nullptr)
+		if (tempEdit)
 			xmlFreeDoc(tempEdit);
 
 		if (writer.Save(filename.toStdString().c_str(), ember, 0, true, false, true))

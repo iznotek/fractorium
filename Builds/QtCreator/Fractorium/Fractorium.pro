@@ -50,7 +50,12 @@ SOURCES += \
     ../../../Source/Fractorium/Main.cpp \
     ../../../Source/Fractorium/OptionsDialog.cpp \
 	../../../Source/Fractorium/VariationsDialog.cpp \
-    ../../../Source/Fractorium/SpinBox.cpp
+	../../../Source/Fractorium/SpinBox.cpp \
+	../../../Source/Fractorium/csshighlighter.cpp \
+	../../../Source/Fractorium/qcssparser.cpp \
+	../../../Source/Fractorium/qcssscanner.cpp \
+	../../../Source/Fractorium/QssDialog.cpp \
+	../../../Source/Fractorium/QssTextEdit.cpp
 
 HEADERS  += \
     ../../../Source/Fractorium/AboutDialog.h \
@@ -79,14 +84,21 @@ HEADERS  += \
     ../../../Source/Fractorium/FractoriumCommon.h \
 	../../../Source/Fractorium/DoubleSpinBoxTableItemDelegate.h \
 	../../../Source/Fractorium/PaletteTableWidgetItem.h \
-	../../../Source/Fractorium/VariationsDialog.h
+	../../../Source/Fractorium/VariationsDialog.h \
+	../../../Source/Fractorium/csshighlighter.h \
+	../../../Source/Fractorium/qcssparser.h \
+	../../../Source/Fractorium/qcssscanner.h \
+	../../../Source/Fractorium/qfunctions.h \
+	../../../Source/Fractorium/QssDialog.h \
+	../../../Source/Fractorium/QssTextEdit.h
 
 FORMS    += \
     ../../../Source/Fractorium/AboutDialog.ui \
     ../../../Source/Fractorium/FinalRenderDialog.ui \
     ../../../Source/Fractorium/Fractorium.ui \
 	../../../Source/Fractorium/VariationsDialog.ui \
-    ../../../Source/Fractorium/OptionsDialog.ui
+	../../../Source/Fractorium/OptionsDialog.ui \
+	../../../Source/Fractorium/QssDialog.ui
 
 OTHER_FILES += \
     ../../../Source/Fractorium/Fractorium.aps \

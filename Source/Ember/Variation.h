@@ -1874,7 +1874,7 @@ protected:
 #define VARCOPYDOUBLE(name) \
 	virtual void Copy(Variation<double>*& var) const override \
 	{ \
-		if (var != nullptr) \
+		if (var) \
 			delete var; \
 		\
 		var = new name<double>(*this); \
@@ -1905,7 +1905,7 @@ protected:
 	\
 	virtual void Copy(Variation<float>*& var) const override \
 	{ \
-		if (var != nullptr) \
+		if (var) \
 			delete var; \
 		\
 		var = new name<float>(*this); \
@@ -1932,7 +1932,7 @@ protected:
 	\
 	virtual void Copy(Variation<float>*& var) const override \
 	{ \
-		if (var != nullptr) \
+		if (var) \
 			delete var; \
 		\
 		var = new name<float>(*this); \
@@ -2018,7 +2018,7 @@ protected:
 	\
 	virtual void Copy(Variation<float>*& var) const override \
 	{ \
-		if (var != nullptr) \
+		if (var) \
 			delete var; \
 		\
 		var = new name<float>(*this); \
@@ -2049,7 +2049,7 @@ protected:
 	\
 	virtual void Copy(Variation<float>*& var) const override \
 	{ \
-		if (var != nullptr) \
+		if (var) \
 			delete var; \
 		\
 		var = new name<float>(*this); \

@@ -50,7 +50,7 @@ public:
 		m_EndTime = Clock::now();
 		double ms = ElapsedTime();
 
-		if (str != nullptr)
+		if (str)
 		{
 			cout << string(str) << (fullString ? "" : " processing time: ") << Format(ms) << endl;
 		}

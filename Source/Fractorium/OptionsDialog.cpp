@@ -74,6 +74,7 @@ bool FractoriumOptionsDialog::Double() { return ui.DoublePrecisionCheckBox->isCh
 bool FractoriumOptionsDialog::ShowAllXforms() { return ui.ShowAllXformsCheckBox->isChecked(); }
 bool FractoriumOptionsDialog::AutoUnique() { return ui.AutoUniqueCheckBox->isChecked(); }
 uint FractoriumOptionsDialog::ThreadCount() { return ui.ThreadCountSpin->value(); }
+uint FractoriumOptionsDialog::RandomCount() { return ui.RandomCountSpin->value(); }
 
 /// <summary>
 /// The check state of one of the OpenCL devices was changed.
@@ -130,6 +131,7 @@ void FractoriumOptionsDialog::OnOpenCLCheckBoxStateChanged(int state)
 	ui.CpuFilteringLogRadioButton->setEnabled(!checked);
 	ui.OpenCLFilteringDERadioButton->setEnabled(checked);
 	ui.OpenCLFilteringLogRadioButton->setEnabled(checked);
+	ui.InteraciveCpuFilteringGroupBox->setEnabled(!checked);
 	ui.InteraciveGpuFilteringGroupBox->setEnabled(checked);
 }
 
@@ -178,6 +180,7 @@ void FractoriumOptionsDialog::GuiToData()
 	m_Settings->Double(Double());
 	m_Settings->ShowAllXforms(ShowAllXforms());
 	m_Settings->ThreadCount(ThreadCount());
+	m_Settings->RandomCount(RandomCount());
 	m_Settings->CpuSubBatch(ui.CpuSubBatchSpin->value());
 	m_Settings->OpenCLSubBatch(ui.OpenCLSubBatchSpin->value());
 	m_Settings->CpuDEFilter(ui.CpuFilteringDERadioButton->isChecked());
@@ -212,6 +215,7 @@ void FractoriumOptionsDialog::DataToGui()
 	ui.DoublePrecisionCheckBox->setChecked(m_Settings->Double());
 	ui.ShowAllXformsCheckBox->setChecked(m_Settings->ShowAllXforms());
 	ui.ThreadCountSpin->setValue(m_Settings->ThreadCount());
+	ui.RandomCountSpin->setValue(m_Settings->RandomCount());
 	ui.CpuSubBatchSpin->setValue(m_Settings->CpuSubBatch());
 	ui.OpenCLSubBatchSpin->setValue(m_Settings->OpenCLSubBatch());
 	SettingsToDeviceTable(ui.DeviceTable, devices);

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1442</width>
-    <height>926</height>
+    <width>1451</width>
+    <height>953</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -74,8 +74,8 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>1175</width>
-      <height>859</height>
+      <width>1184</width>
+      <height>886</height>
      </rect>
     </property>
     <property name="sizePolicy">
@@ -99,7 +99,7 @@
     <widget class="QDockWidget" name="FlameDockWidget">
      <property name="geometry">
       <rect>
-       <x>40</x>
+       <x>0</x>
        <y>0</y>
        <width>240</width>
        <height>881</height>
@@ -123,7 +123,7 @@
      <property name="windowTitle">
       <string>Flame</string>
      </property>
-     <widget class="QWidget" name="dockWidgetContents">
+     <widget class="QWidget" name="FlameDockWidgetContents">
       <layout class="QVBoxLayout" name="verticalLayout_8">
        <property name="spacing">
         <number>0</number>
@@ -355,13 +355,13 @@
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>156</height>
+               <height>154</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>156</height>
+               <height>154</height>
               </size>
              </property>
              <property name="focusPolicy">
@@ -579,13 +579,13 @@
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>156</height>
+               <height>154</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>156</height>
+               <height>154</height>
               </size>
              </property>
              <property name="focusPolicy">
@@ -956,13 +956,13 @@
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>156</height>
+               <height>154</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>156</height>
+               <height>154</height>
               </size>
              </property>
              <property name="focusPolicy">
@@ -1203,13 +1203,13 @@
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>266</height>
+               <height>264</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>266</height>
+               <height>264</height>
               </size>
              </property>
              <property name="focusPolicy">
@@ -1524,7 +1524,7 @@
     <widget class="QDockWidget" name="XaosDockWidget">
      <property name="geometry">
       <rect>
-       <x>550</x>
+       <x>530</x>
        <y>0</y>
        <width>240</width>
        <height>881</height>
@@ -1545,7 +1545,7 @@
      <property name="windowTitle">
       <string>Xaos</string>
      </property>
-     <widget class="QWidget" name="dockWidgetContents_4">
+     <widget class="QWidget" name="XaosDockWidgetContents">
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <property name="spacing">
         <number>4</number>
@@ -1727,7 +1727,7 @@
     <widget class="QDockWidget" name="PaletteDockWidget">
      <property name="geometry">
       <rect>
-       <x>790</x>
+       <x>770</x>
        <y>0</y>
        <width>240</width>
        <height>881</height>
@@ -1748,7 +1748,7 @@
      <property name="windowTitle">
       <string>Palette</string>
      </property>
-     <widget class="QWidget" name="dockWidgetContents_5">
+     <widget class="QWidget" name="PaletteDockWidgetContents">
       <layout class="QGridLayout" name="gridLayout_3">
        <property name="leftMargin">
         <number>5</number>
@@ -1773,13 +1773,13 @@
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>22</height>
+           <height>21</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
            <width>16777215</width>
-           <height>22</height>
+           <height>21</height>
           </size>
          </property>
          <property name="focusPolicy">
@@ -1865,7 +1865,11 @@
           <number>0</number>
          </property>
          <item>
-          <widget class="QLineEdit" name="PaletteFilterLineEdit"/>
+          <widget class="QLineEdit" name="PaletteFilterLineEdit">
+           <property name="frame">
+            <bool>true</bool>
+           </property>
+          </widget>
          </item>
          <item>
           <widget class="QPushButton" name="PaletteFilterClearButton">
@@ -1966,7 +1970,14 @@
         </widget>
        </item>
        <item row="0" column="0">
-        <widget class="QComboBox" name="PaletteFilenameCombo"/>
+        <widget class="QComboBox" name="PaletteFilenameCombo">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
        </item>
        <item row="1" column="0">
         <widget class="TableWidget" name="PaletteAdjustTable">
@@ -2167,15 +2178,15 @@
     <widget class="QDockWidget" name="XformsDockWidget">
      <property name="geometry">
       <rect>
-       <x>280</x>
+       <x>240</x>
        <y>0</y>
-       <width>267</width>
+       <width>291</width>
        <height>881</height>
       </rect>
      </property>
      <property name="minimumSize">
       <size>
-       <width>267</width>
+       <width>291</width>
        <height>613</height>
       </size>
      </property>
@@ -2188,7 +2199,7 @@
      <property name="windowTitle">
       <string>Xforms</string>
      </property>
-     <widget class="QWidget" name="dockWidgetContents_3">
+     <widget class="QWidget" name="XformsDockWidgetContents">
       <layout class="QGridLayout" name="gridLayout_4">
        <property name="leftMargin">
         <number>5</number>
@@ -2210,6 +2221,9 @@
          <property name="spacing">
           <number>2</number>
          </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
          <item>
           <widget class="QComboBox" name="CurrentXformCombo">
            <property name="sizePolicy">
@@ -2227,7 +2241,7 @@
            <property name="maximumSize">
             <size>
              <width>60</width>
-             <height>16777215</height>
+             <height>22</height>
             </size>
            </property>
            <property name="toolTip">
@@ -2464,13 +2478,13 @@
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>45</height>
+           <height>44</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
            <width>16777215</width>
-           <height>45</height>
+           <height>44</height>
           </size>
          </property>
          <property name="font">
@@ -2926,7 +2940,7 @@
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>68</height>
+               <height>67</height>
               </size>
              </property>
              <property name="font">
@@ -3286,8 +3300,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>239</width>
-                <height>742</height>
+                <width>263</width>
+                <height>743</height>
                </rect>
               </property>
               <property name="autoFillBackground">
@@ -3493,11 +3507,26 @@
                     <property name="leftMargin">
                      <number>0</number>
                     </property>
+                    <property name="topMargin">
+                     <number>0</number>
+                    </property>
                     <property name="spacing">
-                     <number>4</number>
+                     <number>3</number>
                     </property>
                     <item row="1" column="0">
                      <widget class="QPushButton" name="PreRotate90CcButton">
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>24</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>24</height>
+                       </size>
+                      </property>
                       <property name="toolTip">
                        <string>Rotate xform 90 degrees counter clockwise</string>
                       </property>
@@ -3512,6 +3541,18 @@
                     </item>
                     <item row="1" column="4">
                      <widget class="QPushButton" name="PreRotate90CButton">
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>24</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>24</height>
+                       </size>
+                      </property>
                       <property name="toolTip">
                        <string>Rotate xform 90 degrees clockwise</string>
                       </property>
@@ -3526,6 +3567,18 @@
                     </item>
                     <item row="2" column="4">
                      <widget class="QPushButton" name="PreMoveRightButton">
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>24</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>24</height>
+                       </size>
+                      </property>
                       <property name="toolTip">
                        <string>Move xform x units right</string>
                       </property>
@@ -3549,7 +3602,13 @@
                       <property name="minimumSize">
                        <size>
                         <width>75</width>
-                        <height>22</height>
+                        <height>23</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>23</height>
                        </size>
                       </property>
                       <property name="editable">
@@ -3587,6 +3646,18 @@
                     </item>
                     <item row="2" column="0">
                      <widget class="QPushButton" name="PreMoveUpButton">
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>24</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>24</height>
+                       </size>
+                      </property>
                       <property name="toolTip">
                        <string>Move xform x units up</string>
                       </property>
@@ -3601,6 +3672,18 @@
                     </item>
                     <item row="2" column="1">
                      <widget class="QPushButton" name="PreMoveDownButton">
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>24</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>24</height>
+                       </size>
+                      </property>
                       <property name="toolTip">
                        <string>Move xform x units down</string>
                       </property>
@@ -3624,7 +3707,13 @@
                       <property name="minimumSize">
                        <size>
                         <width>75</width>
-                        <height>22</height>
+                        <height>23</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>23</height>
                        </size>
                       </property>
                       <property name="editable">
@@ -3642,6 +3731,18 @@
                     </item>
                     <item row="2" column="3">
                      <widget class="QPushButton" name="PreMoveLeftButton">
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>24</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>24</height>
+                       </size>
+                      </property>
                       <property name="toolTip">
                        <string>Move xform x units left</string>
                       </property>
@@ -3665,7 +3766,13 @@
                       <property name="minimumSize">
                        <size>
                         <width>75</width>
-                        <height>22</height>
+                        <height>23</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>23</height>
                        </size>
                       </property>
                       <property name="editable">
@@ -3724,6 +3831,18 @@
                     </item>
                     <item row="1" column="1">
                      <widget class="QPushButton" name="PreRotateCcButton">
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>24</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>24</height>
+                       </size>
+                      </property>
                       <property name="toolTip">
                        <string>Rotate xform x degrees counter clockwise</string>
                       </property>
@@ -3738,6 +3857,18 @@
                     </item>
                     <item row="1" column="3">
                      <widget class="QPushButton" name="PreRotateCButton">
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>24</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>24</height>
+                       </size>
+                      </property>
                       <property name="toolTip">
                        <string>Rotate xform x degrees clockwise</string>
                       </property>
@@ -3757,6 +3888,18 @@
                         <horstretch>0</horstretch>
                         <verstretch>0</verstretch>
                        </sizepolicy>
+                      </property>
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>24</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>24</height>
+                       </size>
                       </property>
                       <property name="toolTip">
                        <string>Flip xform vertically</string>
@@ -3781,7 +3924,13 @@
                       <property name="minimumSize">
                        <size>
                         <width>75</width>
-                        <height>0</height>
+                        <height>24</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>24</height>
                        </size>
                       </property>
                       <property name="toolTip">
@@ -3800,6 +3949,18 @@
                         <verstretch>0</verstretch>
                        </sizepolicy>
                       </property>
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>24</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>24</height>
+                       </size>
+                      </property>
                       <property name="toolTip">
                        <string>Flip xform horizontally</string>
                       </property>
@@ -3814,6 +3975,18 @@
                     </item>
                     <item row="3" column="1">
                      <widget class="QPushButton" name="PreScaleDownButton">
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>24</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>24</height>
+                       </size>
+                      </property>
                       <property name="toolTip">
                        <string>Scale xform x percent down</string>
                       </property>
@@ -3828,6 +4001,18 @@
                     </item>
                     <item row="3" column="3">
                      <widget class="QPushButton" name="PreScaleUpButton">
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>24</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>24</height>
+                       </size>
+                      </property>
                       <property name="toolTip">
                        <string>Scale xform x percent up</string>
                       </property>
@@ -4089,12 +4274,24 @@
                      <number>0</number>
                     </property>
                     <property name="spacing">
-                     <number>4</number>
+                     <number>3</number>
                     </property>
                     <item row="1" column="0">
                      <widget class="QPushButton" name="PostRotate90CcButton">
                       <property name="enabled">
                        <bool>true</bool>
+                      </property>
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>24</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>24</height>
+                       </size>
                       </property>
                       <property name="toolTip">
                        <string>Rotate xform 90 degrees counter clockwise</string>
@@ -4113,6 +4310,18 @@
                       <property name="enabled">
                        <bool>true</bool>
                       </property>
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>24</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>24</height>
+                       </size>
+                      </property>
                       <property name="toolTip">
                        <string>Rotate xform 90 degrees clockwise</string>
                       </property>
@@ -4129,6 +4338,18 @@
                      <widget class="QPushButton" name="PostMoveRightButton">
                       <property name="enabled">
                        <bool>true</bool>
+                      </property>
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>24</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>24</height>
+                       </size>
                       </property>
                       <property name="toolTip">
                        <string>Move xform x units right</string>
@@ -4156,7 +4377,13 @@
                       <property name="minimumSize">
                        <size>
                         <width>75</width>
-                        <height>22</height>
+                        <height>23</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>23</height>
                        </size>
                       </property>
                       <property name="editable">
@@ -4197,6 +4424,18 @@
                       <property name="enabled">
                        <bool>true</bool>
                       </property>
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>24</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>24</height>
+                       </size>
+                      </property>
                       <property name="toolTip">
                        <string>Move xform x units up</string>
                       </property>
@@ -4213,6 +4452,18 @@
                      <widget class="QPushButton" name="PostMoveDownButton">
                       <property name="enabled">
                        <bool>true</bool>
+                      </property>
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>24</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>24</height>
+                       </size>
                       </property>
                       <property name="toolTip">
                        <string>Move xform x units down</string>
@@ -4240,7 +4491,13 @@
                       <property name="minimumSize">
                        <size>
                         <width>75</width>
-                        <height>22</height>
+                        <height>23</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>23</height>
                        </size>
                       </property>
                       <property name="editable">
@@ -4260,6 +4517,18 @@
                      <widget class="QPushButton" name="PostMoveLeftButton">
                       <property name="enabled">
                        <bool>true</bool>
+                      </property>
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>24</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>24</height>
+                       </size>
                       </property>
                       <property name="toolTip">
                        <string>Move xform x units left</string>
@@ -4287,7 +4556,13 @@
                       <property name="minimumSize">
                        <size>
                         <width>75</width>
-                        <height>22</height>
+                        <height>23</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>23</height>
                        </size>
                       </property>
                       <property name="editable">
@@ -4349,6 +4624,18 @@
                       <property name="enabled">
                        <bool>true</bool>
                       </property>
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>24</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>24</height>
+                       </size>
+                      </property>
                       <property name="toolTip">
                        <string>Rotate xform x degrees counter clockwise</string>
                       </property>
@@ -4365,6 +4652,18 @@
                      <widget class="QPushButton" name="PostRotateCButton">
                       <property name="enabled">
                        <bool>true</bool>
+                      </property>
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>24</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>24</height>
+                       </size>
                       </property>
                       <property name="toolTip">
                        <string>Rotate xform x degrees clockwise</string>
@@ -4383,6 +4682,18 @@
                       <property name="enabled">
                        <bool>true</bool>
                       </property>
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>24</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>24</height>
+                       </size>
+                      </property>
                       <property name="toolTip">
                        <string>Flip xform horizontally</string>
                       </property>
@@ -4399,6 +4710,18 @@
                      <widget class="QPushButton" name="PostFlipVerticalButton">
                       <property name="enabled">
                        <bool>true</bool>
+                      </property>
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>24</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>24</height>
+                       </size>
                       </property>
                       <property name="toolTip">
                        <string>Flip xform vertically</string>
@@ -4426,7 +4749,13 @@
                       <property name="minimumSize">
                        <size>
                         <width>75</width>
-                        <height>0</height>
+                        <height>24</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>24</height>
                        </size>
                       </property>
                       <property name="toolTip">
@@ -4441,6 +4770,18 @@
                      <widget class="QPushButton" name="PostScaleUpButton">
                       <property name="enabled">
                        <bool>true</bool>
+                      </property>
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>24</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>24</height>
+                       </size>
                       </property>
                       <property name="toolTip">
                        <string>Scale xform x percent up</string>
@@ -4458,6 +4799,18 @@
                      <widget class="QPushButton" name="PostScaleDownButton">
                       <property name="enabled">
                        <bool>true</bool>
+                      </property>
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>24</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>24</height>
+                       </size>
                       </property>
                       <property name="toolTip">
                        <string>Scale xform x percent down</string>
@@ -4646,20 +4999,33 @@
               <number>0</number>
              </property>
              <item>
-              <widget class="QLineEdit" name="VariationsFilterLineEdit"/>
+              <widget class="QLineEdit" name="VariationsFilterLineEdit">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>22</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>22</height>
+                </size>
+               </property>
+              </widget>
              </item>
              <item>
               <widget class="QPushButton" name="VariationsFilterClearButton">
                <property name="minimumSize">
                 <size>
                  <width>30</width>
-                 <height>0</height>
+                 <height>23</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
                  <width>30</width>
-                 <height>16777215</height>
+                 <height>23</height>
                 </size>
                </property>
                <property name="text">
@@ -4860,7 +5226,7 @@
             <number>5</number>
            </property>
            <property name="topMargin">
-            <number>4</number>
+            <number>5</number>
            </property>
            <property name="rightMargin">
             <number>5</number>
@@ -4946,7 +5312,7 @@
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>235</width>
+                   <width>259</width>
                    <height>673</height>
                   </rect>
                  </property>
@@ -5003,7 +5369,7 @@
     <widget class="QDockWidget" name="InfoDockWidget">
      <property name="geometry">
       <rect>
-       <x>1000</x>
+       <x>1010</x>
        <y>0</y>
        <width>301</width>
        <height>881</height>
@@ -5113,7 +5479,7 @@
               <enum>QTabWidget::Triangular</enum>
              </property>
              <property name="currentIndex">
-              <number>0</number>
+              <number>1</number>
              </property>
              <widget class="QWidget" name="InfoSummaryTab">
               <property name="autoFillBackground">
@@ -5130,7 +5496,7 @@
                 <number>5</number>
                </property>
                <property name="topMargin">
-                <number>4</number>
+                <number>5</number>
                </property>
                <property name="rightMargin">
                 <number>5</number>
@@ -5139,7 +5505,7 @@
                 <number>4</number>
                </property>
                <item>
-                <widget class="QTableWidget" name="SummaryTableWidget">
+                <widget class="QTableWidget" name="SummaryTable">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                    <horstretch>0</horstretch>
@@ -5149,13 +5515,13 @@
                  <property name="minimumSize">
                   <size>
                    <width>0</width>
-                   <height>128</height>
+                   <height>126</height>
                   </size>
                  </property>
                  <property name="maximumSize">
                   <size>
                    <width>16777215</width>
-                   <height>128</height>
+                   <height>126</height>
                   </size>
                  </property>
                  <property name="focusPolicy">
@@ -5207,7 +5573,7 @@
                   <bool>true</bool>
                  </attribute>
                  <attribute name="verticalHeaderVisible">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </attribute>
                  <attribute name="verticalHeaderCascadingSectionResizes">
                   <bool>false</bool>
@@ -5289,7 +5655,7 @@
                 </widget>
                </item>
                <item>
-                <widget class="QTreeWidget" name="SummaryTreeWidget">
+                <widget class="QTreeWidget" name="SummaryTree">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
                    <horstretch>0</horstretch>
@@ -5324,7 +5690,7 @@
                   <number>2</number>
                  </property>
                  <attribute name="headerVisible">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </attribute>
                  <attribute name="headerCascadingSectionResizes">
                   <bool>false</bool>
@@ -5461,16 +5827,16 @@
                 <number>0</number>
                </property>
                <property name="leftMargin">
-                <number>0</number>
+                <number>5</number>
                </property>
                <property name="topMargin">
                 <number>0</number>
                </property>
                <property name="rightMargin">
-                <number>0</number>
+                <number>5</number>
                </property>
                <property name="bottomMargin">
-                <number>0</number>
+                <number>5</number>
                </property>
                <item>
                 <widget class="QGroupBox" name="InfoBoundsGroupBox">
@@ -5933,12 +6299,12 @@
     </widget>
    </widget>
   </widget>
-  <widget class="QMenuBar" name="menuBar">
+  <widget class="QMenuBar" name="MenuBar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1442</width>
+     <width>1451</width>
      <height>21</height>
     </rect>
    </property>
@@ -6021,7 +6387,7 @@
    <addaction name="MenuTools"/>
    <addaction name="MenuHelp"/>
   </widget>
-  <widget class="QStatusBar" name="statusBar">
+  <widget class="QStatusBar" name="StatusBar">
    <property name="sizeGripEnabled">
     <bool>true</bool>
    </property>
@@ -6103,7 +6469,7 @@
           <x>0</x>
           <y>0</y>
           <width>256</width>
-          <height>828</height>
+          <height>855</height>
          </rect>
         </property>
         <layout class="QGridLayout" name="gridLayout_11">
@@ -6145,6 +6511,9 @@
            <property name="sortingEnabled">
             <bool>false</bool>
            </property>
+           <attribute name="headerMinimumSectionSize">
+            <number>27</number>
+           </attribute>
            <column>
             <property name="text">
              <string>Current Flame File</string>
@@ -6159,7 +6528,7 @@
     </layout>
    </widget>
   </widget>
-  <widget class="QToolBar" name="toolBar">
+  <widget class="QToolBar" name="ToolBar">
    <property name="windowTitle">
     <string>toolBar</string>
    </property>
@@ -6198,6 +6567,8 @@
    <addaction name="ActionSP"/>
    <addaction name="ActionDP"/>
    <addaction name="ActionOptions"/>
+   <addaction name="separator"/>
+   <addaction name="ActionStyle"/>
   </widget>
   <action name="ActionNewFlock">
    <property name="icon">
@@ -6330,6 +6701,9 @@
    <property name="text">
     <string>Add R&amp;eflective Symmetry</string>
    </property>
+   <property name="toolTip">
+    <string>Add reflective symmetry</string>
+   </property>
   </action>
   <action name="ActionAddRotationalSymmetry">
    <property name="icon">
@@ -6339,10 +6713,16 @@
    <property name="text">
     <string>Add R&amp;otational Symmetry</string>
    </property>
+   <property name="toolTip">
+    <string>Add rotational symmetry</string>
+   </property>
   </action>
   <action name="ActionAddBothSymmetry">
    <property name="text">
     <string>Add Reflective &amp;and Rotational Symmetry</string>
+   </property>
+   <property name="toolTip">
+    <string>Add reflective and rotational symmetry</string>
    </property>
   </action>
   <action name="ActionNewEmptyFlameInCurrentFile">
@@ -6401,7 +6781,7 @@
     <string>Paste Xml &amp;Over</string>
    </property>
    <property name="toolTip">
-    <string>Paste Xml as a new flame in the current file</string>
+    <string>Paste Xml over the current flame in the current file</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+V</string>
@@ -6426,6 +6806,9 @@
    <property name="text">
     <string>&amp;Stop Rendering Previews</string>
    </property>
+   <property name="toolTip">
+    <string>Stop rendering previews</string>
+   </property>
   </action>
   <action name="ActionRenderPreviews">
    <property name="icon">
@@ -6434,6 +6817,9 @@
    </property>
    <property name="text">
     <string>Render &amp;Previews</string>
+   </property>
+   <property name="toolTip">
+    <string>Render previews</string>
    </property>
   </action>
   <action name="ActionUndo">
@@ -6468,6 +6854,9 @@
    <property name="text">
     <string>Paste Xml A&amp;ppend</string>
    </property>
+   <property name="toolTip">
+    <string>Paste Xml as a new flame in the current file</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+V</string>
    </property>
@@ -6481,7 +6870,7 @@
     <string>&amp;Flatten</string>
    </property>
    <property name="toolTip">
-    <string>Add the Flatten variation to each xform</string>
+    <string>Add the flatten variation to each xform</string>
    </property>
   </action>
   <action name="ActionUnflatten">
@@ -6493,7 +6882,7 @@
     <string>&amp;Unflatten</string>
    </property>
    <property name="toolTip">
-    <string>Remove the Flatten variation from each xform</string>
+    <string>Remove the flatten variation from each xform</string>
    </property>
   </action>
   <action name="ActionFlip">
@@ -6526,6 +6915,9 @@
   <action name="ActionResetWorkspace">
    <property name="text">
     <string>&amp;Reset Workspace</string>
+   </property>
+   <property name="toolTip">
+    <string>Reset workspace</string>
    </property>
   </action>
   <action name="ActionVariationsDialog">
@@ -6582,6 +6974,17 @@
    </property>
    <property name="toolTip">
     <string>Use double precision to render</string>
+   </property>
+  </action>
+  <action name="ActionStyle">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Style</string>
+   </property>
+   <property name="toolTip">
+    <string>Show QSS style editor</string>
    </property>
   </action>
  </widget>

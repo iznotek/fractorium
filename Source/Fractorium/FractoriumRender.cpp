@@ -712,7 +712,7 @@ bool Fractorium::CreateControllerFromOptions()
 		}
 	}
 
-	return m_Controller.get() != nullptr;
+	return m_Controller.get();
 }
 
 /// <summary>

@@ -44,5 +44,7 @@
         <file>Icons/square.png</file>
         <file>Icons/cube.png</file>
         <file>Icons/table_gear.png</file>
+        <file>Icons/checkbox_checked.png</file>
+        <file>Icons/checkbox_unchecked.png</file>
     </qresource>
 </RCC>

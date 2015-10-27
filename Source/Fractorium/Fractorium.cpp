@@ -1,5 +1,6 @@
 #include "FractoriumPch.h"
 #include "Fractorium.h"
+#include "QssDialog.h"
 
 // X11 headers on Linux define this, causing build errors.
 #ifdef KeyRelease
@@ -13,14 +14,16 @@
 /// is present here, it's safe to assume it can't be done in the designer.
 /// </summary>
 /// <param name="p">The parent widget of this item</param>
-Fractorium::Fractorium(QWidget* p)
+Fractorium::Fractorium(QWidget* p) 
 	: QMainWindow(p),
 	m_Info(OpenCLInfo::Instance())
 {
 	int spinHeight = 20, iconSize_ = 9;
 	size_t i = 0;
+	string s;
 	Timing t;
 	ui.setupUi(this);
+	
 	qRegisterMetaType<QVector<int>>("QVector<int>");//For previews.
 	qRegisterMetaType<vector<byte>>("vector<byte>");
 	qRegisterMetaType<EmberTreeWidgetItemBase*>("EmberTreeWidgetItemBase*");
@@ -33,7 +36,7 @@ Fractorium::Fractorium(QWidget* p)
 	tabifyDockWidget(ui.XformsDockWidget, ui.XaosDockWidget);
 	tabifyDockWidget(ui.XaosDockWidget, ui.PaletteDockWidget);
 	tabifyDockWidget(ui.PaletteDockWidget, ui.InfoDockWidget);
-	
+
 	m_Docks.reserve(8);
 	m_Docks.push_back(ui.LibraryDockWidget);
 	m_Docks.push_back(ui.FlameDockWidget);
@@ -47,6 +50,7 @@ Fractorium::Fractorium(QWidget* p)
 	m_PaletteSortMode = 0;//Sort by palette ascending by default.
 	m_ColorDialog = new QColorDialog(this);
 	m_Settings = new FractoriumSettings(this);
+	m_QssDialog = new QssDialog(this);
 
 	m_FileDialog = nullptr;//Use lazy instantiation upon first use.
 	m_FolderDialog = nullptr;
@@ -121,19 +125,19 @@ Fractorium::Fractorium(QWidget* p)
 		m_QualitySpin->setValue(30 * m_Settings->Devices().size());
 
 	int statusBarHeight = 20 * devicePixelRatio();
-	ui.statusBar->setMinimumHeight(statusBarHeight);
-	ui.statusBar->setMaximumHeight(statusBarHeight);
+	ui.StatusBar->setMinimumHeight(statusBarHeight);
+	ui.StatusBar->setMaximumHeight(statusBarHeight);
 
 	m_RenderStatusLabel = new QLabel(this);
 	m_RenderStatusLabel->setMinimumWidth(200);
 	m_RenderStatusLabel->setAlignment(Qt::AlignRight);
-	ui.statusBar->addPermanentWidget(m_RenderStatusLabel);
+	ui.StatusBar->addPermanentWidget(m_RenderStatusLabel);
 
 	m_CoordinateStatusLabel = new QLabel(this);
 	m_CoordinateStatusLabel->setMinimumWidth(300);
 	m_CoordinateStatusLabel->setMaximumWidth(300);
 	m_CoordinateStatusLabel->setAlignment(Qt::AlignLeft);
-	ui.statusBar->addWidget(m_CoordinateStatusLabel);
+	ui.StatusBar->addWidget(m_CoordinateStatusLabel);
 	
 	int progressBarHeight = 15;
 	int progressBarWidth = 300;
@@ -144,7 +148,7 @@ Fractorium::Fractorium(QWidget* p)
 	m_ProgressBar->setMaximumHeight(progressBarHeight);
 	m_ProgressBar->setMinimumWidth(progressBarWidth);
 	m_ProgressBar->setMaximumWidth(progressBarWidth);
-	ui.statusBar->addPermanentWidget(m_ProgressBar);
+	ui.StatusBar->addPermanentWidget(m_ProgressBar);
 
 	//Setup pointer in the GL window to point back to here.
 	ui.GLDisplay->SetMainWindow(this);
@@ -162,29 +166,43 @@ Fractorium::Fractorium(QWidget* p)
 		ui.XformsTabWidget->setCurrentIndex(2);//Make variations tab the currently selected one under the Xforms tab.
 	}
 
-	//Setting certain values will completely throw off the GUI, doing everything
-	//from setting strange margins, to arbitrarily changing the fonts used.
-	//For these cases, the only way to fix the problem is to use style sheets.
-	ui.ColorTable->setStyleSheet("QTableWidget::item { padding: 1px; }");
-	ui.GeometryTable->setStyleSheet("QTableWidget::item { padding: 1px; }");
-	ui.FilterTable->setStyleSheet("QTableWidget::item { padding: 1px; }");
-	ui.IterationTable->setStyleSheet("QTableWidget::item { padding: 1px; }");
-	ui.XformAffineTab->setStyleSheet("QTableWidget::item { padding: 1px; }");
-	ui.XformWeightNameTable->setStyleSheet("QTableWidget::item { padding: 0px; }");
-	ui.XformColorIndexTable->setStyleSheet("QTableWidget::item { padding: 1px; }");
-	ui.XformColorValuesTable->setStyleSheet("QTableWidget::item { padding: 1px; }");
-	ui.XformPaletteRefTable->setStyleSheet("QTableWidget::item { padding: 0px; border: none; margin: 0px; }");
-	ui.PaletteAdjustTable->setStyleSheet("QTableWidget::item { padding: 1px; }");//Need this to avoid covering the top border pixel with the spinners.
-	ui.statusBar->setStyleSheet("QStatusBar QLabel { padding-left: 2px; padding-right: 2px; }");
-	ui.XaosTableView->setStyleSheet("QTableView { margin: 1px}");
-
-	//setStyleSheet("QGroupBox { border: 2px solid gray; border-radius: 3px; } ");
-	
 	m_PreviousPaletteRow = -1;//Force click handler the first time through.
 	SetCoordinateStatus(0, 0, 0, 0);
-
 	SetTabOrders();
-	
+	m_SettingsPath = QFileInfo(m_Settings->fileName()).absoluteDir().absolutePath();
+	ifstream ifs((m_SettingsPath + "/default.qss").toStdString().c_str(), ifstream::in);
+
+	if (ifs.is_open())
+	{
+		string total, qs;
+
+		while (std::getline(ifs, qs))
+			total += qs + "\n";
+
+		m_Style = QString::fromStdString(total);
+	}
+	else
+		m_Style = BaseStyle();
+
+	setStyleSheet(m_Style);
+
+	if (!m_Settings->Theme().isEmpty())
+	{
+		if (auto theme = QStyleFactory::create(m_Settings->Theme()))
+		{
+			m_Theme = theme;
+			setStyle(m_Theme);
+		}
+	}
+	else
+	{
+		if (!QStyleFactory::keys().empty())
+		{
+			m_Theme = QStyleFactory::create(qApp->style()->objectName());
+			setStyle(m_Theme);
+		}
+	}
+
 	//At this point, everything has been setup except the renderer. Shortly after
 	//this constructor exits, GLWidget::InitGL() will create the initial flock and start the rendering timer
 	//which executes whenever the program is idle. Upon starting the timer, the renderer
@@ -764,7 +782,7 @@ void Fractorium::SetTabOrders()
 	w = SetTabOrder(this, w, ui.PaletteListTable);
 
 
-	w = SetTabOrder(this, ui.SummaryTableWidget, ui.SummaryTreeWidget);//Info summary.
+	w = SetTabOrder(this, ui.SummaryTable, ui.SummaryTree);//Info summary.
 	
 	w = SetTabOrder(this, ui.InfoBoundsGroupBox, ui.InfoBoundsFrame);//Info bounds.
 	

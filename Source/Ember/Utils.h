@@ -182,7 +182,7 @@ static bool ReadFile(const char* filename, string& buf, bool nullTerminate = tru
 	{
 		fopen_s(&f, filename, "rb");//Open in binary mode.
 
-		if (f != nullptr)
+		if (f)
 		{
 			struct _stat statBuf;
 
@@ -225,7 +225,7 @@ static bool ReadFile(const char* filename, string& buf, bool nullTerminate = tru
 		b = false;
 	}
 
-	if (f != nullptr)
+	if (f)
 		fclose(f);
 
 	return b;
@@ -279,7 +279,7 @@ static void ClearVec(vector<T*>& vec, bool arrayDelete = false)
 {
 	for (size_t i = 0; i < vec.size(); i++)
 	{
-		if (vec[i] != nullptr)
+		if (vec[i])
 		{
 			if (arrayDelete)
 				delete [] vec[i];

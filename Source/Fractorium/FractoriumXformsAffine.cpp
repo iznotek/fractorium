@@ -16,8 +16,7 @@ void Fractorium::InitXformsAffineUI()
 	table->horizontalHeader()->setSectionsClickable(true);
 	table->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 	table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-
-	connect(table->verticalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(OnPreAffineRowDoubleClicked(int)), Qt::QueuedConnection);
+	connect(table->verticalHeader(),   SIGNAL(sectionDoubleClicked(int)), this, SLOT(OnPreAffineRowDoubleClicked(int)), Qt::QueuedConnection);
 	connect(table->horizontalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(OnPreAffineColDoubleClicked(int)), Qt::QueuedConnection);
 
 	//Pre affine spinners.
@@ -169,8 +168,10 @@ void Fractorium::InitXformsAffineUI()
 	m_PostSpins[4] = m_PostY2Spin;
 	m_PostSpins[5] = m_PostO2Spin;
 
-	ui.PostAffineGroupBox->setChecked(true);//Flip it once to force the disabling of the group box.
-	ui.PostAffineGroupBox->setChecked(false);
+	ui.PreAffineGroupBox->setChecked(false);//Flip both once to force enabling/disabling the disabling of the group boxes and the corner buttons.
+	ui.PreAffineGroupBox->setChecked(true);//Pre affine enabled.
+	ui.PostAffineGroupBox->setChecked(true);
+	ui.PostAffineGroupBox->setChecked(false);//Post affine disabled.
 }
 
 /// <summary>
@@ -604,11 +605,20 @@ void FractoriumEmberController<T>::FillAffineWithXform(Xform<T>* xform, bool pre
 /// <summary>
 /// Trigger a redraw which will show or hide the circle affine transforms
 /// based on whether each group box is checked or not.
+/// Note that all sub buttons must manually be disabled/enabled in order to
+/// get the top left corner button in the proper state. This is needed so
+/// any style sheets can properly draw it based on its state.
+/// Without explicitly setting it, that button is never actually disabled.
 /// Called when the group box check box for pre or post affine is checked.
 /// </summary>
 /// <param name="on">Ignored</param>
 void Fractorium::OnAffineGroupBoxToggled(bool on)
 {
+	auto widgetList = sender()->findChildren<QAbstractButton*>();
+
+	for (auto& it : widgetList)
+		it->setEnabled(on);
+
 	ui.GLDisplay->update();
 }
 

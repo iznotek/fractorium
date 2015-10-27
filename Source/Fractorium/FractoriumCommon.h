@@ -357,3 +357,44 @@ static void HandleDeviceTableCheckChanged(QTableWidget* table, int row, int col)
 		if (primaryItem->checkState() == Qt::Unchecked)
 			primaryItem->setCheckState(Qt::Checked);
 }
+
+/// <summary>
+/// The basic style that is needed for things to look right, this varies by OS.
+/// </summary>
+/// <returns>The base style</returns>
+static QString BaseStyle()
+{
+	return "/*---Base Style---\n"
+		"This is needed to deal with the large tabs in the fusion theme which is the default on Linux, and optional on Windows.\n"
+		"It's not needed for other themes."
+		"You should keep this at the top of whatever custom style you make to ensure the tabs aren't unusually large.*/\n"
+#ifndef WIN32
+		"QTabBar::tab { height: 3ex; }\n\n"
+#else
+		"QTabBar::tab { height: 5ex; }\n\n"
+#endif
+		"/*This is needed to give the labels on the status bar some padding.*/\n"
+		"QStatusBar QLabel { padding-left: 2px; padding-right: 2px; }\n\n"
+		;
+}
+
+/// <summary>
+/// Get all parent objects of the passed in widget.
+/// </summary>
+/// <param name="widget">The widget whose parents will be retrieved</param>
+/// <returns>The entire parent object chain in a QList</returns>
+template <typename T>
+static QList<T> GetAllParents(QWidget* widget)
+{
+	QList<T> parents;
+
+	while (auto parent = qobject_cast<QWidget*>(widget->parent()))
+	{
+		if (auto parentT = qobject_cast<T>(parent))
+			parents.push_back(parentT);
+
+		widget = parent;
+	}
+
+	return parents;
+}
