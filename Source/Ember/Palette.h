@@ -492,17 +492,17 @@ public:
 	static T CalcAlpha(T density, T gamma, T linrange)
 	{
 		T frac, alpha;
-		T funcval = pow(linrange, gamma);
+		T funcval = std::pow(linrange, gamma);
 
 		if (density > 0)
 		{
 			if (density < linrange)
 			{
 				frac = density / linrange;
-				alpha = (T(1.0) - frac) * density * (funcval / linrange) + frac * pow(density, gamma);
+				alpha = (T(1.0) - frac) * density * (funcval / linrange) + frac * std::pow(density, gamma);
 			}
 			else
-				alpha = pow(density, gamma);
+				alpha = std::pow(density, gamma);
 		}
 		else
 			alpha = 0;
@@ -545,7 +545,7 @@ public:
 		if (maxa > 255 && highPow >= 0)
 		{
 			newls = T(255.0) / maxc;
-			lsratio = pow(newls / ls, highPow);
+			lsratio = std::pow(newls / ls, highPow);
 
 			//Calculate the max-value color (ranged 0 - 1).
 			for (rgbi = 0; rgbi < 3; rgbi++)

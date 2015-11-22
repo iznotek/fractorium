@@ -65,10 +65,10 @@ void FractoriumEmberController<T>::NewFlock(size_t count)
 
 	for (size_t i = 0; i < count; i++)
 	{
-		m_SheepTools->Random(ember, m_FilteredVariations, static_cast<intmax_t>(QTIsaac<ISAAC_SIZE, ISAAC_INT>::GlobalRand->Frand<T>(-2, 2)), 0);
+		m_SheepTools->Random(ember, m_FilteredVariations, static_cast<intmax_t>(QTIsaac<ISAAC_SIZE, ISAAC_INT>::GlobalRand->Frand<T>(-2, 2)), 0, MAX_CL_VARS);
 		ParamsToEmber(ember);
 		ember.m_Index = i;
-		ember.m_Name = m_EmberFile.m_Filename.toStdString() + "-" + ToString(i + 1ULL).toStdString();
+		ember.m_Name = m_EmberFile.m_Filename.toStdString() + "_" + ToString(i + 1ULL).toStdString();
 		m_EmberFile.m_Embers.push_back(ember);
 	}
 
@@ -126,7 +126,7 @@ void FractoriumEmberController<T>::NewRandomFlameInCurrentFile()
 	Ember<T> ember;
 
 	StopPreviewRender();
-	m_SheepTools->Random(ember, m_FilteredVariations, static_cast<int>(QTIsaac<ISAAC_SIZE, ISAAC_INT>::GlobalRand->Frand<T>(-2, 2)), 0);
+	m_SheepTools->Random(ember, m_FilteredVariations, static_cast<int>(QTIsaac<ISAAC_SIZE, ISAAC_INT>::GlobalRand->Frand<T>(-2, 2)), 0, MAX_CL_VARS);
 	ParamsToEmber(ember);
 	ember.m_Name = EmberFile<T>::DefaultEmberName(m_EmberFile.Size() + 1).toStdString();
 	ember.m_Index = m_EmberFile.Size();

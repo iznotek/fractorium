@@ -1,6 +1,6 @@
 #pragma once
 
-#include "EmberDefines.h"
+#include "Timing.h"
 
 /// <summary>
 /// C++ TEMPLATE VERSION OF Robert J. Jenkins Jr.'s
@@ -65,6 +65,8 @@ public:
 	/// </summary>
 	static unique_ptr<QTIsaac<ALPHA, ISAAC_INT> > GlobalRand;
 
+	static CriticalSection m_CS;
+
 	/// <summary>
 	/// The structure which holds all of the random information.
 	/// </summary>
@@ -117,6 +119,18 @@ public:
 	}
 
 	/// <summary>
+	/// Locked version of RandByte().
+	/// </summary>
+	/// <returns>The next random integer in the range of 0-255</returns>
+	static inline T LockedRandByte()
+	{
+		m_CS.Enter();
+		T t = GlobalRand->RandByte();
+		m_CS.Leave();
+		return t;
+	}
+
+	/// <summary>
 	/// Return the next random integer.
 	/// </summary>
 	/// <returns>The next random integer</returns>
@@ -130,6 +144,18 @@ public:
 	}
 
 	/// <summary>
+	/// Locked version of Rand().
+	/// </summary>
+	/// <returns>The next random integer</returns>
+	static inline T LockedRand()
+	{
+		m_CS.Enter();
+		T t = GlobalRand->Rand();
+		m_CS.Leave();
+		return t;
+	}
+
+	/// <summary>
 	/// Return the next random integer between 0 and the value passed in minus 1.
 	/// </summary>
 	/// <param name="upper">A value one greater than the maximum value that will be returned</param>
@@ -137,6 +163,19 @@ public:
 	inline T Rand(T upper)
 	{
 		return (upper == 0) ? Rand() : Rand() % upper;
+	}
+
+	/// <summary>
+	/// Locked version of Rand().
+	/// </summary>
+	/// <param name="upper">A value one greater than the maximum value that will be returned</param>
+	/// <returns>A value between 0 and the value passed in minus 1</returns>
+	static inline T LockedRand(T upper)
+	{
+		m_CS.Enter();
+		T t = GlobalRand->Rand(upper);
+		m_CS.Leave();
+		return t;
 	}
 
 	/// <summary>
@@ -151,6 +190,21 @@ public:
 	{
 		floatType f = static_cast<floatType>(Rand()) / static_cast<floatType>(std::numeric_limits<T>::max());
 		return fMin + (f * (fMax - fMin));
+	}
+
+	/// <summary>
+	/// Locked version of Frand().
+	/// </summary>
+	/// <param name="fMin">The minimum value allowed, inclusive.</param>
+	/// <param name="fMax">The maximum value allowed, inclusive.</param>
+	/// <returns>A new random floating point value within the specified range, inclusive.</returns>
+	template<typename floatType>
+	static inline floatType LockedFrand(floatType fMin, floatType fMax)
+	{
+		m_CS.Enter();
+		floatType t = GlobalRand->Frand<floatType>(fMin, fMax);
+		m_CS.Leave();
+		return t;
 	}
 
 	/// <summary>
@@ -169,6 +223,19 @@ public:
 	}
 
 	/// <summary>
+	/// Locked version of Frand01().
+	/// </summary>
+	/// <returns>A new random number in the range of 0-1, inclusive.</returns>
+	template<typename floatType>
+	static inline floatType LockedFrand01()
+	{
+		m_CS.Enter();
+		floatType t = GlobalRand->Frand01<floatType>();
+		m_CS.Leave();
+		return t;
+	}
+
+	/// <summary>
 	/// Thin wrapper around a call to Frand() with a range of -1-1.
 	/// Template argument expected to be float or double.
 	/// </summary>
@@ -184,6 +251,19 @@ public:
 	}
 
 	/// <summary>
+	/// Locked version of Frand11().
+	/// </summary>
+	/// <returns>A new random number in the range of -1-1, inclusive.</returns>
+	template<typename floatType>
+	static inline floatType LockedFrand11()
+	{
+		m_CS.Enter();
+		floatType t = GlobalRand->Frand11<floatType>();
+		m_CS.Leave();
+		return t;
+	}
+
+	/// <summary>
 	/// Not sure what this does.
 	/// </summary>
 	/// <returns>Something that is golden</returns>
@@ -194,12 +274,37 @@ public:
 	}
 
 	/// <summary>
+	/// Locked version of GoldenBit().
+	/// </summary>
+	/// <returns>Something that is golden</returns>
+	template<typename floatType>
+	static inline floatType LockedGoldenBit()
+	{
+		m_CS.Enter();
+		floatType t = GlobalRand->GoldenBit<floatType>();
+		m_CS.Leave();
+		return t;
+	}
+
+	/// <summary>
 	/// Returns a random 0 or 1.
 	/// </summary>
 	/// <returns>A random 0 or 1</returns>
 	inline uint RandBit()
 	{
 		return RandByte() & 1;
+	}
+
+	/// <summary>
+	/// Locked version of RandBit().
+	/// </summary>
+	/// <returns>A random 0 or 1</returns>
+	static inline uint LockedRandBit()
+	{
+		m_CS.Enter();
+		uint t = GlobalRand->RandBit();
+		m_CS.Leave();
+		return t;
 	}
 
 	/// <summary>

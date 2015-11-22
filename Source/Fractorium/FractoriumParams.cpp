@@ -79,7 +79,7 @@ void Fractorium::InitParamsUI()
 	SetupCombo(table, this, row, 1, m_TemporalFilterTypeCombo, comboVals, SIGNAL(currentIndexChanged(const QString&)), SLOT(OnTemporalFilterTypeComboCurrentIndexChanged(const QString&)));
 
 	SetupSpinner<DoubleSpinBox, double>(table, this, row, 1, m_DEFilterMinRadiusSpin, spinHeight,    0, 25,   1, SIGNAL(valueChanged(double)), SLOT(OnDEFilterMinRadiusWidthChanged(double)), true,   0,   0,   0);
-	SetupSpinner<DoubleSpinBox, double>(table, this, row, 1, m_DEFilterMaxRadiusSpin, spinHeight,    0, 25,   1, SIGNAL(valueChanged(double)), SLOT(OnDEFilterMaxRadiusWidthChanged(double)), true, 9.0, 9.0,   0);
+	SetupSpinner<DoubleSpinBox, double>(table, this, row, 1, m_DEFilterMaxRadiusSpin, spinHeight,    0, 25,   1, SIGNAL(valueChanged(double)), SLOT(OnDEFilterMaxRadiusWidthChanged(double)), true, 0.0, 9.0,   0);
 	SetupSpinner<DoubleSpinBox, double>(table, this, row, 1, m_DECurveSpin,			  spinHeight, 0.15,  5, 0.1, SIGNAL(valueChanged(double)), SLOT(OnDEFilterCurveWidthChanged(double)),     true, 0.4, 0.4, 0.4);
 
 	//Iteration.
@@ -89,7 +89,7 @@ void Fractorium::InitParamsUI()
 	SetupSpinner<SpinBox, int>(			table, this, row, 1, m_FuseSpin,			spinHeight, 1,      1000,   5, SIGNAL(valueChanged(int)),	 SLOT(OnFuseChanged(int)),			  true,	   15,	  15, 15);
 	SetupSpinner<DoubleSpinBox, double>(table, this, row, 1, m_QualitySpin,			spinHeight, 1,      dmax,  50, SIGNAL(valueChanged(double)), SLOT(OnQualityChanged(double)),	  true,    10,	  10, 10);
 	SetupSpinner<SpinBox, int>(         table, this, row, 1, m_SupersampleSpin,		spinHeight, 1,         4,   1, SIGNAL(valueChanged(int)),	 SLOT(OnSupersampleChanged(int)),	  true,     1,	   1,  1);
-	SetupSpinner<SpinBox, int>(         table, this, row, 1, m_TemporalSamplesSpin, spinHeight, 1,      5000,  50, SIGNAL(valueChanged(int)),	 SLOT(OnTemporalSamplesChanged(int)), true,  1000);
+	SetupSpinner<SpinBox, int>(         table, this, row, 1, m_TemporalSamplesSpin, spinHeight, 1,      5000,   1, SIGNAL(valueChanged(int)),	 SLOT(OnTemporalSamplesChanged(int)), true,  1000);
 
 	comboVals.clear();
 	comboVals.push_back("Step");
@@ -412,8 +412,8 @@ void Fractorium::OnFuseChanged(int d) { m_Controller->FuseChanged(d); }
 /// the rendering process is continued, else it's reset.
 /// </summary>
 /// <param name="d">The quality in terms of iterations per pixel</param>
-template <typename T> void FractoriumEmberController<T>::QualityChanged(double d) { Update([&] { m_Ember.m_Quality = d; }, true, d > m_Ember.m_Quality ? KEEP_ITERATING : FULL_RENDER); }
-void Fractorium::OnQualityChanged(double d) { m_Controller->QualityChanged(d); }
+template <typename T> void FractoriumEmberController<T>::QualityChanged(double d) { /*Update([&] { m_Ember.m_Quality = d; }, true, d > m_Ember.m_Quality ? KEEP_ITERATING : FULL_RENDER);*/ }
+void Fractorium::OnQualityChanged(double d) { /*m_Controller->QualityChanged(d);*/ }
 
 /// <summary>
 /// Set the supersample.
@@ -452,11 +452,11 @@ void FractoriumEmberController<T>::AffineInterpTypeChanged(int i)
 	Update([&]
 	{
 		if (i == 0)
-			m_Ember.m_AffineInterp = INTERP_LINEAR;
+			m_Ember.m_AffineInterp = AFFINE_INTERP_LINEAR;
 		else if (i == 1)
-			m_Ember.m_AffineInterp = INTERP_LOG;
+			m_Ember.m_AffineInterp = AFFINE_INTERP_LOG;
 		else
-			m_Ember.m_AffineInterp = INTERP_LINEAR;
+			m_Ember.m_AffineInterp = AFFINE_INTERP_LINEAR;
 	}, true, NOTHING);
 }
 

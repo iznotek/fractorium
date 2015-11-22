@@ -5,6 +5,7 @@
 namespace EmberNs
 {
 template<> unique_ptr<QTIsaac<ISAAC_SIZE, ISAAC_INT>> QTIsaac<ISAAC_SIZE, ISAAC_INT>::GlobalRand = unique_ptr<QTIsaac<ISAAC_SIZE, ISAAC_INT>>(new QTIsaac<ISAAC_SIZE, ISAAC_INT>());
+CriticalSection QTIsaac<ISAAC_SIZE, ISAAC_INT>::m_CS;
 }
 
 #include "Curves.h"
@@ -20,6 +21,7 @@ template<> unique_ptr<QTIsaac<ISAAC_SIZE, ISAAC_INT>> QTIsaac<ISAAC_SIZE, ISAAC_
 #include "Variations03.h"
 #include "Variations04.h"
 #include "Variations05.h"
+#include "Variations06.h"
 #include "VariationsDC.h"
 #include "VariationList.h"
 #include "Affine2D.h"
@@ -56,7 +58,7 @@ uint Timing::m_ProcessorCount;
 	template<> map<string, vector<Palette<T>>> PaletteList<T>::m_Palettes = map<string, vector<Palette<T>>>(); \
 	template<> bool XmlToEmber<T>::m_Init = false; \
 	template<> vector<string> XmlToEmber<T>::m_FlattenNames = vector<string>(); \
-	template<> vector<pair<string, string>> XmlToEmber<T>::m_BadParamNames = vector<pair<string, string>>(); \
+	template<> unordered_map<string, string> XmlToEmber<T>::m_BadParamNames = unordered_map<string, string>(); \
 	template<> vector<pair<pair<string, string>, vector<string>>> XmlToEmber<T>::m_BadVariationNames = vector<pair<pair<string, string>, vector<string>>>(); \
 	template EMBER_API class Point<T>; \
 	template EMBER_API struct Color<T>; \
@@ -350,6 +352,8 @@ uint Timing::m_ProcessorCount;
 	EXPORTPREPOSTREGVAR(Ho, T) \
 	EXPORTPREPOSTREGVAR(Julia3Dq, T) \
 	EXPORTPREPOSTREGVAR(Line, T) \
+	EXPORTPREPOSTREGVAR(Loonie2, T) \
+	EXPORTPREPOSTREGVAR(Loonie3, T) \
 	EXPORTPREPOSTREGVAR(Loonie3D, T) \
 	EXPORTPREPOSTREGVAR(Mcarpet, T) \
 	EXPORTPREPOSTREGVAR(Waves23D, T) \
@@ -364,12 +368,21 @@ uint Timing::m_ProcessorCount;
 	EXPORTPREPOSTREGVAR(Falloff2, T) \
 	EXPORTPREPOSTREGVAR(Falloff3, T) \
 	EXPORTPREPOSTREGVAR(Xtrb, T) \
-	template EMBER_API class DCBubbleVariation<T>; \
+	EXPORTPREPOSTREGVAR(Hexaplay3D, T) \
+	EXPORTPREPOSTREGVAR(Hexnix3D, T) \
+	EXPORTPREPOSTREGVAR(Hexcrop, T) \
+	EXPORTPREPOSTREGVAR(Hexes, T) \
+	EXPORTPREPOSTREGVAR(Nblur, T) \
+	EXPORTPREPOSTREGVAR(Octapol, T) \
+	EXPORTPREPOSTREGVAR(Crob, T) \
+	EXPORTPREPOSTREGVAR(BubbleT3D, T) \
+	EXPORTPREPOSTREGVAR(Synth, T) \
+	EXPORTPREPOSTREGVAR(DCBubble, T) \
 	EXPORTPREPOSTREGVAR(DCCarpet, T) \
 	EXPORTPREPOSTREGVAR(DCCube, T) \
-	template EMBER_API class DCCylinderVariation<T>; \
+	EXPORTPREPOSTREGVAR(DCCylinder, T) \
 	EXPORTPREPOSTREGVAR(DCGridOut, T) \
-	template EMBER_API class DCLinearVariation<T>; \
+	EXPORTPREPOSTREGVAR(DCLinear, T) \
 	EXPORTPREPOSTREGVAR(DCZTransl, T) \
 	EXPORTPREPOSTREGVAR(DCTriangle, T) \
 	template EMBER_API class VariationList<T>; \

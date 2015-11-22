@@ -108,12 +108,12 @@ public:
 
 		for (size_t distrib = 0; distrib < distribCount; distrib++)
 		{
-			T totalDensity = 0;
+			double totalDensity = 0;
 
 			//First find the total densities of all xforms.
 			for (i = 0; i < ember.XformCount(); i++)
 			{
-				T d = xforms[i].m_Weight;
+				double d = xforms[i].m_Weight;
 
 				if (distrib > 0)
 					d *= xforms[distrib - 1].Xaos(i);
@@ -127,14 +127,15 @@ public:
 
 			//Calculate how much of a fraction of a the total density each element represents.
 			size_t j = 0;
-			T tempDensity = 0, currentDensityLimit = 0, densityPerElement = totalDensity / CHOOSE_XFORM_GRAIN;
+			//These must be double, else roundoff error will prevent the last element of m_XformDistributions from being set.
+			double tempDensity = 0, currentDensityLimit = 0, densityPerElement = totalDensity / CHOOSE_XFORM_GRAIN;
 
 			//Assign xform indices in order to each element of m_XformDistributions.
 			//The number of elements assigned a given index is proportional to that xform's
 			//density relative to the sum of all densities.
 			for (i = 0; i < ember.XformCount(); i++)
 			{
-				T temp = xforms[i].m_Weight;
+				double temp = xforms[i].m_Weight;
 
 				if (distrib > 0)
 					temp *= xforms[distrib - 1].Xaos(i);
@@ -145,6 +146,11 @@ public:
 				//Also check that j is within the bounds of the distribution array just to be safe in the case of a rounding error.
 				while (tempDensity < currentDensityLimit && j < CHOOSE_XFORM_GRAIN)
 				{
+#ifdef _DEBUG
+					//Ensure distribution contains no out of bounds indices.
+					if (byte(i) >= ember.XformCount())
+						throw "Out of bounds xform index in selection distribution.";
+#endif
 					//printf("offset = %d, xform = %d, running sum = %f\n", j, i, tempDensity);
 					m_XformDistributions[(distrib * CHOOSE_XFORM_GRAIN) + j] = byte(i);
 					tempDensity += densityPerElement;
@@ -152,6 +158,11 @@ public:
 				}
 			}
 
+#ifdef _DEBUG
+			//Ensure every element of the distribution was populated.
+			if (j < CHOOSE_XFORM_GRAIN)
+				throw "Not all distribution elements set, undefined behavior.";
+#endif
 			//Flam3 did this, which gives the same result.
 			//T t = xforms[0].m_Weight;
 			//

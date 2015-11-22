@@ -321,8 +321,8 @@ bool EmberGenome(EmberOptions& opt)
 			embers[i].DeleteMotionElements();
 		}
 
-		firstFrame = uint(opt.FirstFrame() == UINT_MAX ? embers[0].m_Time : opt.FirstFrame());
-		lastFrame  = uint(opt.LastFrame()  == UINT_MAX ? embers.back().m_Time : opt.LastFrame());
+		firstFrame = size_t(opt.FirstFrame() == UINT_MAX ? embers[0].m_Time : opt.FirstFrame());
+		lastFrame  = size_t(opt.LastFrame()  == UINT_MAX ? embers.back().m_Time : opt.LastFrame());
 
 		if (lastFrame < firstFrame)
 			lastFrame = firstFrame;
@@ -335,7 +335,7 @@ bool EmberGenome(EmberOptions& opt)
 
 			for (i = 0; i < embers.size(); i++)
 			{
-				if (ftime == uint(embers[i].m_Time))
+				if (ftime == size_t(embers[i].m_Time))
 				{
 					interpolated = embers[i];
 					exactTimeMatch = true;
@@ -349,7 +349,7 @@ bool EmberGenome(EmberOptions& opt)
 
 				for (i = 0; i < embers.size(); i++)
 				{
-					if (ftime == uint(embers[i].m_Time - 1))
+					if (ftime == size_t(embers[i].m_Time - 1))
 					{
 						exactTimeMatch = true;
 						break;
@@ -357,7 +357,7 @@ bool EmberGenome(EmberOptions& opt)
 				}
 
 				if (!exactTimeMatch)
-					interpolated.m_AffineInterp = INTERP_LINEAR;
+					interpolated.m_AffineInterp = AFFINE_INTERP_LINEAR;
 			}
 
 			if (pTemplate)
@@ -400,23 +400,12 @@ bool EmberGenome(EmberOptions& opt)
 
 			if (i < embers.size() - 1)
 			{
-				vector<Ember<T>> interpEmbers;
-
-				interpEmbers.push_back(embers[i]);
-				interpEmbers.push_back(embers[i + 1]);
-
-				if (opt.Loops() > 0)
-				{
-					//We might have looped a non-integral number of times, so store the last result as our flame to interpolate from.
-					interpEmbers[i] = result;
-				}
-
 				for (frame = 0; frame < opt.Frames(); frame++)
 				{
 					seqFlag = (frame == 0 || frame == opt.Frames() - 1);
 					blend = frame / T(opt.Frames());
 					result.Clear();
-					tools.SpinInter(&interpEmbers[i], pTemplate, result, frameCount++, seqFlag, blend);
+					tools.SpinInter(&embers[i], pTemplate, result, frameCount++, seqFlag, blend);
 					cout << emberToXml.ToString(result, opt.Extras(), opt.PrintEditDepth(), !opt.NoEdits(), false, opt.HexPalette());
 				}
 			}
@@ -500,7 +489,7 @@ bool EmberGenome(EmberOptions& opt)
 
 			oldX = embers[i].m_CenterX;
 			oldY = embers[i].m_CenterY;
-			embers[i].m_FinalRasH = uint(T(embers[i].m_FinalRasH) / T(opt.Frames()));
+			embers[i].m_FinalRasH = size_t(T(embers[i].m_FinalRasH) / T(opt.Frames()));
 
 			embers[i].m_CenterY = embers[i].m_CenterY - ((opt.Frames() - 1) * embers[i].m_FinalRasH) /
 				(2 * embers[i].m_PixelsPerUnit * pow(T(2.0), embers[i].m_Zoom));
@@ -596,7 +585,7 @@ bool EmberGenome(EmberOptions& opt)
 						mutMeth = MUTATE_NOT_SPECIFIED;
 					}
 
-					os << tools.Mutate(orig, mutMeth, vars, opt.Symmetry(), T(opt.Speed()));
+					os << tools.Mutate(orig, mutMeth, vars, opt.Symmetry(), T(opt.Speed()), MAX_CL_VARS);
 
 					//Scan string returned for 'mutate color'.
 					if (strstr(os.str().c_str(), "mutate color"))
@@ -647,7 +636,7 @@ bool EmberGenome(EmberOptions& opt)
 				{
 					os << "random";
 					randomMode = true;
-					tools.Random(orig, vars, opt.Symmetry(), 0);
+					tools.Random(orig, vars, opt.Symmetry(), 0, MAX_CL_VARS);
 					aselp0 = nullptr;
 					aselp1 = nullptr;
 				}

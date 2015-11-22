@@ -29,7 +29,7 @@ bool EmberAnimate(EmberOptions& opt)
 	Timing t;
 	bool unsorted = false;
 	uint channels, padding;
-	size_t i;
+	size_t i, firstUnsortedIndex = 0;
 	string inputPath = GetPath(opt.Input());
 	vector<Ember<T>> embers;
 	XmlToEmber<T> parser;
@@ -128,6 +128,12 @@ bool EmberAnimate(EmberOptions& opt)
 	if (!ParseEmberFile(parser, opt.Input(), embers))
 		return false;
 
+	if (embers.size() <= 1)
+	{
+		cout << "Read " << embers.size() << " embers from file. At least 2 required to animate, exiting." << endl;
+		return false;
+	}
+
 	if (opt.Format() != "jpg" &&
 		opt.Format() != "png" &&
 		opt.Format() != "ppm" &&
@@ -206,7 +212,18 @@ bool EmberAnimate(EmberOptions& opt)
 	for (i = 0; i < embers.size(); i++)
 	{
 		if (i > 0 && embers[i].m_Time <= embers[i - 1].m_Time)
+		{
+			if (!unsorted)
+				firstUnsortedIndex = i;
+
 			unsorted = true;
+		}
+
+		if (i > 0 && embers[i].m_Time == embers[i - 1].m_Time)
+		{
+			cout << "Image " << i << " time of " << embers[i].m_Time << " equaled previous image time of " << embers[i - 1].m_Time << ". Adjusting up by 1." << endl;
+			embers[i].m_Time++;
+		}
 
 		if (opt.Supersample() > 0)
 			embers[i].m_Supersample = opt.Supersample();
@@ -215,8 +232,8 @@ bool EmberAnimate(EmberOptions& opt)
 			embers[i].m_SubBatchSize = opt.SubBatchSize();
 
 		embers[i].m_Quality *= T(opt.QualityScale());
-		embers[i].m_FinalRasW = uint(T(embers[i].m_FinalRasW) * opt.SizeScale());
-		embers[i].m_FinalRasH = uint(T(embers[i].m_FinalRasH) * opt.SizeScale());
+		embers[i].m_FinalRasW = size_t(T(embers[i].m_FinalRasW) * opt.SizeScale());
+		embers[i].m_FinalRasH = size_t(T(embers[i].m_FinalRasH) * opt.SizeScale());
 		embers[i].m_PixelsPerUnit *= T(opt.SizeScale());
 
 		//Cast to double in case the value exceeds 2^32.
@@ -251,17 +268,18 @@ bool EmberAnimate(EmberOptions& opt)
 
 	if (unsorted)
 	{
-		cout << "Embers were unsorted by time. First out of order index was " << i << ". Sorting." << endl;
+		cout << "Embers were unsorted by time. First out of order index was " << firstUnsortedIndex << ". Sorting." << endl;
 		std::sort(embers.begin(), embers.end(), &CompareEmbers<T>);
 	}
 
 	if (!opt.Time() && !opt.Frame())
 	{
 		if (opt.FirstFrame() == UINT_MAX)
-			opt.FirstFrame(int(embers[0].m_Time));
+			opt.FirstFrame(size_t(embers[0].m_Time));
 
 		if (opt.LastFrame() == UINT_MAX)
-			opt.LastFrame(ClampGte<size_t>(size_t(embers.back().m_Time - 1), opt.FirstFrame()));
+			opt.LastFrame(ClampGte<size_t>(size_t(embers.back().m_Time),//Make sure time - 1 is positive before converting to size_t.
+				opt.FirstFrame() + opt.Dtime()));//Make sure the final value is at least first frame + dtime.
 	}
 
 	if (!opt.Out().empty())
@@ -271,7 +289,7 @@ bool EmberAnimate(EmberOptions& opt)
 	}
 
 	//Final setup steps before running.
-	padding = uint(log10(double(embers.size()))) + 1;
+	padding = uint(std::log10(double(embers.size()))) + 1;
 
 	for (auto& r : renderers)
 	{
@@ -284,7 +302,7 @@ bool EmberAnimate(EmberOptions& opt)
 		r->Transparency(opt.Transparency());
 		r->NumChannels(channels);
 		r->BytesPerChannel(opt.BitsPerChannel() / 8);
-		r->Priority(eThreadPriority(Clamp<int>(int(opt.Priority()), int(eThreadPriority::LOWEST), int(eThreadPriority::HIGHEST))));
+		r->Priority(eThreadPriority(Clamp<intmax_t>(intmax_t(opt.Priority()), intmax_t(eThreadPriority::LOWEST), intmax_t(eThreadPriority::HIGHEST))));
 	}
 
 	std::function<void (vector<byte>&, string, EmberImageComments, size_t, size_t, size_t)> saveFunc = [&](vector<byte>& finalImage,

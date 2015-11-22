@@ -213,6 +213,12 @@ void FractoriumEmberController<T>::EmberTreeItemChanged(QTreeWidgetItem* item, i
 	
 		if (emberItem)
 		{
+			if (emberItem->text(0).isEmpty())//Prevent empty string.
+			{
+				emberItem->UpdateEditText();
+				return;
+			}
+
 			string oldName = emberItem->GetEmber()->m_Name;//First preserve the previous name.
 
 			tree->blockSignals(true);

@@ -70,7 +70,6 @@ QssDialog::QssDialog(Fractorium* parent) :
 
 	connect(ui->QssLoadButton, SIGNAL(clicked()), this, SLOT(LoadButton_clicked()), Qt::QueuedConnection);
 	connect(ui->QssSaveButton, SIGNAL(clicked()), this, SLOT(SaveButton_clicked()), Qt::QueuedConnection);
-	connect(ui->QssSaveDefaultButton, SIGNAL(clicked()), this, SLOT(SaveDefaultButton_clicked()), Qt::QueuedConnection);
 	connect(ui->QssBasicButton, SIGNAL(clicked()), this, SLOT(BasicButton_clicked()), Qt::QueuedConnection);
 	connect(ui->QssMediumButton, SIGNAL(clicked()), this, SLOT(MediumButton_clicked()), Qt::QueuedConnection);
 	connect(ui->QssAdvancedButton, SIGNAL(clicked()), this, SLOT(AdvancedButton_clicked()), Qt::QueuedConnection);
@@ -310,7 +309,7 @@ void QssDialog::accept()
 	if (m_Theme)
 		m_Parent->m_Settings->Theme(m_Theme->objectName());
 
-	SaveDefaultButton_clicked();
+	SaveAsDefault();
 	QDialog::accept();
 }
 
@@ -506,10 +505,19 @@ void QssDialog::LoadButton_clicked()
 /// <summary>
 /// Save the stylesheet to disk.
 /// Called when the user clicks the save button.
+/// The user cannot save to default.qss, as it's a special placeholder.
+/// When they exit the dialog by clicking OK, the currently displayed stylesheet
+/// will be saved to default.qss.
 /// </summary>
 void QssDialog::SaveButton_clicked()
 {
 	auto path = SaveFile();
+
+	if (path.toLower().endsWith("default.qss"))
+	{
+		QMessageBox::critical(this, "File save error", "Stylesheet cannot be saved to default.qss. Save it to a different file name, then exit the dialog by clicking OK which will set it as the default.");
+		return;
+	}
 
 	if (!path.isEmpty())
 	{
@@ -522,16 +530,16 @@ void QssDialog::SaveButton_clicked()
 			of.close();
 		}
 		else
-			QMessageBox::critical(this, "File open error", "Failed to open " + path + ", style will not be set as default");
+			QMessageBox::critical(this, "File save error", "Failed to save " + path + ", style will not be set as default");
 	}
 }
 
 /// <summary>
 /// Save the stylesheet to the default.qss on disk.
 /// This will be loaded the next time Fractorium runs.
-/// Called when the user clicks the save as default button.
+/// Called when the user clicks ok.
 /// </summary>
-void QssDialog::SaveDefaultButton_clicked()
+void QssDialog::SaveAsDefault()
 {
 	auto path = m_Parent->m_SettingsPath + "/default.qss";
 	ofstream of(path.toStdString());
@@ -543,7 +551,7 @@ void QssDialog::SaveDefaultButton_clicked()
 		of.close();
 	}
 	else
-		QMessageBox::critical(this, "File open error", "Failed to open " + path + ", style will not be set as default");
+		QMessageBox::critical(this, "File save error", "Failed to save " + path + ", style will not be set as default");
 }
 
 /// <summary>

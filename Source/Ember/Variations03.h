@@ -46,6 +46,11 @@ public:
 		return ss.str();
 	}
 
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Zeps" };
+	}
+
 protected:
 	void Init()
 	{
@@ -108,11 +113,11 @@ public:
 
 	virtual void Func(IteratorHelper<T>& helper, Point<T>& outPoint, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override
 	{
-		T r2 = pow(helper.m_PrecalcSumSquares, m_Power * T(0.5)) * m_Weight;
+		T r2 = std::pow(helper.m_PrecalcSumSquares, m_Power * T(0.5)) * m_Weight;
 		T ran = (helper.m_PrecalcAtanyx / Zeps(m_Denominator) + (m_Root * M_2PI * Floor<T>(rand.Frand01<T>() * m_Denominator) / Zeps(m_Denominator))) * m_Numerator;
 
-		helper.Out.x = r2 * cos(ran);
-		helper.Out.y = r2 * sin(ran);
+		helper.Out.x = r2 * std::cos(ran);
+		helper.Out.y = r2 * std::sin(ran);
 		helper.Out.z = m_Weight * helper.In.z;
 	}
 
@@ -139,6 +144,11 @@ public:
 		   << "\t}\n";
 
 		return ss.str();
+	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Zeps" };
 	}
 
 	virtual void Precalc() override
@@ -187,8 +197,8 @@ public:
 	{
 		T u = std::sqrt(ClampGte0<T>(Zeps(m_A) * SQR(helper.In.x) + Zeps(m_B) * SQR(helper.In.y)));//Original did not clamp.
 
-		helper.Out.x = cos(u) * SafeTan<T>(helper.In.x) * m_Weight;
-		helper.Out.y = sin(u) * SafeTan<T>(helper.In.y) * m_Weight;
+		helper.Out.x = std::cos(u) * SafeTan<T>(helper.In.x) * m_Weight;
+		helper.Out.y = std::sin(u) * SafeTan<T>(helper.In.y) * m_Weight;
 		helper.Out.z = m_Weight * helper.In.z;
 	}
 
@@ -210,6 +220,11 @@ public:
 		   << "\t}\n";
 
 		return ss.str();
+	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "ClampGte", "Zeps" };
 	}
 
 protected:
@@ -276,11 +291,11 @@ public:
 
 	virtual void Func(IteratorHelper<T>& helper, Point<T>& outPoint, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override
 	{
-		T r = Zeps(pow(helper.m_PrecalcSqrtSumSquares, m_Dist));
+		T r = Zeps(std::pow(helper.m_PrecalcSqrtSumSquares, m_Dist));
 		intmax_t n = Floor<T>(m_Power * rand.Frand01<T>());
 		T alpha = helper.m_PrecalcAtanyx + n * M_2PI / Zeps<T>(T(Floor<T>(m_Power)));
-		T sina = sin(alpha);
-		T cosa = cos(alpha);
+		T sina = std::sin(alpha);
+		T cosa = std::cos(alpha);
 
 		helper.Out.x = m_Weight * cosa / r;
 		helper.Out.y = m_Weight * sina / r;
@@ -309,6 +324,11 @@ public:
 		   << "\t}\n";
 
 		return ss.str();
+	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Zeps" };
 	}
 
 protected:
@@ -342,8 +362,8 @@ public:
 
 	virtual void Func(IteratorHelper<T>& helper, Point<T>& outPoint, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override
 	{
-		T sin45 = sin(45 * DEG_2_RAD_T);//Was 45 radians? They probably meant to convert this from degrees.
-		T cos45 = cos(45 * DEG_2_RAD_T);
+		T sin45 = std::sin(45 * DEG_2_RAD_T);//Was 45 radians? They probably meant to convert this from degrees.
+		T cos45 = std::cos(45 * DEG_2_RAD_T);
 
 		helper.Out.x = ((m_Rotate * helper.In.x) * cos45 - helper.In.y * sin45 +  m_LineUp) + m_X;
 
@@ -434,7 +454,7 @@ public:
 		{
 			T alpha = fabs(m_Radius / Zeps(helper.m_PrecalcSqrtSumSquares));//Original did not fabs().
 
-			if (rand.Frand01<T>() > m_Contrast * pow(alpha, m_Pow))
+			if (rand.Frand01<T>() > m_Contrast * std::pow(alpha, m_Pow))
 			{
 				x = helper.In.x;
 				y = helper.In.y;
@@ -523,7 +543,12 @@ public:
 		return ss.str();
 	}
 
-	virtual string OpenCLFuncsString() const
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Sqr", "Zeps" };
+	}
+
+	virtual string OpenCLFuncsString() const override
 	{
 		return
 			"void GlynnSim1Circle(__constant real_t* radius1, __constant real_t* thickness, __constant real_t* x1, __constant real_t* y1, uint2* mwc, real_t* x, real_t* y)\n"
@@ -542,8 +567,8 @@ public:
 	virtual void Precalc() override
 	{
 		T val = DEG_2_RAD_T * m_Phi1;
-		T sinPhi1 = sin(val);
-		T cosPhi1 = cos(val);
+		T sinPhi1 = std::sin(val);
+		T cosPhi1 = std::cos(val);
 
 		m_Pow = fabs(m_Pow);
 		m_X1 = m_Radius * cosPhi1;
@@ -571,8 +596,8 @@ private:
 	{
 		T r = m_Radius1 * (m_Thickness + (1 - m_Thickness) * rand.Frand01<T>());
 		T phi = M_2PI * rand.Frand01<T>();
-		T sinPhi = sin(phi);
-		T cosPhi = cos(phi);
+		T sinPhi = std::sin(phi);
+		T cosPhi = std::cos(phi);
 
 		*x = r * cosPhi + m_X1;
 		*y = r * sinPhi + m_Y1;
@@ -616,7 +641,7 @@ public:
 		{
 			T alpha = fabs(m_Radius / Zeps(helper.m_PrecalcSqrtSumSquares));//Original did not fabs().
 
-			if (rand.Frand01<T>() > m_Contrast * pow(alpha, m_Pow))
+			if (rand.Frand01<T>() > m_Contrast * std::pow(alpha, m_Pow))
 			{
 				helper.Out.x = m_Weight * helper.In.x;
 				helper.Out.y = m_Weight * helper.In.y;
@@ -679,7 +704,12 @@ public:
 		return ss.str();
 	}
 
-	virtual string OpenCLFuncsString() const
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Zeps" };
+	}
+
+	virtual string OpenCLFuncsString() const override
 	{
 		return
 			"void GlynnSim2Circle(__constant real_t* radius, __constant real_t* thickness, __constant real_t* phi10, __constant real_t* delta, __constant real_t* gamma, uint2* mwc, real_t* x, real_t* y)\n"
@@ -727,8 +757,8 @@ private:
 	{
 		T r = m_Radius + m_Thickness - m_Gamma * rand.Frand01<T>();
 		T phi = m_Phi10 + m_Delta * rand.Frand01<T>();
-		T sinPhi = sin(phi);
-		T cosPhi = cos(phi);
+		T sinPhi = std::sin(phi);
+		T cosPhi = std::cos(phi);
 
 		*x = r * cosPhi;
 		*y = r * sinPhi;
@@ -774,7 +804,7 @@ public:
 		{
 			T alpha = fabs(m_Radius / Zeps(helper.m_PrecalcSqrtSumSquares));//Original did not fabs().
 
-			if (rand.Frand01<T>() > m_Contrast * pow(alpha, m_Pow))
+			if (rand.Frand01<T>() > m_Contrast * std::pow(alpha, m_Pow))
 			{
 				helper.Out.x = m_Weight * helper.In.x;
 				helper.Out.y = m_Weight * helper.In.y;
@@ -835,7 +865,12 @@ public:
 		return ss.str();
 	}
 
-	virtual string OpenCLFuncsString() const
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Zeps" };
+	}
+
+	virtual string OpenCLFuncsString() const override
 	{
 		return
 			"void GlynnSim3Circle(__constant real_t* radius, __constant real_t* radius1, __constant real_t* radius2, __constant real_t* thickness, __constant real_t* gamma, uint2* mwc, real_t* x, real_t* y)\n"
@@ -884,8 +919,8 @@ private:
 	{
 		T r = m_Radius + m_Thickness - m_Gamma * rand.Frand01<T>();
 		T phi = M_2PI * rand.Frand01<T>();
-		T sinPhi = sin(phi);
-		T cosPhi = cos(phi);
+		T sinPhi = std::sin(phi);
+		T cosPhi = std::cos(phi);
 
 		if (rand.Frand01<T>() < m_Gamma)
 			r = m_Radius1;
@@ -928,19 +963,19 @@ public:
 		f -= angle;
 
 		T x = f * m_Length;
-		T z = std::sqrt(1 + SQR(x) - 2 * x * cos(m_Alpha));
+		T z = std::sqrt(1 + SQR(x) - 2 * x * std::cos(m_Alpha));
 
-		if (int(angle) % 2)
-			angle = M_2PI / m_Power * (int(angle) / 2) + asin(sin(m_Alpha) * x / z);
+		if (int(angle) & 1)
+			angle = M_2PI / m_Power * (int(angle) / 2) + std::asin(std::sin(m_Alpha) * x / z);
 		else
-			angle = M_2PI / m_Power * (int(angle) / 2) - asin(sin(m_Alpha) * x / z);
+			angle = M_2PI / m_Power * (int(angle) / 2) - std::asin(std::sin(m_Alpha) * x / z);
 
 		z *= std::sqrt(rand.Frand01<T>());
 
 		T temp = angle - T(M_PI_2);
 
-		helper.Out.x = m_Weight * z * cos(temp);
-		helper.Out.y = m_Weight * z * sin(temp);
+		helper.Out.x = m_Weight * z * std::cos(temp);
+		helper.Out.y = m_Weight * z * std::sin(temp);
 		helper.Out.z = m_Weight * helper.In.z;
 	}
 
@@ -964,7 +999,7 @@ public:
 		   << "\t\treal_t x = f * " << length << ";\n"
 		   << "\t\treal_t z = sqrt(1 + SQR(x) - 2 * x * cos(" << alpha << "));\n"
 		   << "\n"
-		   << "\t\tif (((int)angle) % 2)\n"
+		   << "\t\tif (((int)angle) & 1)\n"
 		   << "\t\t	angle = M_2PI / " << power << " * (((int)angle) / 2) + asin(sin(" << alpha << ") * x / z);\n"
 		   << "\t\telse\n"
 		   << "\t\t	angle = M_2PI / " << power << " * (((int)angle) / 2) - asin(sin(" << alpha << ") * x / z);\n"
@@ -984,8 +1019,8 @@ public:
 	virtual void Precalc() override
 	{
 		m_Alpha = T(M_PI) / m_Power;
-		m_Length = std::sqrt(1 + SQR(m_Range) - 2 * m_Range * cos(m_Alpha));
-		m_Alpha = asin(sin(m_Alpha) * m_Range / m_Length);
+		m_Length = std::sqrt(1 + SQR(m_Range) - 2 * m_Range * std::cos(m_Alpha));
+		m_Alpha = std::asin(std::sin(m_Alpha) * m_Range / m_Length);
 	}
 
 protected:
@@ -1024,9 +1059,9 @@ public:
 	virtual void Func(IteratorHelper<T>& helper, Point<T>& outPoint, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override
 	{
 		T ang = rand.Frand01<T>() * M_2PI;
-		T s = sin(ang);
-		T c = cos(ang);
-		T r = m_Weight * (m_Power == 1 ? acos(rand.Frand01<T>() * 2 - 1) / T(M_PI) : acos(exp(log(rand.Frand01<T>()) * m_Power) * 2 - 1) / T(M_PI));
+		T s = std::sin(ang);
+		T c = std::cos(ang);
+		T r = m_Weight * (m_Power == 1 ? std::acos(rand.Frand01<T>() * 2 - 1) / T(M_PI) : std::acos(std::exp(std::log(rand.Frand01<T>()) * m_Power) * 2 - 1) / T(M_PI));
 
 		helper.Out.x = r * c;
 		helper.Out.y = r * s;
@@ -1084,8 +1119,8 @@ public:
 		T rad = std::sqrt(rand.Frand01<T>());
 		T temp = rand.Frand01<T>() * M_2PI;
 
-		helper.Out.x = m_Weight * cos(temp) * rad;
-		helper.Out.y = m_Weight * sin(temp) * rad;
+		helper.Out.x = m_Weight * std::cos(temp) * rad;
+		helper.Out.y = m_Weight * std::sin(temp) * rad;
 		helper.Out.z = m_Weight * helper.In.z;
 	}
 
@@ -1126,7 +1161,7 @@ public:
 		T coeff = fabs(helper.In.z);
 
 		if (coeff != 0 && m_Power != 1)
-			coeff = exp(log(coeff) * m_Power);
+			coeff = std::exp(log(coeff) * m_Power);
 
 		helper.Out.x = m_Weight * (helper.m_TransX + helper.In.x * coeff);
 		helper.Out.y = m_Weight * (helper.m_TransY + helper.In.y * coeff);
@@ -1187,7 +1222,7 @@ public:
 		T xang = (helper.m_PrecalcAtanyx + T(M_PI)) / m_Alpha;
 
 		xang = (xang - int(xang)) * m_Alpha;
-		xang = cos((xang < m_Alpha / 2) ? xang : m_Alpha - xang);
+		xang = std::cos((xang < m_Alpha / 2) ? xang : m_Alpha - xang);
 
 		T xr = xang > 0 ? m_Radius / xang : 1;
 
@@ -1201,8 +1236,8 @@ public:
 			{
 				T rdc = xr + (rand.Frand01<T>() * T(0.5) * m_ScatterDist);
 
-				helper.Out.x = m_Weight * rdc * cos(helper.m_PrecalcAtanyx);
-				helper.Out.y = m_Weight * rdc * sin(helper.m_PrecalcAtanyx);
+				helper.Out.x = m_Weight * rdc * std::cos(helper.m_PrecalcAtanyx);
+				helper.Out.y = m_Weight * rdc * std::sin(helper.m_PrecalcAtanyx);
 			}
 		}
 		else
@@ -1312,8 +1347,8 @@ public:
 		T xang = (helper.m_PrecalcAtanyx + M_3PI + m_Alpha / 2) / m_Alpha;
 		T zang = ((xang - int(xang)) * m_Width + int(xang)) * m_Alpha - T(M_PI) - m_Alpha / 2 * m_Width;
 
-		helper.Out.x = m_Weight * helper.m_PrecalcSqrtSumSquares * cos(zang);
-		helper.Out.y = m_Weight * helper.m_PrecalcSqrtSumSquares * sin(zang);
+		helper.Out.x = m_Weight * helper.m_PrecalcSqrtSumSquares * std::cos(zang);
+		helper.Out.y = m_Weight * helper.m_PrecalcSqrtSumSquares * std::sin(zang);
 		helper.Out.z = m_Weight * helper.In.z;
 	}
 
@@ -1384,18 +1419,18 @@ public:
 		}
 		else
 		{
-			T delta = (sin(helper.m_PrecalcAtanyx * m_N) + m_Symmetry) / m_DeltaHelp;
+			T delta = (std::sin(helper.m_PrecalcAtanyx * m_N) + m_Symmetry) / m_DeltaHelp;
 			T positive = 1 - T(delta < 0 ? 1 : 0) * 2;
 
 			if (m_Mode != 0)
-				delta = exp(m_Prescale * log(delta * positive)) * m_Postscale * m_Mode;
+				delta = std::exp(m_Prescale * std::log(delta * positive)) * m_Postscale * m_Mode;
 			else
-				delta = exp(m_Prescale * log(delta * positive)) * m_Postscale * positive;
+				delta = std::exp(m_Prescale * std::log(delta * positive)) * m_Postscale * positive;
 
 			T rad = m_Radius + (helper.m_PrecalcSqrtSumSquares - m_Radius) * delta;
 
-			helper.Out.x = m_Weight * rad * cos(helper.m_PrecalcAtanyx);
-			helper.Out.y = m_Weight * rad * sin(helper.m_PrecalcAtanyx);
+			helper.Out.x = m_Weight * rad * std::cos(helper.m_PrecalcAtanyx);
+			helper.Out.y = m_Weight * rad * std::sin(helper.m_PrecalcAtanyx);
 			helper.Out.z = m_Weight * helper.In.z;
 			//helper.m_TransZ += m_Weight * outPoint.m_Z;//Original had this which is probably wrong.
 		}
@@ -1493,12 +1528,12 @@ public:
 	virtual void Func(IteratorHelper<T>& helper, Point<T>& outPoint, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override
 	{
 		T z = helper.In.z / m_AbsN;
-		T r = m_Weight * pow(helper.m_PrecalcSumSquares + SQR(z), m_Cn);
+		T r = m_Weight * std::pow(helper.m_PrecalcSumSquares + SQR(z), m_Cn);
 		T tmp = r * helper.m_PrecalcSqrtSumSquares;
 		T ang = (helper.m_PrecalcAtanyx + M_2PI * rand.Rand(uint(m_AbsN))) / m_N;
 
-		helper.Out.x = tmp * cos(ang);
-		helper.Out.y = tmp * sin(ang);
+		helper.Out.x = tmp * std::cos(ang);
+		helper.Out.y = tmp * std::sin(ang);
 		helper.Out.z = r * z;
 	}
 
@@ -1573,11 +1608,11 @@ public:
 
 	virtual void Func(IteratorHelper<T>& helper, Point<T>& outPoint, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override
 	{
-		T r = m_Weight * pow(helper.m_PrecalcSumSquares, m_Cn);
+		T r = m_Weight * std::pow(helper.m_PrecalcSumSquares, m_Cn);
 		T temp = (helper.m_PrecalcAtanyx + M_2PI * rand.Rand(uint(m_AbsN))) / m_N;
 
-		helper.Out.x = r * cos(temp);
-		helper.Out.y = r * sin(temp);
+		helper.Out.x = r * std::cos(temp);
+		helper.Out.y = r * std::sin(temp);
 		helper.Out.z = r * helper.In.z / (helper.m_PrecalcSqrtSumSquares * m_AbsN);
 	}
 
@@ -1650,8 +1685,8 @@ public:
 
 	virtual void Func(IteratorHelper<T>& helper, Point<T>& outPoint, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override
 	{
-		helper.Out.x = SignNz<T>(helper.In.x) * pow(fabs(helper.In.x), m_PowX) * m_Weight;
-		helper.Out.y = SignNz<T>(helper.In.y) * pow(fabs(helper.In.y), m_PowY) * m_Weight;
+		helper.Out.x = SignNz<T>(helper.In.x) * std::pow(fabs(helper.In.x), m_PowX) * m_Weight;
+		helper.Out.y = SignNz<T>(helper.In.y) * std::pow(fabs(helper.In.y), m_PowY) * m_Weight;
 		helper.Out.z = (m_VarType == VARTYPE_REG) ? 0 : helper.In.z;
 	}
 
@@ -1671,6 +1706,11 @@ public:
 		   << "\t}\n";
 
 		return ss.str();
+	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "SignNz" };
 	}
 
 protected:
@@ -1704,9 +1744,9 @@ public:
 
 	virtual void Func(IteratorHelper<T>& helper, Point<T>& outPoint, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override
 	{
-		helper.Out.x = T(helper.In.x < 0 ? -1 : 1) * pow(fabs(helper.In.x), m_PowX) * m_Weight;
-		helper.Out.y = T(helper.In.y < 0 ? -1 : 1) * pow(fabs(helper.In.y), m_PowY) * m_Weight;
-		helper.Out.z = T(helper.In.z < 0 ? -1 : 1) * pow(fabs(helper.In.z), m_PowZ) * m_Weight;
+		helper.Out.x = T(helper.In.x < 0 ? -1 : 1) * std::pow(fabs(helper.In.x), m_PowX) * m_Weight;
+		helper.Out.y = T(helper.In.y < 0 ? -1 : 1) * std::pow(fabs(helper.In.y), m_PowY) * m_Weight;
+		helper.Out.z = T(helper.In.z < 0 ? -1 : 1) * std::pow(fabs(helper.In.z), m_PowZ) * m_Weight;
 	}
 
 	virtual string OpenCLString() const override
@@ -1788,6 +1828,11 @@ public:
 		return ss.str();
 	}
 
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Zeps" };
+	}
+
 protected:
 	void Init()
 	{
@@ -1847,6 +1892,11 @@ public:
 		return ss.str();
 	}
 
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Zeps" };
+	}
+
 protected:
 	void Init()
 	{
@@ -1882,11 +1932,11 @@ public:
 	{
 		T t = (m_TMax - m_TMin) * rand.Frand01<T>() + m_TMin;
 		T y = (m_YMax - m_YMin) * rand.Frand01<T>() + m_YMin;
-		T x1 = (m_A + m_B) * cos(t) - m_C1 * cos((m_A + m_B) / m_B * t);
-		T y1 = (m_A + m_B) * sin(t) - m_C2 * sin((m_A + m_B) / m_B * t);
+		T x1 = (m_A + m_B) * std::cos(t) - m_C1 * std::cos((m_A + m_B) / m_B * t);
+		T y1 = (m_A + m_B) * std::sin(t) - m_C2 * std::sin((m_A + m_B) / m_B * t);
 
-		helper.Out.x = m_Weight * (x1 + m_D * cos(t) + y);
-		helper.Out.y = m_Weight * (y1 + m_D * sin(t) + y);
+		helper.Out.x = m_Weight * (x1 + m_D * std::cos(t) + y);
+		helper.Out.y = m_Weight * (y1 + m_D * std::sin(t) + y);
 		helper.Out.z = m_Weight * helper.In.z;
 	}
 
@@ -1962,11 +2012,11 @@ public:
 
 	virtual void Func(IteratorHelper<T>& helper, Point<T>& outPoint, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override
 	{
-		T sinX = sin(helper.In.x);
-		T cosX = cos(helper.In.x);
-		T cosY = cos(helper.In.y);
-		T bx = Cube(cosX*cosY);
-		T by = Cube(sinX*cosY);
+		T sinX = std::sin(helper.In.x);
+		T cosX = std::cos(helper.In.x);
+		T cosY = std::cos(helper.In.y);
+		T bx = Cube(cosX * cosY);
+		T by = Cube(sinX * cosY);
 
 		helper.Out.x = m_Weight * cosX * bx;
 		helper.Out.y = m_Weight * cosX * by;
@@ -1992,6 +2042,11 @@ public:
 		   << "\t}\n";
 
 		return ss.str();
+	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Cube" };
 	}
 };
 
@@ -2054,13 +2109,13 @@ public:
 			otherZ = outPoint.m_Z;
 
 		if (inZ == 0)
-			tempTz = cos(helper.m_PrecalcSqrtSumSquares);
+			tempTz = std::cos(helper.m_PrecalcSqrtSumSquares);
 		else
 			tempTz = helper.In.z;
 
 		if (otherZ == 0)
 		{
-			tempPz = cos(helper.m_PrecalcSqrtSumSquares);
+			tempPz = std::cos(helper.m_PrecalcSqrtSumSquares);
 
 			if (m_VarType == VARTYPE_PRE)
 				helper.m_TransZ = 0;
@@ -2170,8 +2225,8 @@ public:
 		T c1 = Zeps(SQR(helper.In.x));
 		T c2 = Zeps(SQR(helper.In.y));
 
-		helper.Out.x = m_Weight * ((1 / d) * cos(c1) * sin(c2));
-		helper.Out.y = m_Weight * ((1 / d) * sin(c1) * sin(c2));
+		helper.Out.x = m_Weight * ((1 / d) * std::cos(c1) * std::sin(c2));
+		helper.Out.y = m_Weight * ((1 / d) * std::sin(c1) * std::sin(c2));
 		helper.Out.z = m_Weight * helper.In.z;
 	}
 
@@ -2191,6 +2246,11 @@ public:
 		   << "\t}\n";
 
 		return ss.str();
+	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Zeps" };
 	}
 };
 
@@ -2308,7 +2368,7 @@ public:
 		T dx, dy, r = m_Weight / (helper.m_PrecalcSumSquares + EPS);
 		int isXY = int(LRint(helper.In.x * m_InvSize) + LRint(helper.In.y * m_InvSize));
 
-		if (isXY % 2)
+		if (isXY & 1)
 		{
 			dx = -m_X + m_Rand * rand.Frand01<T>();
 			dy = -m_Y;
@@ -2319,8 +2379,8 @@ public:
 			dy = m_Y + m_Rand * rand.Frand01<T>();
 		}
 
-		helper.Out.x = m_Weight * (sin(helper.In.x) * r + dx);
-		helper.Out.y = m_Weight * (sin(helper.In.y) * r + dy);
+		helper.Out.x = m_Weight * (std::sin(helper.In.x) * r + dx);
+		helper.Out.y = m_Weight * (std::sin(helper.In.y) * r + dy);
 		helper.Out.z = m_Weight * helper.In.z;
 	}
 
@@ -2340,7 +2400,7 @@ public:
 		   << "\t\treal_t dx, dy, r = xform->m_VariationWeights[" << varIndex << "] / (precalcSumSquares + EPS);\n"
 		   << "\t\tint isXY = LRint(vIn.x * " << invSize << ") + LRint(vIn.y * " << invSize << ");\n"
 		   << "\n"
-		   << "\t\tif (isXY % 2)\n"
+		   << "\t\tif (isXY & 1)\n"
 		   << "\t\t{\n"
 		   << "\t\t	dx = -" << x << " + " << rand << " * MwcNext01(mwc);\n"
 		   << "\t\t	dy = -" << y << ";\n"
@@ -2357,6 +2417,11 @@ public:
 		   << "\t}\n";
 
 		return ss.str();
+	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "LRint" };
 	}
 
 	virtual void Precalc() override
@@ -2403,11 +2468,11 @@ public:
 	{
 		T preX = helper.In.x * (m_XDistort + 1);
 		T preY = helper.In.y * (m_YDistort + 1);
-		T temp = atan2(preY, preX) * m_InvN + rand.Rand() * m_Inv2PiN;
-		T r = m_Weight * pow(helper.m_PrecalcSumSquares, m_Cn);
+		T temp = std::atan2(preY, preX) * m_InvN + rand.Rand() * m_Inv2PiN;
+		T r = m_Weight * std::pow(helper.m_PrecalcSumSquares, m_Cn);
 
-		helper.Out.x = r * cos(temp);
-		helper.Out.y = r * sin(temp);
+		helper.Out.x = r * std::cos(temp);
+		helper.Out.y = r * std::sin(temp);
 		helper.Out.z = m_Weight * helper.In.z;
 	}
 
@@ -2528,6 +2593,11 @@ public:
 		return ss.str();
 	}
 
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Zeps" };
+	}
+
 protected:
 	void Init()
 	{
@@ -2574,10 +2644,10 @@ public:
 		intmax_t n;
 
 		T z = 4 * m_Dist / m_Power;
-		T r = pow(helper.m_PrecalcSqrtSumSquares, z);
+		T r = std::pow(helper.m_PrecalcSqrtSumSquares, z);
 		T alpha = helper.m_PrecalcAtanyx * m_Power;
-		T x = r * cos(alpha);
-		T y = r * sin(alpha);
+		T x = r * std::cos(alpha);
+		T y = r * std::sin(alpha);
 		T reU = m_Re_A * x - m_Im_A * y + m_Re_B;
 		T imU = m_Re_A * y + m_Im_A * x + m_Im_B;
 		T reV = m_Re_C * x - m_Im_C * y + m_Re_D;
@@ -2588,12 +2658,12 @@ public:
 		y = (imU * reV - reU * imV) / radV;
 
 		z = 1 / z;
-		r = pow(std::sqrt(SQR(x) + SQR(y)), z);
+		r = std::pow(std::sqrt(SQR(x) + SQR(y)), z);
 		n = Floor<T>(m_Power * rand.Frand01<T>());
-		alpha = (atan2(y, x) + n * M_2PI) / Floor<T>(m_Power);
+		alpha = (std::atan2(y, x) + n * M_2PI) / Floor<T>(m_Power);
 
-		helper.Out.x = m_Weight * r * cos(alpha);
-		helper.Out.y = m_Weight * r * sin(alpha);
+		helper.Out.x = m_Weight * r * std::cos(alpha);
+		helper.Out.y = m_Weight * r * std::sin(alpha);
 		helper.Out.z = m_Weight * helper.In.z;
 	}
 
@@ -2731,8 +2801,8 @@ public:
 		}
 
 		//Initial "object" co-ordinates.
-		mx = (m_Radius + s * cos(t / 2)) * cos(t);
-		my = (m_Radius + s * cos(t / 2)) * sin(t);
+		mx = (m_Radius + s * std::cos(t / 2)) * std::cos(t);
+		my = (m_Radius + s * std::cos(t / 2)) * std::sin(t);
 		mz = s * sin(t / 2);
 
 		//Rotate around X axis (change y & z) and store temporarily in R variables.
@@ -2820,10 +2890,10 @@ public:
 
 	virtual void Precalc() override
 	{
-		m_RotxSin = sin(m_RotateX * M_2PI);
-		m_RotxCos = cos(m_RotateX * M_2PI);
-		m_RotySin = sin(m_RotateY * M_2PI);
-		m_RotyCos = cos(m_RotateY * M_2PI);
+		m_RotxSin = std::sin(m_RotateX * M_2PI);
+		m_RotxCos = std::cos(m_RotateX * M_2PI);
+		m_RotySin = std::sin(m_RotateY * M_2PI);
+		m_RotyCos = std::cos(m_RotateY * M_2PI);
 	}
 
 protected:
@@ -2952,11 +3022,11 @@ public:
 
 	virtual void Func(IteratorHelper<T>& helper, Point<T>& outPoint, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override
 	{
-		T cn = cos(m_N * helper.In.y);
-		T sx = sin(helper.In.x);
-		T cx = cos(helper.In.x);
-		T sy = sin(helper.In.y);
-		T cy = cos(helper.In.y);
+		T cn = std::cos(m_N * helper.In.y);
+		T sx = std::sin(helper.In.x);
+		T cx = std::cos(helper.In.x);
+		T sy = std::sin(helper.In.y);
+		T cy = std::cos(helper.In.y);
 
 		helper.Out.x = m_Weight * (cy * (cn * cx));
 		helper.Out.y = m_Weight * (cy * (cn * sx));
@@ -3016,7 +3086,7 @@ public:
 	virtual void Func(IteratorHelper<T>& helper, Point<T>& outPoint, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override
 	{
 		T a = helper.m_PrecalcAtanyx;
-		T t = log(helper.m_PrecalcSqrtSumSquares);
+		T t = std::log(helper.m_PrecalcSqrtSumSquares);
 
 		if (t < 0)
 			t -= m_SizeDiv2;
@@ -3028,8 +3098,8 @@ public:
 		else
 			a += m_Odd;
 
-		helper.Out.x = helper.m_PrecalcSqrtSumSquares * cos(a);
-		helper.Out.y = helper.m_PrecalcSqrtSumSquares * sin(a);
+		helper.Out.x = helper.m_PrecalcSqrtSumSquares * std::cos(a);
+		helper.Out.y = helper.m_PrecalcSqrtSumSquares * std::sin(a);
 		helper.Out.z = m_Weight * helper.In.z;
 	}
 
@@ -3106,11 +3176,11 @@ public:
 
 	virtual void Func(IteratorHelper<T>& helper, Point<T>& outPoint, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override
 	{
-		T sx = sin(helper.In.x);
-		T cx = cos(helper.In.x);
-		T sy = sin(helper.In.y);
-		T cy = cos(helper.In.y);
-		T ir = m_InvTimesR + (m_1MinusInv * (m_R * cos(m_N * helper.In.x)));
+		T sx = std::sin(helper.In.x);
+		T cx = std::cos(helper.In.x);
+		T sy = std::sin(helper.In.y);
+		T cy = std::cos(helper.In.y);
+		T ir = m_InvTimesR + (m_1MinusInv * (m_R * std::cos(m_N * helper.In.x)));
 
 		helper.Out.x = m_Weight * (cx * (ir + sy));
 		helper.Out.y = m_Weight * (sx * (ir + sy));
@@ -3202,7 +3272,7 @@ public:
 		{
 			alt = int(a * m_KnPi);
 
-			if (alt % 2 == 0)
+			if ((alt & 1) == 0)
 				a = alt * m_PiKn + fmod(m_KaKn + a, m_PiKn);
 			else
 				a = alt * m_PiKn + fmod(-m_KaKn + a, m_PiKn);
@@ -3211,14 +3281,14 @@ public:
 		{
 			alt = int(-a * m_KnPi);
 
-			if (alt % 2 == 1)
+			if ((alt & 1) == 1)
 				a = -(alt * m_PiKn + fmod(-m_KaKn - a, m_PiKn));
 			else
 				a = -(alt * m_PiKn + fmod(m_KaKn - a, m_PiKn));
 		}
 
-		helper.Out.x = r * cos(a);
-		helper.Out.y = r * sin(a);
+		helper.Out.x = r * std::cos(a);
+		helper.Out.y = r * std::sin(a);
 		helper.Out.z = m_Weight * helper.In.z;
 	}
 
@@ -3244,7 +3314,7 @@ public:
 		   << "\t\t{\n"
 		   << "\t\t	alt = (int)(a * " << knpi << ");\n"
 		   << "\n"
-		   << "\t\t	if (alt % 2 == 0)\n"
+		   << "\t\t	if ((alt & 1) == 0)\n"
 		   << "\t\t		a = alt * " << pikn << " + fmod(" << kakn << " + a, " << pikn << ");\n"
 		   << "\t\t	else\n"
 		   << "\t\t		a = alt * " << pikn << " + fmod(-" << kakn << " + a, " << pikn << ");\n"
@@ -3253,7 +3323,7 @@ public:
 		   << "\t\t{\n"
 		   << "\t\t	alt = (int)(-a * " << knpi << ");\n"
 		   << "\n"
-		   << "\t\t	if (alt % 2 == 1)\n"
+		   << "\t\t	if ((alt & 1) == 1)\n"
 		   << "\t\t		a = -(alt * " << pikn << " + fmod(-" << kakn << " - a, " << pikn << "));\n"
 		   << "\t\t	else\n"
 		   << "\t\t		a = -(alt * " << pikn << " + fmod(" << kakn << " - a, " << pikn << "));\n"
@@ -3315,16 +3385,16 @@ public:
 
 	virtual void Func(IteratorHelper<T>& helper, Point<T>& outPoint, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override
 	{
-		T tau = T(0.5) * (log(Sqr(helper.In.x + 1) + SQR(helper.In.y)) - log(Sqr(helper.In.x - 1) + SQR(helper.In.y)));
-		T sigma = T(M_PI) - atan2(helper.In.y, helper.In.x + 1) - atan2(helper.In.y, 1 - helper.In.x);
+		T tau = T(0.5) * (std::log(Sqr(helper.In.x + 1) + SQR(helper.In.y)) - std::log(Sqr(helper.In.x - 1) + SQR(helper.In.y)));
+		T sigma = T(M_PI) - std::atan2(helper.In.y, helper.In.x + 1) - std::atan2(helper.In.y, 1 - helper.In.x);
 
 		if (tau < m_Radius && -tau < m_Radius)
 			tau = fmod(tau + m_Radius + m_Distance * m_Radius, 2 * m_Radius) - m_Radius;
 
-		T temp = cosh(tau) - cos(sigma);
+		T temp = std::cosh(tau) - std::cos(sigma);
 
-		helper.Out.x = m_Weight * sinh(tau) / temp;
-		helper.Out.y = m_Weight * sin(sigma) / temp;
+		helper.Out.x = m_Weight * std::sinh(tau) / temp;
+		helper.Out.y = m_Weight * std::sin(sigma) / temp;
 		helper.Out.z = m_Weight * helper.In.z;
 	}
 
@@ -3352,6 +3422,11 @@ public:
 		   << "\t}\n";
 
 		return ss.str();
+	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Sqr" };
 	}
 
 protected:
@@ -3385,15 +3460,15 @@ public:
 
 	virtual void Func(IteratorHelper<T>& helper, Point<T>& outPoint, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override
 	{
-		T tau = T(0.5) * (log(Sqr(helper.In.x + 1) + SQR(helper.In.y)) - log(Sqr(helper.In.x - 1) + SQR(helper.In.y)));
-		T sigma = T(M_PI) - atan2(helper.In.y, helper.In.x + 1) - atan2(helper.In.y, 1 - helper.In.x);
+		T tau = T(0.5) * (std::log(Sqr(helper.In.x + 1) + SQR(helper.In.y)) - std::log(Sqr(helper.In.x - 1) + SQR(helper.In.y)));
+		T sigma = T(M_PI) - std::atan2(helper.In.y, helper.In.x + 1) - std::atan2(helper.In.y, 1 - helper.In.x);
 
 		sigma = sigma + tau * m_Out + m_In / tau;
 
-		T temp = cosh(tau) - cos(sigma);
+		T temp = std::cosh(tau) - std::cos(sigma);
 
-		helper.Out.x = m_Weight * sinh(tau) / temp;
-		helper.Out.y = m_Weight * sin(sigma) / temp;
+		helper.Out.x = m_Weight * std::sinh(tau) / temp;
+		helper.Out.y = m_Weight * std::sin(sigma) / temp;
 		helper.Out.z = m_Weight * helper.In.z;
 	}
 
@@ -3420,6 +3495,11 @@ public:
 		   << "\t}\n";
 
 		return ss.str();
+	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Sqr" };
 	}
 
 protected:
@@ -3453,8 +3533,8 @@ public:
 
 	virtual void Func(IteratorHelper<T>& helper, Point<T>& outPoint, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override
 	{
-		T tau = T(0.5) * (log(Sqr(helper.In.x + 1) + SQR(helper.In.y)) - log(Sqr(helper.In.x - 1) + SQR(helper.In.y))) / m_Power + m_Move;
-		T sigma = T(M_PI) - atan2(helper.In.y, helper.In.x + 1) - atan2(helper.In.y, 1 - helper.In.x) + m_Rotate;
+		T tau = T(0.5) * (std::log(Sqr(helper.In.x + 1) + SQR(helper.In.y)) - std::log(Sqr(helper.In.x - 1) + SQR(helper.In.y))) / m_Power + m_Move;
+		T sigma = T(M_PI) - std::atan2(helper.In.y, helper.In.x + 1) - std::atan2(helper.In.y, 1 - helper.In.x) + m_Rotate;
 
 		sigma = sigma / m_Power + M_2PI / m_Power * Floor<T>(rand.Frand01<T>() * m_Power);
 
@@ -3463,10 +3543,10 @@ public:
 		else
 			tau -= m_Split;
 
-		T temp = cosh(tau) - cos(sigma);
+		T temp = std::cosh(tau) - std::cos(sigma);
 
-		helper.Out.x = m_Weight * sinh(tau) / temp;
-		helper.Out.y = m_Weight * sin(sigma) / temp;
+		helper.Out.x = m_Weight * std::sinh(tau) / temp;
+		helper.Out.y = m_Weight * std::sin(sigma) / temp;
 		helper.Out.z = m_Weight * helper.In.z;
 	}
 
@@ -3500,6 +3580,11 @@ public:
 		   << "\t}\n";
 
 		return ss.str();
+	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Sqr" };
 	}
 
 protected:
@@ -3537,16 +3622,16 @@ public:
 
 	virtual void Func(IteratorHelper<T>& helper, Point<T>& outPoint, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override
 	{
-		T tau = T(0.5) * (log(Sqr(helper.In.x + 1) + SQR(helper.In.y)) - log(Sqr(helper.In.x - 1) + SQR(helper.In.y)));
-		T sigma = T(M_PI) - atan2(helper.In.y, helper.In.x + 1) - atan2(helper.In.y, 1 - helper.In.x);
+		T tau = T(0.5) * (std::log(Sqr(helper.In.x + 1) + SQR(helper.In.y)) - std::log(Sqr(helper.In.x - 1) + SQR(helper.In.y)));
+		T sigma = T(M_PI) - std::atan2(helper.In.y, helper.In.x + 1) - std::atan2(helper.In.y, 1 - helper.In.x);
 		int alt = int(sigma * m_CnPi);
 
-		if (alt % 2 == 0)
+		if ((alt & 1) == 0)
 			sigma = alt * m_PiCn + fmod(sigma + m_CaCn, m_PiCn);
 		else
 			sigma = alt * m_PiCn + fmod(sigma - m_CaCn, m_PiCn);
 
-		T temp = cosh(tau) - cos(sigma);
+		T temp = std::cosh(tau) - std::cos(sigma);
 
 		helper.Out.x = m_Weight * sinh(tau) / temp;
 		helper.Out.y = m_Weight * sin(sigma) / temp;
@@ -3571,7 +3656,7 @@ public:
 		   << "\t\treal_t sigma = M_PI - atan2(vIn.y, vIn.x + (real_t)(1.0)) - atan2(vIn.y, (real_t)(1.0) - vIn.x);\n"
 		   << "\t\tint alt = (int)(sigma * " << cnPi << ");\n"
 		   << "\n"
-		   << "\t\tif (alt % 2 == 0)\n"
+		   << "\t\tif ((alt & 1) == 0)\n"
 		   << "\t\t	sigma = alt * " << piCn << " + fmod(sigma + " << caCn << ", " << piCn << ");\n"
 		   << "\t\telse\n"
 		   << "\t\t	sigma = alt * " << piCn << " + fmod(sigma - " << caCn << ", " << piCn << ");\n"
@@ -3584,6 +3669,11 @@ public:
 		   << "\t}\n";
 
 		return ss.str();
+	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Sqr" };
 	}
 
 	virtual void Precalc() override
@@ -3853,13 +3943,13 @@ public:
 		if (xmax < 1)
 			xmax = 1;
 
-		T nu = acos(Clamp<T>(helper.In.x / xmax, -1, 1)); // -Pi < nu < Pi
+		T nu = std::acos(Clamp<T>(helper.In.x / xmax, -1, 1)); // -Pi < nu < Pi
 
 		if (helper.In.y > 0)
 		{
 			alt = int(nu * m_CnPi);
 
-			if (alt % 2 == 0)
+			if ((alt & 1) == 0)
 				nu = alt * m_PiCn + fmod(nu + m_CaCn, m_PiCn);
 			else
 				nu = alt * m_PiCn + fmod(nu - m_CaCn, m_PiCn);
@@ -3868,7 +3958,7 @@ public:
 		{
 			alt = int(nu * m_CnPi);
 
-			if (alt % 2 == 0)
+			if ((alt & 1) == 0)
 				nu = alt * m_PiCn + fmod(nu + m_CaCn, m_PiCn);
 			else
 				nu = alt * m_PiCn + fmod(nu - m_CaCn, m_PiCn);
@@ -3876,7 +3966,7 @@ public:
 			nu *= -1;
 		}
 
-		helper.Out.x = m_Weight * xmax * cos(nu);
+		helper.Out.x = m_Weight * xmax * std::cos(nu);
 		helper.Out.y = m_Weight * std::sqrt(xmax - 1) * std::sqrt(xmax + 1) * sin(nu);
 		helper.Out.z = m_Weight * helper.In.z;
 	}
@@ -3903,13 +3993,13 @@ public:
 		   << "\t\tif (xmax < 1)\n"
 		   << "\t\t	xmax = 1;\n"
 		   << "\n"
-		   << "\t\treal_t nu = acos(Clamp(vIn.x / xmax, -(real_t)(1.0), (real_t)(1.0)));\n"
+		   << "\t\treal_t nu = acos(clamp(vIn.x / xmax, -(real_t)(1.0), (real_t)(1.0)));\n"
 		   << "\n"
 		   << "\t\tif (vIn.y > 0)\n"
 		   << "\t\t{\n"
 		   << "\t\t	alt = (int)(nu * " << cnPi << ");\n"
 		   << "\n"
-		   << "\t\t	if (alt % 2 == 0)\n"
+		   << "\t\t	if ((alt & 1) == 0)\n"
 		   << "\t\t		nu = alt * " << piCn << " + fmod(nu + " << caCn << ", " << piCn << ");\n"
 		   << "\t\t	else\n"
 		   << "\t\t		nu = alt * " << piCn << " + fmod(nu - " << caCn << ", " << piCn << ");\n"
@@ -3918,7 +4008,7 @@ public:
 		   << "\t\t{\n"
 		   << "\t\t	alt = (int)(nu * " << cnPi << ");\n"
 		   << "\n"
-		   << "\t\t	if (alt % 2 == 0)\n"
+		   << "\t\t	if ((alt & 1) == 0)\n"
 		   << "\t\t		nu = alt * " << piCn << " + fmod(nu + " << caCn << ", " << piCn << ");\n"
 		   << "\t\t	else\n"
 		   << "\t\t		nu = alt * " << piCn << " + fmod(nu - " << caCn << ", " << piCn << ");\n"
@@ -3932,6 +4022,11 @@ public:
 		   << "\t}\n";
 
 		return ss.str();
+	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "SafeSqrt" };
 	}
 
 	virtual void Precalc() override
@@ -3999,8 +4094,8 @@ public:
 
 		ClampGteRef<T>(xmax, 1);
 
-		T mu = acosh(xmax);
-		T nu = acos(Clamp<T>(x / xmax, -1, 1));//-Pi < nu < Pi.
+		T mu = std::acosh(xmax);
+		T nu = std::acos(Clamp<T>(x / xmax, -1, 1));//-Pi < nu < Pi.
 
 		if (helper.In.y < 0)
 			nu *= -1;
@@ -4008,8 +4103,8 @@ public:
 		nu = nu / m_Power + M_2PI / m_Power * Floor<T>(rand.Frand01<T>() * m_Power);
 		mu /= m_Power;
 
-		helper.Out.x = m_Weight * cosh(mu) * cos(nu);
-		helper.Out.y = m_Weight * sinh(mu) * sin(nu);
+		helper.Out.x = m_Weight * std::cosh(mu) * std::cos(nu);
+		helper.Out.y = m_Weight * std::sinh(mu) * std::sin(nu);
 		helper.Out.z = m_Weight * helper.In.z;
 	}
 
@@ -4043,7 +4138,7 @@ public:
 		   << "\t\t	xmax = 1;\n"
 		   << "\n"
 		   << "\t\treal_t mu = acosh(xmax);\n"
-		   << "\t\treal_t nu = acos(Clamp(x / xmax, -(real_t)(1.0), (real_t)(1.0)));\n"
+		   << "\t\treal_t nu = acos(clamp(x / xmax, -(real_t)(1.0), (real_t)(1.0)));\n"
 		   << "\n"
 		   << "\t\tif (vIn.y < 0)\n"
 		   << "\t\t	nu *= -1;\n"
@@ -4057,6 +4152,11 @@ public:
 		   << "\t}\n";
 
 		return ss.str();
+	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "SafeSqrt" };
 	}
 
 	virtual void Precalc() override
@@ -4104,8 +4204,8 @@ public:
 
 		ClampGteRef<T>(xmax, 1);
 
-		T mu = acosh(xmax);
-		T nu = acos(Clamp<T>(helper.In.x / xmax, -1, 1));//-Pi < nu < Pi.
+		T mu = std::acosh(xmax);
+		T nu = std::acos(Clamp<T>(helper.In.x / xmax, -1, 1));//-Pi < nu < Pi.
 
 		if (helper.In.y < 0)
 			nu *= -1;
@@ -4118,8 +4218,8 @@ public:
 				mu = fmod(mu - m_Radius - m_Distance * m_Radius, 2 * m_Radius) +  m_Radius;
 		}
 
-		helper.Out.x = m_Weight * cosh(mu) * cos(nu);
-		helper.Out.y = m_Weight * sinh(mu) * sin(nu);
+		helper.Out.x = m_Weight * std::cosh(mu) * std::cos(nu);
+		helper.Out.y = m_Weight * std::sinh(mu) * std::sin(nu);
 		helper.Out.z = m_Weight * helper.In.z;
 	}
 
@@ -4141,7 +4241,7 @@ public:
 		   << "\t\t	xmax = 1;\n"
 		   << "\n"
 		   << "\t\treal_t mu = acosh(xmax);\n"
-		   << "\t\treal_t nu = acos(Clamp(vIn.x / xmax, -(real_t)(1.0), (real_t)(1.0)));\n"
+		   << "\t\treal_t nu = acos(clamp(vIn.x / xmax, -(real_t)(1.0), (real_t)(1.0)));\n"
 		   << "\n"
 		   << "\t\tif (vIn.y < 0)\n"
 		   << "\t\t	nu *= -1;\n"
@@ -4160,6 +4260,11 @@ public:
 		   << "\t}\n";
 
 		return ss.str();
+	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "SafeSqrt" };
 	}
 
 protected:
@@ -4199,8 +4304,8 @@ public:
 
 		ClampGteRef<T>(xmax, 1);
 
-		T mu = acosh(xmax);
-		T nu = acos(Clamp<T>(helper.In.x / xmax, -1, 1));//-Pi < nu < Pi.
+		T mu = std::acosh(xmax);
+		T nu = std::acos(Clamp<T>(helper.In.x / xmax, -1, 1));//-Pi < nu < Pi.
 
 		if (helper.In.y < 0)
 			nu *= -1;
@@ -4218,8 +4323,8 @@ public:
 
 		nu += m_Rotate;
 
-		helper.Out.x = m_Weight * cosh(mu) * cos(nu);
-		helper.Out.y = m_Weight * sinh(mu) * sin(nu);
+		helper.Out.x = m_Weight * std::cosh(mu) * std::cos(nu);
+		helper.Out.y = m_Weight * std::sinh(mu) * std::sin(nu);
 		helper.Out.z = m_Weight * helper.In.z;
 	}
 
@@ -4241,7 +4346,7 @@ public:
 		   << "\t\t	xmax = 1;\n"
 		   << "\n"
 		   << "\t\treal_t mu = acosh(xmax);\n"
-		   << "\t\treal_t nu = acos(Clamp(vIn.x / xmax, -(real_t)(1.0), (real_t)(1.0)));\n"
+		   << "\t\treal_t nu = acos(clamp(vIn.x / xmax, -(real_t)(1.0), (real_t)(1.0)));\n"
 		   << "\n"
 		   << "\t\tif (vIn.y < 0)\n"
 		   << "\t\t	nu *= -1;\n"
@@ -4265,6 +4370,11 @@ public:
 		   << "\t}\n";
 
 		return ss.str();
+	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "SafeSqrt" };
 	}
 
 protected:
@@ -4304,8 +4414,8 @@ public:
 
 		ClampGteRef<T>(xmax, 1);
 
-		T mu = acosh(xmax);
-		T nu = acos(Clamp<T>(helper.In.x / xmax, -1, 1));//-Pi < nu < Pi.
+		T mu = std::acosh(xmax);
+		T nu = std::acos(Clamp<T>(helper.In.x / xmax, -1, 1));//-Pi < nu < Pi.
 
 		if (helper.In.y < 0)
 			nu *= -1;
@@ -4314,8 +4424,8 @@ public:
 		mu *= m_Dist;
 		mu += m_Push;
 
-		helper.Out.x = m_Weight * cosh(mu) * cos(nu);
-		helper.Out.y = m_Weight * sinh(mu) * sin(nu);
+		helper.Out.x = m_Weight * std::cosh(mu) * std::cos(nu);
+		helper.Out.y = m_Weight * std::sinh(mu) * std::sin(nu);
 		helper.Out.z = m_Weight * helper.In.z;
 	}
 
@@ -4338,7 +4448,7 @@ public:
 		   << "\t\t	xmax = 1;\n"
 		   << "\n"
 		   << "\t\treal_t mu = acosh(xmax);\n"
-		   << "\t\treal_t nu = acos(Clamp(vIn.x / xmax, -(real_t)(1.0), (real_t)(1.0)));\n"
+		   << "\t\treal_t nu = acos(clamp(vIn.x / xmax, -(real_t)(1.0), (real_t)(1.0)));\n"
 		   << "\n"
 		   << "\t\tif (vIn.y < 0)\n"
 		   << "\t\t	nu *= -1;\n"
@@ -4353,6 +4463,11 @@ public:
 		   << "\t}\n";
 
 		return ss.str();
+	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "SafeSqrt" };
 	}
 
 protected:
@@ -4395,15 +4510,15 @@ public:
 		if (xmax < 1)
 			xmax = 1;
 
-		T nu = acos(Clamp<T>(helper.In.x / xmax, -1, 1));//-Pi < nu < Pi.
+		T nu = std::acos(Clamp<T>(helper.In.x / xmax, -1, 1));//-Pi < nu < Pi.
 
 		if (helper.In.y < 0)
 			nu *= -1;
 
 		nu = fmod(nu + m_Rotate + T(M_PI), M_2PI) - T(M_PI);
 
-		helper.Out.x = m_Weight * xmax * cos(nu);
-		helper.Out.y = m_Weight * std::sqrt(xmax - 1) * std::sqrt(xmax + 1) * sin(nu);
+		helper.Out.x = m_Weight * xmax * std::cos(nu);
+		helper.Out.y = m_Weight * std::sqrt(xmax - 1) * std::sqrt(xmax + 1) * std::sin(nu);
 		helper.Out.z = m_Weight * helper.In.z;
 	}
 
@@ -4423,7 +4538,7 @@ public:
 		   << "\t\tif (xmax < 1)\n"
 		   << "\t\t	xmax = 1;\n"
 		   << "\n"
-		   << "\t\treal_t nu = acos(Clamp(vIn.x / xmax, -(real_t)(1.0), (real_t)(1.0)));\n"
+		   << "\t\treal_t nu = acos(clamp(vIn.x / xmax, -(real_t)(1.0), (real_t)(1.0)));\n"
 		   << "\n"
 		   << "\t\tif (vIn.y < 0)\n"
 		   << "\t\t	nu *= -1;\n"
@@ -4436,6 +4551,11 @@ public:
 		   << "\t}\n";
 
 		return ss.str();
+	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "SafeSqrt" };
 	}
 
 protected:
@@ -4473,8 +4593,8 @@ public:
 
 		ClampGteRef<T>(xmax, 1);
 
-		T mu = acosh(xmax);
-		T nu = acos(Clamp<T>(helper.In.x / xmax, -1, 1));//-Pi < nu < Pi.
+		T mu = std::acosh(xmax);
+		T nu = std::acos(Clamp<T>(helper.In.x / xmax, -1, 1));//-Pi < nu < Pi.
 
 		if (helper.In.y < 0)
 			nu *= -1;
@@ -4488,8 +4608,8 @@ public:
 		if (nu < -T(M_PI))
 			nu += M_2PI;
 
-		helper.Out.x = m_Weight * cosh(mu) * cos(nu);
-		helper.Out.y = m_Weight * sinh(mu) * sin(nu);
+		helper.Out.x = m_Weight * std::cosh(mu) * std::cos(nu);
+		helper.Out.y = m_Weight * std::sinh(mu) * std::sin(nu);
 		helper.Out.z = m_Weight * helper.In.z;
 	}
 
@@ -4511,7 +4631,7 @@ public:
 		   << "\t\t	xmax = 1;\n"
 		   << "\n"
 		   << "\t\treal_t mu = acosh(xmax);\n"
-		   << "\t\treal_t nu = acos(Clamp(vIn.x / xmax, -(real_t)(1.0), (real_t)(1.0)));\n"
+		   << "\t\treal_t nu = acos(clamp(vIn.x / xmax, -(real_t)(1.0), (real_t)(1.0)));\n"
 		   << "\n"
 		   << "\t\tif (vIn.y < 0)\n"
 		   << "\t\t	nu *= -1;\n"
@@ -4531,6 +4651,11 @@ public:
 		   << "\t}\n";
 
 		return ss.str();
+	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "SafeSqrt" };
 	}
 
 protected:

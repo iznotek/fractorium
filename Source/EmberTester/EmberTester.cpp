@@ -136,6 +136,12 @@ void MakeTestAllVarsRegPrePost(vector<Ember<T>>& embers)
 
 	while (index < varList.RegSize())
 	{
+		/*if (index != VAR_SYNTH)
+		{
+			index++;
+			continue;
+		}
+*/
 		Ember<T> ember1;
 		unique_ptr<Variation<T>> regVar(varList.GetVariationCopy(index, VARTYPE_REG));
 		unique_ptr<Variation<T>> preVar(varList.GetVariationCopy("pre_" + regVar->Name()));
@@ -422,7 +428,7 @@ bool TestVarUnique()
 
 	for (size_t i = 0; i < vl.Size(); i++)
 	{
-		Variation<T>* var = vl.GetVariation(i);
+		auto var = vl.GetVariation(i);
 
 		if (std::find(ids.begin(), ids.end(), var->VariationId()) != ids.end())
 		{
@@ -490,7 +496,7 @@ bool TestVarPrecalcEqual(const Variation<sT>* var1, const Variation<dT>* var2)
 }
 
 template <typename sT, typename dT>
-bool TestVarEqual(Variation<sT>* var1, Variation<dT>* var2)
+bool TestVarEqual(const Variation<sT>* var1, const Variation<dT>* var2)
 {
 	bool success = true;
 
@@ -530,8 +536,8 @@ bool TestVarEqual(Variation<sT>* var1, Variation<dT>* var2)
 		success = false;
 	}
 
-	ParametricVariation<sT>* parVar1 = dynamic_cast<ParametricVariation<sT>*>(var1);
-	ParametricVariation<dT>* parVar2 = dynamic_cast<ParametricVariation<dT>*>(var2);
+	auto parVar1 = dynamic_cast<const ParametricVariation<sT>*>(var1);
+	auto parVar2 = dynamic_cast<const ParametricVariation<dT>*>(var2);
 
 	if (parVar1 && parVar2)
 	{
@@ -585,10 +591,13 @@ bool TestVarEqual(Variation<sT>* var1, Variation<dT>* var2)
 				}
 			}
 
-			if (!IsClose<sT>(params1[i].ParamVal(), (sT)params2[i].ParamVal(), sT(1e-4)))
+			if (!params1[i].IsState() && !params2[i].IsState())//Don't compare state params, they can be different if set to random vals.
 			{
-				cout << "Param " << params1[i].Name() << " Val were not equal: " << params1[i].ParamVal() << " != " << params2[i].ParamVal() << endl;
-				success = false;
+				if (!IsClose<sT>(params1[i].ParamVal(), (sT)params2[i].ParamVal(), sT(1e-4)))
+				{
+					cout << "Param " << params1[i].Name() << " Val were not equal: " << params1[i].ParamVal() << " != " << params2[i].ParamVal() << endl;
+					success = false;
+				}
 			}
 		}
 	}
@@ -669,7 +678,7 @@ bool TestVarCopy()
 
 	for (size_t i = 0; i < vlf.Size(); i++)
 	{
-		Variation<sT>* var = vlf.GetVariation(i);
+		auto var = vlf.GetVariation(i);
 		Variation<dT>* destVar = NULL;
 		unique_ptr<Variation<sT>> copyVar(var->Copy());//Test Copy().
 		
@@ -1126,6 +1135,36 @@ bool TestConstants()
 	return success;
 }
 
+bool TestGlobalFuncs()
+{
+	bool success = true;
+	VariationList<float> vlf;
+	vector<string> funcs;
+	FunctionMapper mapper;
+
+	for (size_t i = 0; i < vlf.Size(); i++)
+	{
+		auto var = vlf.GetVariation(i);
+		
+		funcs = var->OpenCLGlobalFuncNames();
+
+		for (auto& func : funcs)
+		{
+			if (!mapper.GetGlobalFunc(func))
+			{
+				cout << "Variation " << var->Name() << " used unknown global funcion " << func << endl;
+				success = false;
+			}
+			else
+			{
+				//cout << "Variation " << var->Name() << " used valid global funcion " << func << endl;
+			}
+		}
+	}
+
+	return success;
+}
+
 void PrintAllVars()
 {
 	uint i = 0;
@@ -1506,17 +1545,20 @@ void TestVarsSimilar()
 #ifdef TEST_CL
 
 template <typename T>
-void TestAllVarsCLBuild(bool printSuccess = true)
+bool TestAllVarsCLBuild(size_t platform, size_t device, bool printSuccess = true)
 {
+	bool success = true;
 	vector<Ember<T>> embers;
 	QTIsaac<ISAAC_SIZE, ISAAC_INT> rand;
-	RendererCL<T> renderer;
+	vector<pair<size_t, size_t>> devices{ std::make_pair(platform, device) };
+	RendererCL<T, float> renderer(devices);
+
 	const char* loc = __FUNCTION__;
 
-	if (!renderer.Init(1, 0, false, 0))
+	if (!renderer.Ok())
 	{
 		cout << loc << "Creating RendererCL failed, tests will not be run." << endl;
-		return;
+		return false;
 	}
 
 	MakeTestAllVarsRegPrePost(embers);
@@ -1531,12 +1573,18 @@ void TestAllVarsCLBuild(bool printSuccess = true)
 				cout << loc << ": Build succeeded for ember " << it.m_Name << endl;
 		}
 		else
-			cout << loc << ": OpenCL program build failed:\n" << renderer.ErrorReport() << endl;
+		{
+			success = false;
+			cout << loc << ": OpenCL program build failed for ember " << it.m_Name << ":\n" << renderer.ErrorReportString() << endl;
+			break;
+		}
 	}
+
+	return success;
 }
 
 template <typename T>
-void TestCpuGpuResults()
+void TestCpuGpuResults(size_t platform, size_t device)
 {
 	bool breakOnBad = true;
 	int i = 0;//(int)VAR_TARGET;//Start at the one you want to test.
@@ -1547,10 +1595,8 @@ void TestCpuGpuResults()
 	VariationList<T> vlf;
 	QTIsaac<ISAAC_SIZE, ISAAC_INT> rand;
 	vector<PointCL<T>> points;
-	RendererCL<T> renderer;
-
-	if (!renderer.Init(1, 0, false, 0))
-		return;
+	vector<pair<size_t, size_t>> devices{ std::make_pair(platform, device) };
+	RendererCL<T, float> renderer(devices);
 
 	points.resize(renderer.TotalIterKernelCount());
 
@@ -1637,7 +1683,7 @@ void TestCpuGpuResults()
 }
 
 template <typename T>
-void TestGpuVectorRead()
+void TestGpuVectorRead(size_t platform, size_t device)
 {
 	T minx = TMAX, miny = TMAX, minz = TMAX, mincolorx = TMAX;
 	T maxx = TLOW, maxy = TLOW, maxz = TLOW, maxcolorx = TLOW;
@@ -1649,10 +1695,8 @@ void TestGpuVectorRead()
 	VariationList<T> vlf;
 	QTIsaac<ISAAC_SIZE, ISAAC_INT> rand;
 	vector<PointCL<T>> points;
-	RendererCL<T> renderer;
-
-	if (!renderer.Init(1, 0, false, 0))
-		return;
+	vector<pair<size_t, size_t>> devices{ std::make_pair(platform, device) };
+	RendererCL<T, float> renderer(devices);
 
 	points.resize(renderer.TotalIterKernelCount());
 
@@ -1918,17 +1962,110 @@ void TestThreadedKernel()
 	}
 }
 
+template <typename T>
+void DistribTester()
+{
+	size_t i;
+	size_t distribCount = 1;
+	size_t xformCount = 3;
+	vector<byte> m_XformDistributions;
+	//const Xform<T>* xforms = 3;
+	size_t j = 0;
+	vector<T> weights { T(0.333333), T(1.0), T(0.25) };
+	double tempDensity = 0, currentDensityLimit = 0, densityPerElement;
+
+	if (m_XformDistributions.size() < CHOOSE_XFORM_GRAIN * distribCount)
+		m_XformDistributions.resize(CHOOSE_XFORM_GRAIN * distribCount);
+
+	if (m_XformDistributions.size() < CHOOSE_XFORM_GRAIN * distribCount)
+		return;
+
+	for (size_t distrib = 0; distrib < distribCount; distrib++)
+	{
+		double totalDensity = 0;
+
+		//First find the total densities of all xforms.
+		for (i = 0; i < xformCount; i++)
+		{
+			T d = weights[i];
+
+			totalDensity += d;
+		}
+
+		//Original returned false if all were 0, but it's allowed here
+		//which will just end up setting all elements to 0 which means
+		//only the first xform will get used.
+
+		//Calculate how much of a fraction of a the total density each element represents.
+		j = 0;
+		tempDensity = 0;
+		currentDensityLimit = 0;
+		densityPerElement = totalDensity / CHOOSE_XFORM_GRAIN;
+
+		//Assign xform indices in order to each element of m_XformDistributions.
+		//The number of elements assigned a given index is proportional to that xform's
+		//density relative to the sum of all densities.
+		for (i = 0; i < xformCount; i++)
+		{
+			T temp = weights[i];
+			currentDensityLimit += temp;
+
+			//Populate points corresponding to this xform's weight/density.
+			//Also check that j is within the bounds of the distribution array just to be safe in the case of a rounding error.
+			while (tempDensity < currentDensityLimit && j < CHOOSE_XFORM_GRAIN)
+			{
+#ifdef _DEBUG
+				//Ensure distribution contains no out of bounds indices.
+				if (byte(i) >= xformCount)
+					throw "Out of bounds xform index in selection distribution.";
+#endif
+				//printf("offset = %d, xform = %d, running sum = %f\n", j, i, tempDensity);
+				m_XformDistributions[(distrib * CHOOSE_XFORM_GRAIN) + j] = byte(i);
+				tempDensity += densityPerElement;
+				j++;
+			}
+		}
+
+
+		//Flam3 did this, which gives the same result.
+		//T t = xforms[0].m_Weight;
+		//
+		//if (distrib > 0)
+		//	t *= xforms[distrib - 1].Xaos(0);
+		//
+		//T r = 0;
+		//
+		//for (i = 0; i < CHOOSE_XFORM_GRAIN; i++)
+		//{
+		//	while (r >= t)
+		//	{
+		//		j++;
+		//
+		//		if (distrib > 0)
+		//			t += xforms[j].m_Weight * xforms[distrib - 1].Xaos(j);
+		//		else
+		//			t += xforms[j].m_Weight;
+		//	}
+		//
+		//	m_XformDistributions[(distrib * CHOOSE_XFORM_GRAIN) + i] = j;
+		//	r += densityPerElement;
+		//}
+	}
+}
+
 int _tmain(int argc, _TCHAR* argv[])
 {
 	//int i;
+	bool b = true;
 	Timing t(4);
 	QTIsaac<ISAAC_SIZE, ISAAC_INT> rand(1, 2, 3);
 	mt19937 meow(1729);
-	MakeTestAllVarsRegPrePostComboFile("testallvarsout.flame");
+	
+	/*MakeTestAllVarsRegPrePostComboFile("testallvarsout.flame");
 	return 0;
 
 
-	/*TestThreadedKernel();
+	TestThreadedKernel();
 
 	PaletteList<float> palf;
 	Palette<float>* pal = palf.GetRandomPalette();
@@ -1939,7 +2076,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	for (int i = 0; i < 10; i++)
 	{
-		cout << "log10(" << d << ") = " << std::max<uint>(1u, uint(log10(d)) + 1u) << endl;
+		cout << "log10(" << d << ") = " << std::max<uint>(1u, uint(std::log10(d)) + 1u) << endl;
 		d *= 10;
 	}
 
@@ -2041,7 +2178,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	//cd2 = sin(cd);
 	
-	/*t.Tic();
+	t.Tic();
 	TestCasting();
 	t.Toc("TestCasting()");
 	
@@ -2088,6 +2225,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	TestVarCopy<double, float>();
 	t.Toc("TestVarCopy<double, float>()");
 #endif
+	
 	t.Tic();
 	TestVarRegPrePost();
 	t.Toc("TestVarRegPrePost()");
@@ -2121,17 +2259,22 @@ int _tmain(int argc, _TCHAR* argv[])
 	t.Toc("TestConstants()");
 	
 	t.Tic();
+	TestGlobalFuncs();
+	t.Toc("TestGlobalFuncs()");
+	
+	/*t.Tic();
 	TestXformsInOutPoints();
 	t.Toc("TestXformsInOutPoints()");
 	
 	t.Tic();
 	TestVarTime<float>();
 	t.Toc("TestVarTime()");
-	
+	*/
+
 	t.Tic();
 	TestOperations<float>();
 	t.Toc("TestOperations()");
-	*/
+	
 	//t.Tic();
 	//TestVarsSimilar<float>();
 	//t.Toc("TestVarsSimilar()");
@@ -2141,18 +2284,34 @@ int _tmain(int argc, _TCHAR* argv[])
 	//TestCpuGpuResults<float>();
 	//t.Toc("TestCpuGpuResults<float>()");
 	
-	t.Tic();
-	TestAllVarsCLBuild<float>();
-	t.Toc("TestAllVarsCLBuild<float>()");
+	//t.Tic();
+	//b = TestAllVarsCLBuild<float>(0, 0, true);
+	//t.Toc("TestAllVarsCLBuild<float>()");
+
+	if (b)
+	{
+		t.Tic();
+		b = TestAllVarsCLBuild<float>(1, 0, true);
+		t.Toc("TestAllVarsCLBuild<float>()");
+	}
 
 #ifdef DO_DOUBLE
 	//t.Tic();
 	//TestCpuGpuResults<double>();
 	//t.Toc("TestCpuGpuResults<double>()");
+	if (b)
+	{
+		t.Tic();
+		TestAllVarsCLBuild<double>(0, 0, true);
+		t.Toc("TestAllVarsCLBuild<double>()");
 
-	t.Tic();
-	TestAllVarsCLBuild<double>();
-	t.Toc("TestAllVarsCLBuild<double>()");
+		if (b)
+		{
+			t.Tic();
+			TestAllVarsCLBuild<double>(1, 0, true);
+			t.Toc("TestAllVarsCLBuild<double>()");
+		}
+	}
 #endif
 #endif
 

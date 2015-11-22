@@ -201,7 +201,7 @@ public:
 		m_SubBatchSize = DEFAULT_SBS;
 		m_FuseCount = 15;
 		m_Supersample = 1;
-		m_TemporalSamples = 1000;
+		m_TemporalSamples = 100;
 		m_Symmetry = 0;
 		m_Quality = 100;
 		m_PixelsPerUnit = 240;
@@ -226,7 +226,7 @@ public:
 		m_Time = 0;
 		m_Background.Reset();
 		m_Interp = EMBER_INTERP_LINEAR;
-		m_AffineInterp = INTERP_LOG;
+		m_AffineInterp = AFFINE_INTERP_LOG;
 
 		//DE filter.
 		m_MinRadDE = 0;
@@ -505,15 +505,15 @@ public:
 		}
 		else
 		{
-			m_CamMat[0][0] =  cos(-m_CamYaw);
-			m_CamMat[1][0] = -sin(-m_CamYaw);
+			m_CamMat[0][0] =  std::cos(-m_CamYaw);
+			m_CamMat[1][0] = -std::sin(-m_CamYaw);
 			m_CamMat[2][0] = 0;
-			m_CamMat[0][1] =  cos(m_CamPitch) * sin(-m_CamYaw);
-			m_CamMat[1][1] =  cos(m_CamPitch) * cos(-m_CamYaw);
-			m_CamMat[2][1] = -sin(m_CamPitch);
-			m_CamMat[0][2] =  sin(m_CamPitch) * sin(-m_CamYaw);
-			m_CamMat[1][2] =  sin(m_CamPitch) * cos(-m_CamYaw);
-			m_CamMat[2][2] =  cos(m_CamPitch);
+			m_CamMat[0][1] =  std::cos(m_CamPitch) * std::sin(-m_CamYaw);
+			m_CamMat[1][1] =  std::cos(m_CamPitch) * std::cos(-m_CamYaw);
+			m_CamMat[2][1] = -std::sin(m_CamPitch);
+			m_CamMat[0][2] =  std::sin(m_CamPitch) * std::sin(-m_CamYaw);
+			m_CamMat[1][2] =  std::sin(m_CamPitch) * std::cos(-m_CamYaw);
+			m_CamMat[2][2] =  std::cos(m_CamPitch);
 
 			if (projBits & PROJBITS_BLUR)
 			{
@@ -667,10 +667,10 @@ public:
 	}
 
 	/// <summary>
-	/// Flatten all xforms by adding a flatten variation if none is present, and if any of the
-	/// variations or parameters in the vector are present.
+	/// Flatten all xforms by adding a flatten variation if none is present, and if none of the
+	/// variations or parameters in the vector are not present.
 	/// </summary>
-	/// <param name="names">Vector of variation and parameter names</param>
+	/// <param name="names">Vector of variation and parameter names that inhibit flattening</param>
 	/// <returns>True if flatten was added to any of the xforms, false if it already was present or if none of the specified variations or parameters were present.</returns>
 	bool Flatten(vector<string>& names)
 	{
@@ -907,7 +907,7 @@ public:
 			ClampRef<T>(thisXform->m_ColorSpeed, -1, 1);
 
 			//Interp affine and post.
-			if (m_AffineInterp == INTERP_LOG)
+			if (m_AffineInterp == AFFINE_INTERP_LOG)
 			{
 				vector<v2T> cxMag(size);
 				vector<v2T> cxAng(size);
@@ -944,7 +944,7 @@ public:
 					Interpolater<T>::InterpAndConvertBack(coefs, cxAng, cxMag, cxTrn, thisXform->m_Post);
 				}
 			}
-			else if (m_AffineInterp == INTERP_LINEAR)
+			else if (m_AffineInterp == AFFINE_INTERP_LINEAR)
 			{
 				//Interpolate pre and post affine using coefs.
 				allID = true;
@@ -1057,7 +1057,7 @@ public:
 				continue;
 
 			//Assume that if there are no variations, then it's a padding xform.
-			if (m_Xforms[i].Empty() && m_AffineInterp != INTERP_LOG)
+			if (m_Xforms[i].Empty() && m_AffineInterp != AFFINE_INTERP_LOG)
 				continue;
 
 			m_Xforms[i].m_Affine.Rotate(angle);
@@ -1140,8 +1140,8 @@ public:
 			m_Xforms[i].m_ColorSpeed = 0;
 			m_Xforms[i].m_Animate = 0;
 			m_Xforms[i].m_ColorX = m_Xforms[i].m_ColorY = (sym < 3) ? 0 : (T(k - 1) / T(sym - 2));//Added Y.
-			m_Xforms[i].m_Affine.A(Round6(cos(k * a)));
-			m_Xforms[i].m_Affine.D(Round6(sin(k * a)));
+			m_Xforms[i].m_Affine.A(Round6(std::cos(k * a)));
+			m_Xforms[i].m_Affine.D(Round6(std::sin(k * a)));
 			m_Xforms[i].m_Affine.B(Round6(-m_Xforms[i].m_Affine.D()));
 			m_Xforms[i].m_Affine.E(m_Xforms[i].m_Affine.A());
 			m_Xforms[i].m_Affine.C(0);
@@ -1159,7 +1159,7 @@ public:
 	/// Return a uint with bits set to indicate which kind of projection should be done.
 	/// </summary>
 	/// <param name="onlyScaleIfNewIsSmaller">A uint with bits set for each kind of projection that is needed</param>
-	size_t ProjBits()
+	size_t ProjBits() const
 	{
 		size_t val = 0;
 
@@ -1410,9 +1410,9 @@ public:
 			m_MinRadDE = 0;
 			m_CurveDE = T(0.4);
 			m_GammaThresh = T(0.01);
-			m_TemporalSamples = 1000;
+			m_TemporalSamples = 100;
 			m_SpatialFilterType = GAUSSIAN_SPATIAL_FILTER;
-			m_AffineInterp = INTERP_LOG;
+			m_AffineInterp = AFFINE_INTERP_LOG;
 			m_TemporalFilterType = BOX_TEMPORAL_FILTER;
 			m_TemporalFilterWidth = 1;
 			m_TemporalFilterExp = 0;
@@ -1443,7 +1443,7 @@ public:
 			m_GammaThresh = -1;
 			m_TemporalSamples = 0;
 			m_SpatialFilterType = GAUSSIAN_SPATIAL_FILTER;
-			m_AffineInterp = INTERP_LOG;
+			m_AffineInterp = AFFINE_INTERP_LOG;
 			m_TemporalFilterType = BOX_TEMPORAL_FILTER;
 			m_TemporalFilterWidth = -1;
 			m_TemporalFilterExp = -999;

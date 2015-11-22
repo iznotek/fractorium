@@ -110,8 +110,8 @@ public:
 					destXform->DeleteVariationById(VAR_LINEAR);
 
 					//Only do the next substitution for log interpolation.
-					if ((i == 0 && destEmbers[i].m_AffineInterp     == INTERP_LOG) ||
-						(i > 0  && destEmbers[i - 1].m_AffineInterp == INTERP_LOG))
+					if ((i == 0 && destEmbers[i].m_AffineInterp     == AFFINE_INTERP_LOG) ||
+						(i > 0  && destEmbers[i - 1].m_AffineInterp == AFFINE_INTERP_LOG))
 					{
 						for (ii = -1; ii <= 1; ii += 2)
 						{
@@ -790,7 +790,7 @@ public:
 				accang[col] += coefs[i] * cxAng[i][col];
 
 				if (accmode[col] == 0)
-					accmag[col] += coefs[i] * log(cxMag[i][col]);
+					accmag[col] += coefs[i] * std::log(cxMag[i][col]);
 				else
 					accmag[col] += coefs[i] * (cxMag[i][col]);
 
@@ -803,12 +803,12 @@ public:
 		for (col = 0; col < 2; col++)
 		{
 			if (accmode[col] == 0)
-				expmag = exp(accmag[col]);
+				expmag = std::exp(accmag[col]);
 			else
 				expmag = accmag[col];
 
-			store.m_Mat[0][col] = expmag * cos(accang[col]);
-			store.m_Mat[1][col] = expmag * sin(accang[col]);
+			store.m_Mat[0][col] = expmag * std::cos(accang[col]);
+			store.m_Mat[1][col] = expmag * std::sin(accang[col]);
 		}
 	}
 
@@ -865,7 +865,7 @@ public:
 		//abs peak values should be not be greater than 1.
 		if (funcNum == MOTION_SIN)
 		{
-			return sin(T(2.0) * T(M_PI) * timeVal);
+			return std::sin(T(2.0) * T(M_PI) * timeVal);
 		}
 		else if (funcNum == MOTION_TRIANGLE)
 		{
@@ -885,7 +885,7 @@ public:
 		}
 		else if (funcNum == MOTION_HILL)
 		{
-			return ((1 - cos(T(2.0) * T(M_PI) * timeVal)) * T(0.5));
+			return ((1 - std::cos(T(2.0) * T(M_PI) * timeVal)) * T(0.5));
 		}
 		else //MOTION_SAW
 		{

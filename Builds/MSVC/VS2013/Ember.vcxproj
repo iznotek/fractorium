@@ -157,7 +157,8 @@
       <StructMemberAlignment>Default</StructMemberAlignment>
       <PrecompiledHeaderFile>EmberPch.h</PrecompiledHeaderFile>
       <FloatingPointModel>Precise</FloatingPointModel>
-      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/bigobj
+ %(AdditionalOptions)</AdditionalOptions>
       <StringPooling>true</StringPooling>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -228,7 +229,8 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <PrecompiledHeaderFile>EmberPch.h</PrecompiledHeaderFile>
       <StringPooling>true</StringPooling>
-      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/bigobj
+ %(AdditionalOptions)</AdditionalOptions>
       <FloatingPointModel>Precise</FloatingPointModel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <FloatingPointExceptions>false</FloatingPointExceptions>
@@ -295,12 +297,12 @@
     <ClInclude Include="..\..\..\Source\Ember\Variations03.h" />
     <ClInclude Include="..\..\..\Source\Ember\Variations04.h" />
     <ClInclude Include="..\..\..\Source\Ember\Variations05.h" />
+    <ClInclude Include="..\..\..\Source\Ember\Variations06.h" />
     <ClInclude Include="..\..\..\Source\Ember\VariationsDC.h" />
     <ClInclude Include="..\..\..\Source\Ember\Xform.h" />
     <ClInclude Include="..\..\..\Source\Ember\Isaac.h" />
     <ClInclude Include="..\..\..\Source\Ember\Timing.h" />
     <ClInclude Include="..\..\..\Source\Ember\XmlToEmber.h" />
-    <ClInclude Include="resource1.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\Ember\Affine2D.cpp" />

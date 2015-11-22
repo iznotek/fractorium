@@ -5,6 +5,7 @@
 #include "Variations03.h"
 #include "Variations04.h"
 #include "Variations05.h"
+#include "Variations06.h"
 #include "VariationsDC.h"
 
 /// <summary>
@@ -35,7 +36,7 @@ public:
 	/// </summary>
 	VariationList()
 	{
-		m_Variations.reserve(900);//Change this as the list grows.
+		m_Variations.reserve(eVariationId::LAST_VAR);
 		ADDPREPOSTREGVAR(Linear)
 		ADDPREPOSTREGVAR(Sinusoidal)
 		ADDPREPOSTREGVAR(Spherical)
@@ -315,6 +316,8 @@ public:
 		ADDPREPOSTREGVAR(Ho)
 		ADDPREPOSTREGVAR(Julia3Dq)
 		ADDPREPOSTREGVAR(Line)
+		ADDPREPOSTREGVAR(Loonie2)
+		ADDPREPOSTREGVAR(Loonie3)
 		ADDPREPOSTREGVAR(Loonie3D)
 		ADDPREPOSTREGVAR(Mcarpet)
 		ADDPREPOSTREGVAR(Waves23D)
@@ -329,16 +332,25 @@ public:
 		ADDPREPOSTREGVAR(Falloff2)
 		ADDPREPOSTREGVAR(Falloff3)
 		ADDPREPOSTREGVAR(Xtrb)
+		ADDPREPOSTREGVAR(Hexaplay3D)
+		ADDPREPOSTREGVAR(Hexnix3D)
+		ADDPREPOSTREGVAR(Hexcrop)
+		ADDPREPOSTREGVAR(Hexes)
+		ADDPREPOSTREGVAR(Nblur)
+		ADDPREPOSTREGVAR(Octapol)
+		ADDPREPOSTREGVAR(Crob)
+		ADDPREPOSTREGVAR(BubbleT3D)
+		ADDPREPOSTREGVAR(Synth)
 		//ADDPREPOSTREGVAR(LinearXZ)
 		//ADDPREPOSTREGVAR(LinearYZ)
 
 		//DC are special.
-		m_Variations.push_back(new DCBubbleVariation<T>());
+		ADDPREPOSTREGVAR(DCBubble)
 		ADDPREPOSTREGVAR(DCCarpet)
 		ADDPREPOSTREGVAR(DCCube)
-		m_Variations.push_back(new DCCylinderVariation<T>());
+		ADDPREPOSTREGVAR(DCCylinder)
 		ADDPREPOSTREGVAR(DCGridOut)
-		m_Variations.push_back(new DCLinearVariation<T>());
+		ADDPREPOSTREGVAR(DCLinear)
 		ADDPREPOSTREGVAR(DCTriangle)
 		ADDPREPOSTREGVAR(DCZTransl)
 
@@ -348,6 +360,7 @@ public:
 		m_RegVariations.reserve(m_Variations.size()  / 3);
 		m_PreVariations.reserve(m_Variations.size()  / 3);
 		m_PostVariations.reserve(m_Variations.size() / 3);
+		m_ParametricVariations.reserve(size_t(m_Variations.size() * .90));//This is a rough guess at how many are parametric.
 
 		for (auto var : m_Variations) if (var->VarType() == VARTYPE_REG)  m_RegVariations.push_back(var);
 		for (auto var : m_Variations) if (var->VarType() == VARTYPE_PRE)  m_PreVariations.push_back(var);

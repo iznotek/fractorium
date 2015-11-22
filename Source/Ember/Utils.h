@@ -42,6 +42,18 @@ static inline bool FindIf(c& container, pr pred)
 }
 
 /// <summary>
+/// Thin wrapper around std::find_if() determine if a value exists at least once.
+/// </summary>
+/// <param name="container">The container to call find_if() on</param>
+/// <param name="val">The value to search for</param>
+/// <returns>True if the value was contained at least once, else false.</returns>
+template<class c, class T>
+static inline bool Contains(c& container, const T& val)
+{
+	return std::find_if(container.begin(), container.end(), [&](const T& t) -> bool { return t == val; }) != container.end();
+}
+
+/// <summary>
 /// Thin wrapper around computing the total size of a vector.
 /// </summary>
 /// <param name="vec">The vector to compute the size of</param>
@@ -574,7 +586,7 @@ static
 #endif
 float SafeTan<float>(float x)
 {
-	return tan(Clamp<float>(x, FLOAT_MIN_TAN, FLOAT_MAX_TAN));
+	return std::tan(Clamp<float>(x, FLOAT_MIN_TAN, FLOAT_MAX_TAN));
 }
 
 template <>
@@ -583,7 +595,7 @@ static
 #endif
 double SafeTan<double>(double x)
 {
-	return tan(x);
+	return std::tan(x);
 }
 
 /// <summary>
@@ -632,7 +644,7 @@ static inline T Spread(T x, T y)
 template <typename T>
 static inline T Powq4(T x, T y)
 {
-	return pow(fabs(x), y) * SignNz(x);
+	return std::pow(std::fabs(x), y) * SignNz(x);
 }
 
 /// <summary>
@@ -696,7 +708,7 @@ static inline T Fabsmod(T v)
 template <typename T>
 static inline T Fosc(T p, T amp, T ph)
 {
-	return T(0.5) - cos(p * amp + ph) * T(0.5);
+	return T(0.5) - std::cos(p * amp + ph) * T(0.5);
 }
 
 /// <summary>
@@ -708,7 +720,7 @@ static inline T Fosc(T p, T amp, T ph)
 template <typename T>
 static inline T Foscn(T p, T ph)
 {
-	return T(0.5) - cos(p + ph) * T(0.5);
+	return T(0.5) - std::cos(p + ph) * T(0.5);
 }
 
 /// <summary>
@@ -719,7 +731,7 @@ static inline T Foscn(T p, T ph)
 template <typename T>
 static inline T LogScale(T x)
 {
-	return x == 0 ? 0 : log((fabs(x) + 1) * T(M_E)) * SignNz(x) / T(M_E);
+	return x == 0 ? 0 : std::log((fabs(x) + 1) * T(M_E)) * SignNz(x) / T(M_E);
 }
 
 /// <summary>
@@ -730,7 +742,7 @@ static inline T LogScale(T x)
 template <typename T>
 static inline T LogMap(T x)
 {
-	return x == 0 ? 0 : (T(M_E) + log(x * T(M_E))) * T(0.25) * SignNz(x);
+	return x == 0 ? 0 : (T(M_E) + std::log(x * T(M_E))) * T(0.25) * SignNz(x);
 }
 
 /// <summary>

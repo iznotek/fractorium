@@ -149,7 +149,7 @@ bool EmberRender(EmberOptions& opt)
 
 	//Final setup steps before running.
 	os.imbue(std::locale(""));
-	padding = uint(log10(double(embers.size()))) + 1;
+	padding = uint(std::log10(double(embers.size()))) + 1;
 	renderer->EarlyClip(opt.EarlyClip());
 	renderer->YAxisUp(opt.YAxisUp());
 	renderer->LockAccum(opt.LockAccum());
@@ -158,7 +158,7 @@ bool EmberRender(EmberOptions& opt)
 	renderer->Transparency(opt.Transparency());
 	renderer->NumChannels(channels);
 	renderer->BytesPerChannel(opt.BitsPerChannel() / 8);
-	renderer->Priority(eThreadPriority(Clamp<int>(int(opt.Priority()), int(eThreadPriority::LOWEST), int(eThreadPriority::HIGHEST))));
+	renderer->Priority(eThreadPriority(Clamp<intmax_t>(intmax_t(opt.Priority()), intmax_t(eThreadPriority::LOWEST), intmax_t(eThreadPriority::HIGHEST))));
 	renderer->Callback(opt.DoProgress() ? progress.get() : nullptr);
 
 	for (i = 0; i < embers.size(); i++)
@@ -176,8 +176,8 @@ bool EmberRender(EmberOptions& opt)
 
 		embers[i].m_TemporalSamples = 1;//Force temporal samples to 1 for render.
 		embers[i].m_Quality *= T(opt.QualityScale());
-		embers[i].m_FinalRasW = uint(T(embers[i].m_FinalRasW) * opt.SizeScale());
-		embers[i].m_FinalRasH = uint(T(embers[i].m_FinalRasH) * opt.SizeScale());
+		embers[i].m_FinalRasW = size_t(T(embers[i].m_FinalRasW) * opt.SizeScale());
+		embers[i].m_FinalRasH = size_t(T(embers[i].m_FinalRasH) * opt.SizeScale());
 		embers[i].m_PixelsPerUnit *= T(opt.SizeScale());
 
 		if (embers[i].m_FinalRasW == 0 || embers[i].m_FinalRasH == 0)
@@ -309,9 +309,11 @@ bool EmberRender(EmberOptions& opt)
 		{
 			if (auto rendererCL = dynamic_cast<RendererCL<T, float>*>(renderer.get()))
 			{
-				cout << "Iteration kernel: \n" <<
+				cout << "Iteration kernel:\n" <<
 				rendererCL->IterKernel() << "\n\n" <<
+				"Density filter kernel:\n" <<
 				rendererCL->DEKernel() << "\n\n" <<
+				"Final accumulation kernel:\n" <<
 				rendererCL->FinalAccumKernel() << endl;
 			}
 		}

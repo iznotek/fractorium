@@ -354,7 +354,7 @@ bool RendererCL<T, bucketT>::WritePoints(size_t device, vector<PointCL<T>>& vec)
 
 #ifdef TEST_CL
 template <typename T, typename bucketT>
-bool RendererCL<T, bucketT>::WriteRandomPoints()
+bool RendererCL<T, bucketT>::WriteRandomPoints(size_t device)
 {
 	size_t size = IterGridKernelCount();
 	vector<PointCL<T>> vec(size);
@@ -368,7 +368,7 @@ bool RendererCL<T, bucketT>::WriteRandomPoints()
 		vec[i].m_LastXfUsed = 0;
 	}
 
-	return WritePoints(vec);
+	return WritePoints(device, vec);
 }
 #endif
 
@@ -613,6 +613,8 @@ vector<string> RendererCL<T, bucketT>::ErrorReport()
 /// <summary>
 /// Set the vector of random contexts on every device.
 /// Call the base, and reset the seeds vector.
+/// Used on the command line when the user wants a specific set of seeds to start with to
+/// produce an exact result. Mostly for debugging.
 /// </summary>
 /// <param name="randVec">The vector of random contexts to assign</param>
 /// <returns>True if the size of the vector matched the number of threads used for rendering and writing seeds to OpenCL succeeded, else false.</returns>
@@ -707,9 +709,10 @@ bool RendererCL<T, bucketT>::ResetBuckets(bool resetHist, bool resetAccum)
 /// <summary>
 /// Perform log scale density filtering on the primary device.
 /// </summary>
+/// <param name="forceOutput">Whether this output was forced due to an interactive render</param>
 /// <returns>True if success and not aborted, else false.</returns>
 template <typename T, typename bucketT>
-eRenderStatus RendererCL<T, bucketT>::LogScaleDensityFilter()
+eRenderStatus RendererCL<T, bucketT>::LogScaleDensityFilter(bool forceOutput)
 {
 	return RunLogScaleFilter();
 }
@@ -804,10 +807,10 @@ EmberStats RendererCL<T, bucketT>::Iterate(size_t iterCount, size_t temporalSamp
 		{
 			auto& wrapper = device->m_Wrapper;
 
-			if (b && !(b = wrapper.WriteBuffer		(m_EmberBufferName, reinterpret_cast<void*>(&m_EmberCL),		 sizeof(m_EmberCL))))						     { this->m_ErrorReport.push_back(loc); }
-			if (b && !(b = wrapper.WriteBuffer		(m_XformsBufferName, reinterpret_cast<void*>(m_XformsCL.data()), sizeof(m_XformsCL[0]) * m_XformsCL.size())))	 { this->m_ErrorReport.push_back(loc); }
-			if (b && !(b = wrapper.AddAndWriteBuffer(m_DistBufferName, reinterpret_cast<void*>(const_cast<byte*>(XformDistributions())), XformDistributionsSize()))) { this->m_ErrorReport.push_back(loc); }//Will be resized for xaos.
-			if (b && !(b = wrapper.WriteBuffer		(m_CarToRasBufferName, reinterpret_cast<void*>(&m_CarToRasCL),	 sizeof(m_CarToRasCL))))					     { this->m_ErrorReport.push_back(loc); }
+			if (b && !(b = wrapper.WriteBuffer		(m_EmberBufferName,	   reinterpret_cast<void*>(&m_EmberCL),		   sizeof(m_EmberCL))))								 { this->m_ErrorReport.push_back(loc); }
+			if (b && !(b = wrapper.WriteBuffer		(m_XformsBufferName,   reinterpret_cast<void*>(m_XformsCL.data()), sizeof(m_XformsCL[0]) * m_XformsCL.size())))		 { this->m_ErrorReport.push_back(loc); }
+			if (b && !(b = wrapper.AddAndWriteBuffer(m_DistBufferName,	   reinterpret_cast<void*>(const_cast<byte*>(XformDistributions())), XformDistributionsSize()))) { this->m_ErrorReport.push_back(loc); }//Will be resized for xaos.
+			if (b && !(b = wrapper.WriteBuffer		(m_CarToRasBufferName, reinterpret_cast<void*>(&m_CarToRasCL),	   sizeof(m_CarToRasCL))))							 { this->m_ErrorReport.push_back(loc); }
 
 			if (b && !(b = wrapper.AddAndWriteImage("Palette", CL_MEM_READ_ONLY, m_PaletteFormat, m_Dmap.m_Entries.size(), 1, 0, m_Dmap.m_Entries.data()))) { this->m_ErrorReport.push_back(loc); }
 
@@ -966,7 +969,7 @@ bool RendererCL<T, bucketT>::RunIter(size_t iterCount, size_t temporalSample, si
 		{
 			cl_uint argIndex = 0;
 #ifdef TEST_CL
-			fuse = 0;
+			uint fuse = 0;
 #else
 			uint fuse = uint((m_Devices[dev]->m_Calls % fuseFreq) == 0u ? FuseCount() : 0u);
 #endif

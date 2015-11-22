@@ -301,7 +301,33 @@ bool FractoriumEmberController<T>::Render()
 	bool success = true;
 	GLWidget* gl = m_Fractorium->ui.GLDisplay;
 	RendererCL<T, float>* rendererCL = nullptr;
-	eProcessAction action = CondenseAndClearProcessActions();
+	eProcessAction qualityAction, action;
+
+	//Quality is the only parameter we update inside the timer.
+	//This is to allow the user to rapidly increase the quality spinner
+	//without fully resetting the render. Instead, it will just keep iterating
+	//where it last left off in response to an increase.
+	T d = T(m_Fractorium->m_QualitySpin->value());
+
+	if (d < m_Ember.m_Quality)//Full restart if quality decreased.
+	{
+		m_Ember.m_Quality = d;
+		qualityAction = eProcessAction::FULL_RENDER;
+	}
+	else if (d > m_Ember.m_Quality && ProcessState() == ACCUM_DONE)//If quality increased, keep iterating after current render finishes.
+	{
+		m_Ember.m_Quality = d;
+		qualityAction = eProcessAction::KEEP_ITERATING;
+	}
+	else if (IsClose(d, m_Ember.m_Quality))
+		qualityAction = eProcessAction::NOTHING;
+
+	if (qualityAction == eProcessAction::FULL_RENDER)
+		Update([&] {});//Stop the current render, a full restart is needed.
+	else if (qualityAction == eProcessAction::KEEP_ITERATING)
+		m_ProcessActions.push_back(qualityAction);//Special, direct call to avoid resetting the render inside Update() because only KEEP_ITERATING is needed.
+
+	action = CondenseAndClearProcessActions();//Combine with all other previously requested actions.
 
 	if (m_Renderer->RendererType() == OPENCL_RENDERER)
 		rendererCL = dynamic_cast<RendererCL<T, float>*>(m_Renderer.get());
@@ -391,7 +417,7 @@ bool FractoriumEmberController<T>::Render()
 				//Only certain stats can be reported with OpenCL.
 				if (m_Renderer->RendererType() == OPENCL_RENDERER)
 				{
-					m_Fractorium->m_RenderStatusLabel->setText("Iters: " + iters + ". Scaled quality: " + scaledQuality + ". Total time: " + QString::fromStdString(renderTime));
+					m_Fractorium->m_RenderStatusLabel->setText("Iters: " + iters + ". Scaled quality: " + scaledQuality + ". Total time: " + QString::fromStdString(renderTime) + ".");
 				}
 				else
 				{
@@ -399,7 +425,7 @@ bool FractoriumEmberController<T>::Render()
 					QString badVals = ToString<qulonglong>(stats.m_Badvals);
 					QString badPercent = QLocale::system().toString(percent * 100, 'f', 2);
 
-					m_Fractorium->m_RenderStatusLabel->setText("Iters: " + iters + ". Scaled quality: " + scaledQuality + ". Bad values: " + badVals + " (" + badPercent + "%). Total time: " + QString::fromStdString(renderTime));
+					m_Fractorium->m_RenderStatusLabel->setText("Iters: " + iters + ". Scaled quality: " + scaledQuality + ". Bad values: " + badVals + " (" + badPercent + "%). Total time: " + QString::fromStdString(renderTime) + ".");
 				}
 				
 				if (m_LastEditWasUndoRedo && (m_UndoIndex == m_UndoList.size() - 1))//Traversing through undo list, reached the end, so put back in regular edit mode.

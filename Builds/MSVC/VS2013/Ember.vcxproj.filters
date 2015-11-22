@@ -116,8 +116,8 @@
     <ClInclude Include="..\..\..\Source\Ember\EmberMotion.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="resource1.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="..\..\..\Source\Ember\Variations06.h">
+      <Filter>Header Files\Variations</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

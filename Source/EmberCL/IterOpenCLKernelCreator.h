@@ -3,6 +3,7 @@
 #include "EmberCLPch.h"
 #include "EmberCLStructs.h"
 #include "EmberCLFunctions.h"
+#include "FunctionMapper.h"
 
 /// <summary>
 /// IterOpenCLKernelCreator class.
@@ -29,20 +30,24 @@ public:
 	const string& SumHistKernel() const;
 	const string& SumHistEntryPoint() const;
 	const string& IterEntryPoint() const;
-	string CreateIterKernelString(Ember<T>& ember, string& parVarDefines, bool lockAccum = false, bool doAccum = true);
-	static void ParVarIndexDefines(Ember<T>& ember, pair<string, vector<T>>& params, bool doVals = true, bool doString = true);
-	static bool IsBuildRequired(Ember<T>& ember1, Ember<T>& ember2);
+	string CreateIterKernelString(const Ember<T>& ember, string& parVarDefines, bool lockAccum = false, bool doAccum = true);
+	string GlobalFunctionsString(const Ember<T>& ember);
+	static void ParVarIndexDefines(const Ember<T>& ember, pair<string, vector<T>>& params, bool doVals = true, bool doString = true);
+	static string VariationStateString(const Ember<T>& ember);
+	static string VariationStateInitString(const Ember<T>& ember);
+	static bool IsBuildRequired(const Ember<T>& ember1, const Ember<T>& ember2);
 
 private:
-	string CreateZeroizeKernelString();
-	string CreateSumHistKernelString();
-	string CreateProjectionString(Ember<T>& ember);
+	string CreateZeroizeKernelString() const;
+	string CreateSumHistKernelString() const;
+	string CreateProjectionString(const Ember<T>& ember) const;
 
 	string m_IterEntryPoint;
 	string m_ZeroizeKernel;
 	string m_ZeroizeEntryPoint;
 	string m_SumHistKernel;
 	string m_SumHistEntryPoint;
+	FunctionMapper m_FunctionMapper;
 };
 
 #ifdef OPEN_CL_TEST_AREA

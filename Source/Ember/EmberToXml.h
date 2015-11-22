@@ -64,6 +64,8 @@ public:
 	bool Save(const string& filename, vector<Ember<T>>& embers, size_t printEditDepth, bool doEdits, bool intPalette, bool hexPalette, bool append = false, bool start = false, bool finish = false)
 	{
 		bool b = false;
+		bool hasTimes = false;
+		T t = 0;
 		string temp;
 		ofstream f;
 
@@ -76,6 +78,21 @@ public:
 
 			if (f.is_open())
 			{
+				//Check to see if there are valid times by checking if any differed.
+				//If so, assume they were intentionally entered times.
+				for (size_t i = 1; i < embers.size(); i++)
+				{
+					if (embers[i].m_Time != embers[i - 1].m_Time)
+					{
+						hasTimes = true;
+						break;
+					}
+				}
+
+				if (!hasTimes)
+					for (auto& ember : embers)
+						ember.m_Time = t++;
+
 				if ((append && start) || !append)
 				{
 					temp = "<flames>\n";
@@ -170,7 +187,6 @@ public:
 		os << " gamma=\"" << ember.m_Gamma << "\"";
 		os << " highlight_power=\"" << ember.m_HighlightPower << "\"";
 		os << " vibrancy=\"" << ember.m_Vibrancy << "\"";
-		//os << " hue=\"" << ember.m_Hue << "\"";//Oddly enough, flam3 never wrote this value out.//ORIG
 		os << " estimator_radius=\"" << ember.m_MaxRadDE << "\"";
 		os << " estimator_minimum=\"" << ember.m_MinRadDE << "\"";
 		os << " estimator_curve=\"" << ember.m_CurveDE << "\"";
@@ -186,16 +202,18 @@ public:
 		else if (ember.m_PaletteMode == PALETTE_LINEAR)
 			os << " palette_mode=\"linear\"";
 
-		if (ember.m_Interp == EMBER_INTERP_SMOOTH)
+		if (ember.m_Interp == EMBER_INTERP_LINEAR)
+			os << " interpolation=\"linear\"";
+		else if (ember.m_Interp == EMBER_INTERP_SMOOTH)
 			os << " interpolation=\"smooth\"";
 
-		if (ember.m_AffineInterp == INTERP_LINEAR)
+		if (ember.m_AffineInterp == AFFINE_INTERP_LINEAR)
 			os << " interpolation_type=\"linear\"";
-		else if (ember.m_AffineInterp == INTERP_LOG)
+		else if (ember.m_AffineInterp == AFFINE_INTERP_LOG)
 			os << " interpolation_type=\"log\"";
-		else if (ember.m_AffineInterp == INTERP_COMPAT)
+		else if (ember.m_AffineInterp == AFFINE_INTERP_COMPAT)
 			os << " interpolation_type=\"old\"";
-		else if (ember.m_AffineInterp == INTERP_OLDER)
+		else if (ember.m_AffineInterp == AFFINE_INTERP_OLDER)
 			os << " interpolation_type=\"older\"";
 
 		if (ember.m_PaletteInterp == INTERP_SWEEP)

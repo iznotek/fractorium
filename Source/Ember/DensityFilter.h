@@ -123,7 +123,7 @@ public:
 		//
 		//    num filters = (de_max_width / de_min_width)^(1 / estimator_curve)
 		//
-		decFilterCount = pow(finalMaxRad / finalMinRad, T(1.0) / m_Curve);
+		decFilterCount = std::pow(finalMaxRad / finalMinRad, T(1.0) / m_Curve);
 
 		if (decFilterCount > 1e7)//Too many filters.
 			return false;
@@ -133,8 +133,8 @@ public:
 		//Condense the smaller kernels to save space.
 		if (intFilterCount > keepThresh)
 		{
-			maxIndex = static_cast<int>(ceil(DE_THRESH + pow(T(intFilterCount - DE_THRESH), m_Curve))) + 1;
-			m_MaxFilteredCounts = static_cast<int>(pow(T(maxIndex - DE_THRESH), T(1.0) / m_Curve)) + DE_THRESH;
+			maxIndex = static_cast<int>(ceil(DE_THRESH + std::pow(T(intFilterCount - DE_THRESH), m_Curve))) + 1;
+			m_MaxFilteredCounts = static_cast<int>(std::pow(T(maxIndex - DE_THRESH), T(1.0) / m_Curve)) + DE_THRESH;
 		}
 		else
 		{
@@ -163,12 +163,12 @@ public:
 			//Calculate the filter width for this number of hits in a bin.
 			if (filterLoop < keepThresh)
 			{
-				filterHeight = (finalMaxRad / pow(T(filterLoop + 1), m_Curve));
+				filterHeight = (finalMaxRad / std::pow(T(filterLoop + 1), m_Curve));
 			}
 			else
 			{
-				loopAdjust = pow(T(filterLoop - keepThresh), (T(1.0) / m_Curve)) + keepThresh;
-				filterHeight = (finalMaxRad / pow(loopAdjust + 1, m_Curve));
+				loopAdjust = std::pow(T(filterLoop - keepThresh), (T(1.0) / m_Curve)) + keepThresh;
+				filterHeight = (finalMaxRad / std::pow(loopAdjust + 1, m_Curve));
 			}
 
 			//Once we've reached the min radius, don't populate any more.
@@ -262,7 +262,7 @@ public:
 		T finalMaxRad = m_MaxRad * m_Supersample + 1;
 		T finalMinRad = m_MinRad * m_Supersample + 1;
 
-		return pow(finalMaxRad / finalMinRad, T(1.0) / m_Curve) <= 1e7;
+		return std::pow(finalMaxRad / finalMinRad, T(1.0) / m_Curve) <= 1e7;
 	}
 
 	/// <summary>

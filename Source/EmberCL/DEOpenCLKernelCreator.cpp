@@ -787,7 +787,8 @@ string DEOpenCLKernelCreator::CreateGaussianDEKernelNoLocalCache(size_t ss)
 		"\n";
 
 		if (doScf)
-		os << "		filterSelect *= scfact;\n";
+		os <<
+		"			filterSelect *= scfact;\n";
 	}
 	else
 	{
@@ -830,7 +831,7 @@ string DEOpenCLKernelCreator::CreateGaussianDEKernelNoLocalCache(size_t ss)
 		"			}\n"
 		"		}\n"//bucket.w != 0.
 		"	}\n"//In bounds.
-		"\n"
+		//"\n"
 		//"	barrier(CLK_GLOBAL_MEM_FENCE);\n"//Just to be safe.
 		"}\n";
 

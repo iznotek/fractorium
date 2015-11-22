@@ -44,9 +44,11 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <set>
 #include <string>
 #include <iterator>
 #include <time.h>
+#include <unordered_map>
 
 #ifdef _WIN32
 	#if defined(BUILDING_EMBERCL)

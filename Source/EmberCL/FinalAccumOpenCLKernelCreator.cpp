@@ -186,7 +186,6 @@ string FinalAccumOpenCLKernelCreator::CreateFinalAccumKernelString(bool earlyCli
 
 	os <<
 		ConstantDefinesString(m_DoublePrecision) <<
-		ClampRealFunctionString <<
 		UnionCLStructString <<
 		RgbToHsvFunctionString <<
 		HsvToRgbFunctionString <<
@@ -484,7 +483,6 @@ string FinalAccumOpenCLKernelCreator::CreateGammaCorrectionKernelString(bool alp
 
 	os <<
 		ConstantDefinesString(m_DoublePrecision) <<
-		ClampRealFunctionString <<
 		UnionCLStructString <<
 		RgbToHsvFunctionString <<
 		HsvToRgbFunctionString <<

@@ -73,6 +73,7 @@ enum eVariationId
 	VAR_BTRANSFORM	   ,
 	VAR_BUBBLE		   ,
 	VAR_BUBBLE2		   ,
+	VAR_BUBBLET3D	   ,
 	VAR_BUTTERFLY	   ,
 	VAR_BWRAPS		   ,
 	VAR_CARDIOID	   ,
@@ -101,6 +102,7 @@ enum eVariationId
 	VAR_CPOW		   ,
 	VAR_CPOW2		   ,
 	VAR_CRESCENTS	   ,
+	VAR_CROB		   ,
 	VAR_CROP		   ,
 	VAR_CROPN		   ,
 	VAR_CROSS		   ,
@@ -173,6 +175,10 @@ enum eVariationId
 	VAR_HEART		   ,
 	VAR_HEAT           ,
 	VAR_HEMISPHERE	   ,
+	VAR_HEXAPLAY3D	   ,
+	VAR_HEXCROP		   ,
+	VAR_HEXES		   ,
+	VAR_HEXNIX3D	   ,
 	VAR_HO  		   ,
 	VAR_HOLE		   ,
 	VAR_HORSESHOE	   ,
@@ -210,6 +216,8 @@ enum eVariationId
 	VAR_LOG			   ,
 	VAR_LOQ			   ,
 	VAR_LOONIE		   ,
+	VAR_LOONIE2		   ,
+	VAR_LOONIE3		   ,
 	VAR_LOONIE3D	   ,
 	VAR_MASK		   ,
 	VAR_MCARPET		   ,
@@ -223,10 +231,12 @@ enum eVariationId
 	VAR_MODULUS		   ,
 	VAR_MURL		   ,
 	VAR_MURL2		   ,
+	VAR_NBLUR		   ,
 	VAR_NGON		   ,
 	VAR_NOISE		   ,
 	VAR_NPOLAR		   ,
 	VAR_OCTAGON		   ,
+	VAR_OCTAPOL		   ,
 	VAR_ORTHO		   ,
 	VAR_OSCILLOSCOPE   ,
 	VAR_OVOID		   ,
@@ -284,6 +294,7 @@ enum eVariationId
 	VAR_SINUS_GRID	   ,
 	VAR_SINUSOIDAL	   ,
 	VAR_SINUSOIDAL3D   ,
+	//VAR_SMARTCROP	   ,
 	VAR_SPHERICAL	   ,
 	VAR_SPHERICAL3D	   ,
 	VAR_SPHERICALN	   ,
@@ -308,6 +319,7 @@ enum eVariationId
 	VAR_SUPER_SHAPE3D  ,
 	VAR_SVF			   ,
 	VAR_SWIRL		   ,
+	VAR_SYNTH		   ,
 	VAR_TAN			   ,
 	VAR_TANCOS         ,
 	VAR_TANGENT		   ,
@@ -369,6 +381,7 @@ enum eVariationId
 	VAR_PRE_BTRANSFORM,
 	VAR_PRE_BUBBLE,
 	VAR_PRE_BUBBLE2,
+	VAR_PRE_BUBBLET3D,
 	VAR_PRE_BUTTERFLY,
 	VAR_PRE_BWRAPS,
 	VAR_PRE_CARDIOID,
@@ -397,6 +410,7 @@ enum eVariationId
 	VAR_PRE_CPOW,
 	VAR_PRE_CPOW2,
 	VAR_PRE_CRESCENTS,
+	VAR_PRE_CROB,
 	VAR_PRE_CROP,
 	VAR_PRE_CROPN,
 	VAR_PRE_CROSS,
@@ -469,6 +483,10 @@ enum eVariationId
 	VAR_PRE_HEART,
 	VAR_PRE_HEAT,
 	VAR_PRE_HEMISPHERE,
+	VAR_PRE_HEXAPLAY3D,
+	VAR_PRE_HEXCROP,
+	VAR_PRE_HEXES,
+	VAR_PRE_HEXNIX3D,
 	VAR_PRE_HO,
 	VAR_PRE_HOLE,
 	VAR_PRE_HORSESHOE,
@@ -506,6 +524,8 @@ enum eVariationId
 	VAR_PRE_LOG,
 	VAR_PRE_LOQ,
 	VAR_PRE_LOONIE,
+	VAR_PRE_LOONIE2,
+	VAR_PRE_LOONIE3,
 	VAR_PRE_LOONIE3D,
 	VAR_PRE_MASK,
 	VAR_PRE_MCARPET,
@@ -519,10 +539,12 @@ enum eVariationId
 	VAR_PRE_MODULUS,
 	VAR_PRE_MURL,
 	VAR_PRE_MURL2,
+	VAR_PRE_NBLUR,
 	VAR_PRE_NGON,
 	VAR_PRE_NOISE,
 	VAR_PRE_NPOLAR,
 	VAR_PRE_OCTAGON,
+	VAR_PRE_OCTAPOL,
 	VAR_PRE_ORTHO,
 	VAR_PRE_OSCILLOSCOPE,
 	VAR_PRE_OVOID,
@@ -580,6 +602,7 @@ enum eVariationId
 	VAR_PRE_SINUS_GRID,
 	VAR_PRE_SINUSOIDAL,
 	VAR_PRE_SINUSOIDAL3D,
+	//VAR_PRE_SMARTCROP,
 	VAR_PRE_SPHERICAL,
 	VAR_PRE_SPHERICAL3D,
 	VAR_PRE_SPHERICALN,
@@ -604,6 +627,7 @@ enum eVariationId
 	VAR_PRE_SUPER_SHAPE3D,
 	VAR_PRE_SVF,
 	VAR_PRE_SWIRL,
+	VAR_PRE_SYNTH,
 	VAR_PRE_TAN,
 	VAR_PRE_TANCOS,
 	VAR_PRE_TANGENT,
@@ -665,6 +689,7 @@ enum eVariationId
 	VAR_POST_BTRANSFORM,
 	VAR_POST_BUBBLE,
 	VAR_POST_BUBBLE2,
+	VAR_POST_BUBBLET3D,
 	VAR_POST_BUTTERFLY,
 	VAR_POST_BWRAPS,
 	VAR_POST_CARDIOID,
@@ -693,6 +718,7 @@ enum eVariationId
 	VAR_POST_CPOW,
 	VAR_POST_CPOW2,
 	VAR_POST_CRESCENTS,
+	VAR_POST_CROB,
 	VAR_POST_CROP,
 	VAR_POST_CROPN,
 	VAR_POST_CROSS,
@@ -765,6 +791,10 @@ enum eVariationId
 	VAR_POST_HEART,
 	VAR_POST_HEAT,
 	VAR_POST_HEMISPHERE,
+	VAR_POST_HEXAPLAY3D,
+	VAR_POST_HEXCROP,
+	VAR_POST_HEXES,
+	VAR_POST_HEXNIX3D,
 	VAR_POST_HO,
 	VAR_POST_HOLE,
 	VAR_POST_HORSESHOE,
@@ -802,6 +832,8 @@ enum eVariationId
 	VAR_POST_LOG,
 	VAR_POST_LOQ,
 	VAR_POST_LOONIE,
+	VAR_POST_LOONIE2,
+	VAR_POST_LOONIE3,
 	VAR_POST_LOONIE3D,
 	VAR_POST_MASK,
 	VAR_POST_MCARPET,
@@ -815,10 +847,12 @@ enum eVariationId
 	VAR_POST_MODULUS,
 	VAR_POST_MURL,
 	VAR_POST_MURL2,
+	VAR_POST_NBLUR,
 	VAR_POST_NGON,
 	VAR_POST_NOISE,
 	VAR_POST_NPOLAR,
 	VAR_POST_OCTAGON,
+	VAR_POST_OCTAPOL,
 	VAR_POST_ORTHO,
 	VAR_POST_OSCILLOSCOPE,
 	VAR_POST_OVOID,
@@ -876,6 +910,7 @@ enum eVariationId
 	VAR_POST_SINUS_GRID,
 	VAR_POST_SINUSOIDAL,
 	VAR_POST_SINUSOIDAL3D,
+	//VAR_POST_SMARTCROP,
 	VAR_POST_SPHERICAL,
 	VAR_POST_SPHERICAL3D,
 	VAR_POST_SPHERICALN,
@@ -900,6 +935,7 @@ enum eVariationId
 	VAR_POST_SUPER_SHAPE3D,
 	VAR_POST_SVF,
 	VAR_POST_SWIRL,
+	VAR_POST_SYNTH,
 	VAR_POST_TAN,
 	VAR_POST_TANCOS,
 	VAR_POST_TANGENT,
@@ -931,7 +967,7 @@ enum eVariationId
 	VAR_POST_ZSCALE,
 	VAR_POST_ZTRANSLATE,
 
-	//Direct color are special and only some have pre/post counterparts.
+	//Direct color variations are special.
 	VAR_DC_BUBBLE,
 	VAR_DC_CARPET,
 	VAR_DC_CUBE,
@@ -941,15 +977,21 @@ enum eVariationId
 	VAR_DC_TRIANGLE,
 	VAR_DC_ZTRANSL,
 
+	VAR_PRE_DC_BUBBLE,
 	VAR_PRE_DC_CARPET,
 	VAR_PRE_DC_CUBE,
+	VAR_PRE_DC_CYLINDER,
 	VAR_PRE_DC_GRIDOUT,
+	VAR_PRE_DC_LINEAR,
 	VAR_PRE_DC_TRIANGLE,
 	VAR_PRE_DC_ZTRANSL,
 
+	VAR_POST_DC_BUBBLE,
 	VAR_POST_DC_CARPET,
 	VAR_POST_DC_CUBE,
+	VAR_POST_DC_CYLINDER,
 	VAR_POST_DC_GRIDOUT,
+	VAR_POST_DC_LINEAR,
 	VAR_POST_DC_TRIANGLE,
 	VAR_POST_DC_ZTRANSL,
 
@@ -1216,6 +1258,30 @@ public:
 	}
 
 	/// <summary>
+	/// Returns an OpenCL string for the fields in this variation
+	/// that change during iterations.
+	/// Note these are different than regular variation parameters,
+	/// and thus require a completely different solution.
+	/// </summary>
+	/// <returns></returns>
+	virtual string StateOpenCLString() const
+	{
+		return "";
+	}
+
+	/// <summary>
+	/// Returns an OpenCL string for the initialization of the fields in this variation
+	/// that change during iterations.
+	/// Note these are different than regular variation parameters,
+	/// and thus require a completely different solution.
+	/// </summary>
+	/// <returns></returns>
+	virtual string StateInitOpenCLString() const
+	{
+		return "";
+	}
+
+	/// <summary>
 	/// Return the name and weight of the variation as a string.
 	/// </summary>
 	/// <returns>The name and weight of the variation</returns>
@@ -1273,6 +1339,12 @@ public:
 	/// </summary>
 	/// <returns>The OpenCL string to perform the equivalent calculation on the GPU in OpenCL</returns>
 	virtual string OpenCLString() const { return ""; }
+
+	/// <summary>
+	/// If the OpenCL string depends on any global functions specific to this variation, return their names.
+	/// </summary>
+	/// <returns>The names for global OpenCL functions specific to this variation</returns>
+	virtual vector<string> OpenCLGlobalFuncNames() const { return vector<string>(); }
 
 	/// <summary>
 	/// If the OpenCL string depends on any functions specific to this variation, return them.
@@ -1389,6 +1461,7 @@ template <typename T> class ParametricVariation;
 /// Each of these takes the form of a name string and a pointer to a value.
 /// Also, some of them can be considered precalculated values, rather than
 /// formal parameters.
+/// Further, some can change state between iterations.
 /// This class encapsulates a single parameter.
 /// Template argument expected to be float or double.
 /// </summary>
@@ -1409,7 +1482,7 @@ public:
 	/// <summary>
 	/// Constructor for a precalc param that takes arguments.
 	/// </summary>
-	/// <param name="isPrecalc">Whether the parameter is actually a precalculated value. Default: false.</param>
+	/// <param name="isPrecalc">Whether the parameter is actually a precalculated value. Always true.</param>
 	/// <param name="param">A pointer to the parameter</param>
 	/// <param name="name">The name of the parameter</param>
 	ParamWithName(bool isPrecalc,
@@ -1417,6 +1490,21 @@ public:
 		string name)
 	{
 		Init(param, name, 0, REAL, TLOW, TMAX, true);
+	}
+
+	/// <summary>
+	/// Constructor for a state param that takes arguments.
+	/// </summary>
+	/// <param name="isPrecalc">Whether the parameter is actually a precalculated value. Always true.</param>
+	/// <param name="isState">Whether the parameter changes state between iterations. Always true.</param>
+	/// <param name="param">A pointer to the parameter</param>
+	/// <param name="name">The name of the parameter</param>
+	ParamWithName(bool isPrecalc,
+		bool isState,
+		T* param,
+		string name)
+	{
+		Init(param, name, 0, REAL, TLOW, TMAX, true, true);
 	}
 
 	/// <summary>
@@ -1466,6 +1554,7 @@ public:
 			m_Type = paramWithName.m_Type;
 			m_Name = paramWithName.m_Name;
 			m_IsPrecalc = paramWithName.m_IsPrecalc;
+			m_IsState = paramWithName.m_IsState;
 		}
 
 		return *this;
@@ -1481,7 +1570,8 @@ public:
 	/// <param name="min">The minimum value the parameter can be</param>
 	/// <param name="max">The maximum value the parameter can be</param>
 	/// <param name="isPrecalc">Whether the parameter is actually a precalculated value. Default: false.</param>
-	void Init(T* param, const string& name, T def = 0, eParamType type = REAL, T min = TLOW, T max = TMAX, bool isPrecalc = false)
+	/// <param name="isState">Whether the parameter changes state between iterations. Default: false.</param>
+	void Init(T* param, const string& name, T def = 0, eParamType type = REAL, T min = TLOW, T max = TMAX, bool isPrecalc = false, bool isState = false)
 	{
 		m_Param = param;
 		m_Def = def;
@@ -1490,6 +1580,7 @@ public:
 		m_Type = type;
 		m_Name = name;
 		m_IsPrecalc = isPrecalc;
+		m_IsState = isState;
 
 		Set(m_Def);//Initial value.
 	}
@@ -1569,7 +1660,8 @@ public:
 		   << "Param Min: " << m_Min << endl
 		   << "Param Max: " << m_Max << endl
 		   << "Param Type: " << m_Type << endl
-		   << "Is Precalc: " << m_IsPrecalc << endl;
+		   << "Is Precalc: " << m_IsPrecalc << endl
+		   << "Is State: " << m_IsState << endl;
 
 		return ss.str();
 	}
@@ -1585,6 +1677,7 @@ public:
 	eParamType Type() const { return m_Type; }
 	string Name() const { return m_Name; }
 	bool IsPrecalc() const { return m_IsPrecalc; }
+	bool IsState() const { return m_IsState; }
 
 private:
 	T* m_Param;//Pointer to the parameter value.
@@ -1594,6 +1687,7 @@ private:
 	eParamType m_Type;//The type of the parameter.
 	string m_Name;//Name of the parameter.
 	bool m_IsPrecalc;//Whether the parameter is actually a precalculated value.
+	bool m_IsState;//Whether the parameter changes state between iterations. This is also considered precalc.
 };
 
 /// <summary>
@@ -1694,7 +1788,7 @@ public:
 	/// Get a pointer to a parameter value with the specified name.
 	/// </summary>
 	/// <param name="name">The name to search for</param>
-	/// <returns>A pointer to the parameter value if the name matched, else false.</returns>
+	/// <returns>A pointer to the parameter value if the name matched, else null.</returns>
 	T* GetParam(const char* name) const
 	{
 		for (auto& param : m_Params)
@@ -1809,10 +1903,34 @@ public:
 	}
 
 	/// <summary>
+	/// Returns an OpenCL string for the fields in this variation
+	/// that change during iterations.
+	/// Note these are different than regular variation parameters,
+	/// and thus require a completely different solution.
+	/// </summary>
+	/// <returns></returns>
+	virtual string StateOpenCLString() const override
+	{
+		ostringstream os, os2;
+		os2 << "_" << XformIndexInEmber() << ";";
+		string index = os2.str();
+
+		for (auto& param : m_Params)
+		{
+			if (param.IsState())
+			{
+				os << "\n\treal_t " << param.Name() << index;
+			}
+		}
+
+		return os.str();
+	}
+
+	/// <summary>
 	/// Return the name, weight and parameters of the variation as a string.
 	/// </summary>
 	/// <returns>The name, weight and parameters of the variation</returns>
-	virtual string ToString() const
+	virtual string ToString() const override
 	{
 		ostringstream ss;
 
@@ -1847,6 +1965,20 @@ protected:
 
 			this->Precalc();
 		}
+	}
+
+	/// <summary>
+	/// Get a pointer to the underlying ParamWithName object with the specified name.
+	/// </summary>
+	/// <param name="name">The name to search for</param>
+	/// <returns>A pointer to the underlying ParamWithName object if the name matched, else null.</returns>
+	const ParamWithName<T>* GetUnderlyingParam(const char* name) const
+	{
+		for (auto& param : m_Params)
+			if (!_stricmp(param.Name().c_str(), name))
+				return &param;
+
+		return nullptr;
 	}
 
 	vector<ParamWithName<T>> m_Params;//The params pointer vector which stores pointer to parameter members of derived classes.

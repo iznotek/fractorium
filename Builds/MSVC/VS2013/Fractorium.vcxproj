@@ -338,7 +338,6 @@ xcopy /F /Y /R /D "$(SolutionDir)..\..\..\Data\flam3-palettes.xml" "$(OutDir)"</
     <ClCompile Include="..\..\..\Source\Fractorium\OptionsDialog.cpp" />
     <ClCompile Include="..\..\..\Source\Fractorium\qcssparser.cpp" />
     <ClCompile Include="..\..\..\Source\Fractorium\qcssscanner.cpp" />
-    <ClCompile Include="..\..\..\Source\Fractorium\qcssscanner.h" />
     <ClCompile Include="..\..\..\Source\Fractorium\QssDialog.cpp" />
     <ClCompile Include="..\..\..\Source\Fractorium\QssTextEdit.cpp" />
     <ClCompile Include="..\..\..\Source\Fractorium\SpinBox.cpp" />

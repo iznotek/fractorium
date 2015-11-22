@@ -80,81 +80,100 @@ public:
 		if (!m_Init)
 		{
 			m_BadParamNames.reserve(100);
-			m_BadParamNames.push_back(pair<string, string>("swtin_distort",   "stwin_distort"));//stwin.
-			m_BadParamNames.push_back(pair<string, string>("pow_numerator",   "pow_block_numerator"));//pow_block.
-			m_BadParamNames.push_back(pair<string, string>("pow_denominator", "pow_block_denominator"));
-			m_BadParamNames.push_back(pair<string, string>("pow_root",        "pow_block_root"));
-			m_BadParamNames.push_back(pair<string, string>("pow_correctn",    "pow_block_correctn"));
-			m_BadParamNames.push_back(pair<string, string>("pow_correctd",    "pow_block_correctd"));
-			m_BadParamNames.push_back(pair<string, string>("pow_power",       "pow_block_power"));
-			m_BadParamNames.push_back(pair<string, string>("lT", "linearT_powX"));//linearT.
-			m_BadParamNames.push_back(pair<string, string>("lT", "linearT_powY"));
-			m_BadParamNames.push_back(pair<string, string>("Re_A", "Mobius_Re_A"));//Mobius.
-			m_BadParamNames.push_back(pair<string, string>("Im_A", "Mobius_Im_A"));
-			m_BadParamNames.push_back(pair<string, string>("Re_B", "Mobius_Re_B"));
-			m_BadParamNames.push_back(pair<string, string>("Im_B", "Mobius_Im_B"));
-			m_BadParamNames.push_back(pair<string, string>("Re_C", "Mobius_Re_C"));
-			m_BadParamNames.push_back(pair<string, string>("Im_C", "Mobius_Im_C"));
-			m_BadParamNames.push_back(pair<string, string>("Re_D", "Mobius_Re_D"));
-			m_BadParamNames.push_back(pair<string, string>("Im_D", "Mobius_Im_D"));
-			m_BadParamNames.push_back(pair<string, string>("rx_sin", "rotate_x_sin"));//rotate_x.
-			m_BadParamNames.push_back(pair<string, string>("rx_cos", "rotate_x_cos"));
-			m_BadParamNames.push_back(pair<string, string>("ry_sin", "rotate_y_sin"));//rotate_y.
-			m_BadParamNames.push_back(pair<string, string>("ry_cos", "rotate_y_cos"));
-			m_BadParamNames.push_back(pair<string, string>("intrfr2_a1", "interference2_a1"));//interference2.
-			m_BadParamNames.push_back(pair<string, string>("intrfr2_b1", "interference2_b1"));
-			m_BadParamNames.push_back(pair<string, string>("intrfr2_c1", "interference2_c1"));
-			m_BadParamNames.push_back(pair<string, string>("intrfr2_p1", "interference2_p1"));
-			m_BadParamNames.push_back(pair<string, string>("intrfr2_t1", "interference2_t1"));
-			m_BadParamNames.push_back(pair<string, string>("intrfr2_a2", "interference2_a2"));
-			m_BadParamNames.push_back(pair<string, string>("intrfr2_b2", "interference2_b2"));
-			m_BadParamNames.push_back(pair<string, string>("intrfr2_c2", "interference2_c2"));
-			m_BadParamNames.push_back(pair<string, string>("intrfr2_p2", "interference2_p2"));
-			m_BadParamNames.push_back(pair<string, string>("intrfr2_t2", "interference2_t2"));
-			m_BadParamNames.push_back(pair<string, string>("octa_x", "octagon_x"));//octagon.
-			m_BadParamNames.push_back(pair<string, string>("octa_y", "octagon_y"));
-			m_BadParamNames.push_back(pair<string, string>("octa_z", "octagon_z"));
-			m_BadParamNames.push_back(pair<string, string>("bubble_x", "bubble2_x"));//bubble2.
-			m_BadParamNames.push_back(pair<string, string>("bubble_y", "bubble2_y"));
-			m_BadParamNames.push_back(pair<string, string>("bubble_z", "bubble2_z"));
-			m_BadParamNames.push_back(pair<string, string>("cubic3D_xpand", "cubicLattice_3D_xpand"));//cubicLattice_3D.
-			m_BadParamNames.push_back(pair<string, string>("cubic3D_style", "cubicLattice_3D_style"));
-			m_BadParamNames.push_back(pair<string, string>("splitb_x",  "SplitBrdr_x"));//SplitBrdr.
-			m_BadParamNames.push_back(pair<string, string>("splitb_y",  "SplitBrdr_y"));
-			m_BadParamNames.push_back(pair<string, string>("splitb_px", "SplitBrdr_px"));
-			m_BadParamNames.push_back(pair<string, string>("splitb_py", "SplitBrdr_py"));
-			m_BadParamNames.push_back(pair<string, string>("dc_cyl_offset", "dc_cylinder_offset"));//dc_cylinder.
-			m_BadParamNames.push_back(pair<string, string>("dc_cyl_angle",  "dc_cylinder_angle"));
-			m_BadParamNames.push_back(pair<string, string>("dc_cyl_scale",  "dc_cylinder_scale"));
-			m_BadParamNames.push_back(pair<string, string>("cyl_x",         "dc_cylinder_x"));
-			m_BadParamNames.push_back(pair<string, string>("cyl_y",         "dc_cylinder_y"));
-			m_BadParamNames.push_back(pair<string, string>("cyl_blur",      "dc_cylinder_blur"));
-			m_BadParamNames.push_back(pair<string, string>("mobius_radius",   "mobius_strip_radius"));//mobius_strip.
-			m_BadParamNames.push_back(pair<string, string>("mobius_width",    "mobius_strip_width"));
-			m_BadParamNames.push_back(pair<string, string>("mobius_rect_x",   "mobius_strip_rect_x"));
-			m_BadParamNames.push_back(pair<string, string>("mobius_rect_y",   "mobius_strip_rect_y"));
-			m_BadParamNames.push_back(pair<string, string>("mobius_rotate_x", "mobius_strip_rotate_x"));
-			m_BadParamNames.push_back(pair<string, string>("mobius_rotate_y", "mobius_strip_rotate_y"));
-			m_BadParamNames.push_back(pair<string, string>("bwraps2_cellsize",    "bwraps_cellsize"));//bwraps2.
-			m_BadParamNames.push_back(pair<string, string>("bwraps2_space",       "bwraps_space"));
-			m_BadParamNames.push_back(pair<string, string>("bwraps2_gain",        "bwraps_gain"));
-			m_BadParamNames.push_back(pair<string, string>("bwraps2_inner_twist", "bwraps_inner_twist"));
-			m_BadParamNames.push_back(pair<string, string>("bwraps2_outer_twist", "bwraps_outer_twist"));
-			m_BadParamNames.push_back(pair<string, string>("bwraps7_cellsize",    "bwraps_cellsize"));//bwraps7.
-			m_BadParamNames.push_back(pair<string, string>("bwraps7_space",       "bwraps_space"));
-			m_BadParamNames.push_back(pair<string, string>("bwraps7_gain",        "bwraps_gain"));
-			m_BadParamNames.push_back(pair<string, string>("bwraps7_inner_twist", "bwraps_inner_twist"));
-			m_BadParamNames.push_back(pair<string, string>("bwraps7_outer_twist", "bwraps_outer_twist"));
-			m_BadParamNames.push_back(pair<string, string>("pre_bwraps2_cellsize",    "pre_bwraps_cellsize"));
-			m_BadParamNames.push_back(pair<string, string>("pre_bwraps2_space",       "pre_bwraps_space"));
-			m_BadParamNames.push_back(pair<string, string>("pre_bwraps2_gain",        "pre_bwraps_gain"));
-			m_BadParamNames.push_back(pair<string, string>("pre_bwraps2_inner_twist", "pre_bwraps_inner_twist"));
-			m_BadParamNames.push_back(pair<string, string>("pre_bwraps2_outer_twist", "pre_bwraps_outer_twist"));
-			m_BadParamNames.push_back(pair<string, string>("post_bwraps2_cellsize",    "post_bwraps_cellsize"));
-			m_BadParamNames.push_back(pair<string, string>("post_bwraps2_space",       "post_bwraps_space"));
-			m_BadParamNames.push_back(pair<string, string>("post_bwraps2_gain",        "post_bwraps_gain"));
-			m_BadParamNames.push_back(pair<string, string>("post_bwraps2_inner_twist", "post_bwraps_inner_twist"));
-			m_BadParamNames.push_back(pair<string, string>("post_bwraps2_outer_twist", "post_bwraps_outer_twist"));
+			m_BadParamNames["swtin_distort"] =   "stwin_distort";//stwin.
+			m_BadParamNames["pow_numerator"] =   "pow_block_numerator";//pow_block.
+			m_BadParamNames["pow_denominator"] = "pow_block_denominator";
+			m_BadParamNames["pow_root"] =        "pow_block_root";
+			m_BadParamNames["pow_correctn"] =    "pow_block_correctn";
+			m_BadParamNames["pow_correctd"] =    "pow_block_correctd";
+			m_BadParamNames["pow_power"] =       "pow_block_power";
+			m_BadParamNames["lt"] = "linearT_powX";//linearT.
+			m_BadParamNames["lt"] = "linearT_powY";
+			m_BadParamNames["re_a"] = "Mobius_Re_A";//Mobius.
+			m_BadParamNames["im_a"] = "Mobius_Im_A";
+			m_BadParamNames["re_b"] = "Mobius_Re_B";
+			m_BadParamNames["im_b"] = "Mobius_Im_B";
+			m_BadParamNames["re_c"] = "Mobius_Re_C";
+			m_BadParamNames["im_c"] = "Mobius_Im_C";
+			m_BadParamNames["re_d"] = "Mobius_Re_D";
+			m_BadParamNames["im_d"] = "Mobius_Im_D";
+			m_BadParamNames["rx_sin"] = "rotate_x_sin";//rotate_x.
+			m_BadParamNames["rx_cos"] = "rotate_x_cos";
+			m_BadParamNames["ry_sin"] = "rotate_y_sin";//rotate_y.
+			m_BadParamNames["ry_cos"] = "rotate_y_cos";
+			m_BadParamNames["intrfr2_a1"] = "interference2_a1";//interference2.
+			m_BadParamNames["intrfr2_b1"] = "interference2_b1";
+			m_BadParamNames["intrfr2_c1"] = "interference2_c1";
+			m_BadParamNames["intrfr2_p1"] = "interference2_p1";
+			m_BadParamNames["intrfr2_t1"] = "interference2_t1";
+			m_BadParamNames["intrfr2_a2"] = "interference2_a2";
+			m_BadParamNames["intrfr2_b2"] = "interference2_b2";
+			m_BadParamNames["intrfr2_c2"] = "interference2_c2";
+			m_BadParamNames["intrfr2_p2"] = "interference2_p2";
+			m_BadParamNames["intrfr2_t2"] = "interference2_t2";
+			m_BadParamNames["octa_x"] = "octagon_x";//octagon.
+			m_BadParamNames["octa_y"] = "octagon_y";
+			m_BadParamNames["octa_z"] = "octagon_z";
+			m_BadParamNames["bubble_x"] = "bubble2_x";//bubble2.
+			m_BadParamNames["bubble_y"] = "bubble2_y";
+			m_BadParamNames["bubble_z"] = "bubble2_z";
+			m_BadParamNames["cubic3d_xpand"] = "cubicLattice_3D_xpand";//cubicLattice_3D.
+			m_BadParamNames["cubic3d_style"] = "cubicLattice_3D_style";
+			m_BadParamNames["splitb_x"] =  "SplitBrdr_x";//SplitBrdr.
+			m_BadParamNames["splitb_y"] =  "SplitBrdr_y";
+			m_BadParamNames["splitb_px"] = "SplitBrdr_px";
+			m_BadParamNames["splitb_py"] = "SplitBrdr_py";
+			m_BadParamNames["dc_cyl_offset"] = "dc_cylinder_offset";//dc_cylinder.
+			m_BadParamNames["dc_cyl_angle"] =  "dc_cylinder_angle";
+			m_BadParamNames["dc_cyl_scale"] =  "dc_cylinder_scale";
+			m_BadParamNames["cyl_x"] =         "dc_cylinder_x";
+			m_BadParamNames["cyl_y"] =         "dc_cylinder_y";
+			m_BadParamNames["cyl_blur"] =      "dc_cylinder_blur";
+			m_BadParamNames["mobius_radius"] =   "mobius_strip_radius";//mobius_strip.
+			m_BadParamNames["mobius_width"] =    "mobius_strip_width";
+			m_BadParamNames["mobius_rect_x"] =   "mobius_strip_rect_x";
+			m_BadParamNames["mobius_rect_y"] =   "mobius_strip_rect_y";
+			m_BadParamNames["mobius_rotate_x"] = "mobius_strip_rotate_x";
+			m_BadParamNames["mobius_rotate_y"] = "mobius_strip_rotate_y";
+			m_BadParamNames["bwraps2_cellsize"] =    "bwraps_cellsize";//bwraps2.
+			m_BadParamNames["bwraps2_space"] =       "bwraps_space";
+			m_BadParamNames["bwraps2_gain"] =        "bwraps_gain";
+			m_BadParamNames["bwraps2_inner_twist"] = "bwraps_inner_twist";
+			m_BadParamNames["bwraps2_outer_twist"] = "bwraps_outer_twist";
+			m_BadParamNames["bwraps7_cellsize"] =    "bwraps_cellsize";//bwraps7.
+			m_BadParamNames["bwraps7_space"] =       "bwraps_space";
+			m_BadParamNames["bwraps7_gain"] =        "bwraps_gain";
+			m_BadParamNames["bwraps7_inner_twist"] = "bwraps_inner_twist";
+			m_BadParamNames["bwraps7_outer_twist"] = "bwraps_outer_twist";
+			m_BadParamNames["pre_bwraps2_cellsize"] =    "pre_bwraps_cellsize";
+			m_BadParamNames["pre_bwraps2_space"] =       "pre_bwraps_space";
+			m_BadParamNames["pre_bwraps2_gain"] =        "pre_bwraps_gain";
+			m_BadParamNames["pre_bwraps2_inner_twist"] = "pre_bwraps_inner_twist";
+			m_BadParamNames["pre_bwraps2_outer_twist"] = "pre_bwraps_outer_twist";
+			m_BadParamNames["post_bwraps2_cellsize"] =    "post_bwraps_cellsize";
+			m_BadParamNames["post_bwraps2_space"] =       "post_bwraps_space";
+			m_BadParamNames["post_bwraps2_gain"] =        "post_bwraps_gain";
+			m_BadParamNames["post_bwraps2_inner_twist"] = "post_bwraps_inner_twist";
+			m_BadParamNames["post_bwraps2_outer_twist"] = "post_bwraps_outer_twist";
+			m_BadParamNames["hexa3d_majp"] =  "hexaplay3D_majp";
+			m_BadParamNames["hexa3d_scale"] = "hexaplay3D_scale";
+			m_BadParamNames["hexa3d_zlift"] = "hexaplay3D_zlift";
+			m_BadParamNames["nb_numedges"] =		"nBlur_numEdges";
+			m_BadParamNames["nb_numstripes"] =		"nBlur_numStripes";
+			m_BadParamNames["nb_ratiostripes"] =	"nBlur_ratioStripes";
+			m_BadParamNames["nb_ratiohole"] =		"nBlur_ratioHole";
+			m_BadParamNames["nb_circumcircle"] =	"nBlur_circumCircle";
+			m_BadParamNames["nb_adjusttolinear"] = "nBlur_adjustToLinear";
+			m_BadParamNames["nb_equalblur"] =		"nBlur_equalBlur";
+			m_BadParamNames["nb_exactcalc"] =		"nBlur_exactCalc";
+			m_BadParamNames["nb_highlightedges"] = "nBlur_highlightEdges";
+			m_BadParamNames["octapol_r"] = "octapol_radius";
+			m_BadParamNames["number_of_stripes"] = "bubbleT3D_number_of_stripes";
+			m_BadParamNames["ratio_of_stripes"]  = "bubbleT3D_ratio_of_stripes";
+			m_BadParamNames["angle_of_hole"]	 = "bubbleT3D_angle_of_hole";
+			m_BadParamNames["exponentZ"]		 = "bubbleT3D_exponentZ";
+			m_BadParamNames["_symmetryZ"]		 = "bubbleT3D_symmetryZ";
+			m_BadParamNames["_modusBlur"]		 = "bubbleT3D_modusBlur";
 
 			m_FlattenNames.reserve(24);
 			m_FlattenNames.push_back("pre_crop");
@@ -318,7 +337,7 @@ public:
 			for (size_t i = 1; i < emberSize; i++)
 			{
 				//Only do this adjustment if not in compat mode..
-				if (embers[i - 1].m_AffineInterp != INTERP_COMPAT && embers[i - 1].m_AffineInterp != INTERP_OLDER)
+				if (embers[i - 1].m_AffineInterp != AFFINE_INTERP_COMPAT && embers[i - 1].m_AffineInterp != AFFINE_INTERP_OLDER)
 				{
 					while (embers[i].m_Rotate < embers[i - 1].m_Rotate - 180)
 						embers[i].m_Rotate += 360;
@@ -524,7 +543,7 @@ private:
 			if		(ParseAndAssign(curAtt->name, attStr, "time",                  currentEmber.m_Time,                ret)) { }
 			else if (ParseAndAssign(curAtt->name, attStr, "scale",				   currentEmber.m_PixelsPerUnit,	   ret)) { currentEmber.m_OrigPixPerUnit = currentEmber.m_PixelsPerUnit; }
 			else if (ParseAndAssign(curAtt->name, attStr, "rotate",                currentEmber.m_Rotate,              ret)) { }
-			else if (ParseAndAssign(curAtt->name, attStr, "zoom",                  currentEmber.m_Zoom,                ret)) { }
+			else if (ParseAndAssign(curAtt->name, attStr, "zoom",				   currentEmber.m_Zoom,				   ret)) { ClampGteRef<T>(currentEmber.m_Zoom, 0); }
 			else if (ParseAndAssign(curAtt->name, attStr, "filter",                currentEmber.m_SpatialFilterRadius, ret)) { }
 			else if (ParseAndAssign(curAtt->name, attStr, "temporal_filter_width", currentEmber.m_TemporalFilterWidth, ret)) { }
 			else if (ParseAndAssign(curAtt->name, attStr, "temporal_filter_exp",   currentEmber.m_TemporalFilterExp,   ret)) { }
@@ -576,13 +595,13 @@ private:
 			else if (!Compare(curAtt->name, "interpolation_space") || !Compare(curAtt->name, "interpolation_type"))
 			{
 				if (!_stricmp("linear", attStr))
-					currentEmber.m_AffineInterp = INTERP_LINEAR;
+					currentEmber.m_AffineInterp = AFFINE_INTERP_LINEAR;
 				else if (!_stricmp("log", attStr))
-					currentEmber.m_AffineInterp = INTERP_LOG;
+					currentEmber.m_AffineInterp = AFFINE_INTERP_LOG;
 				else if (!_stricmp("old", attStr))
-					currentEmber.m_AffineInterp = INTERP_COMPAT;
+					currentEmber.m_AffineInterp = AFFINE_INTERP_COMPAT;
 				else if (!_stricmp("older", attStr))
-					currentEmber.m_AffineInterp = INTERP_OLDER;
+					currentEmber.m_AffineInterp = AFFINE_INTERP_OLDER;
 				else
 					m_ErrorReport.push_back(string(loc) + " : Unrecognized interpolation type " + string(attStr));
 			}
@@ -593,7 +612,7 @@ private:
 			}
 			else if (!Compare(curAtt->name, "version"))
 			{
-				if (ToLower(string(attStr)).find_first_of("ember") != string::npos)
+				if (ToLower(string(attStr)).find("ember") != string::npos)
 					fromEmber = true;
 			}
 			else if (!Compare(curAtt->name, "size"))
@@ -1050,8 +1069,8 @@ private:
 			}
 		}
 
-		//if (!newLinear)
-		//	currentEmber.Flatten(m_FlattenNames);
+		if (!fromEmber && !newLinear)
+			currentEmber.Flatten(m_FlattenNames);
 
 		for (i = 0; i < currentEmber.XformCount(); i++)
 			if (soloXform >= 0 && i != soloXform)
@@ -1342,16 +1361,17 @@ private:
 	/// Some Apophysis plugins use an inconsistent naming scheme for the parametric variation variables.
 	/// This function identifies and converts them to Ember's consistent naming convention.
 	/// </summary>
-	/// <param name="vec">The vector of corrected names to search</param>
-	/// <param name="att">The current Xml node to check</param>
+	/// <param name="names">The map of corrected names to search</param>
+	/// <param name="name">The current Xml node to check</param>
 	/// <returns>The corrected name if one was found, else the passed in name.</returns>
-	static string GetCorrectedParamName(vector<pair<string, string>>& vec, const char* name)
+	static string GetCorrectedParamName(const unordered_map<string, string>& names, const char* name)
 	{
-		for (auto& v : vec)
-			if (!_stricmp(v.first.c_str(), name))
-				return v.second;
+		auto& newName = names.find(ToLower(name));
 
-		return name;
+		if (newName != names.end())
+			return newName->second;
+		else
+			return name;
 	}
 
 	/// <summary>
@@ -1503,7 +1523,7 @@ private:
 	}
 
 	static bool m_Init;
-	static vector<pair<string, string>> m_BadParamNames;
+	static unordered_map<string, string> m_BadParamNames;
 	static vector<pair<pair<string, string>, vector<string>>> m_BadVariationNames;
 	VariationList<T> m_VariationList;//The variation list used to make copies of variations to populate the embers with.
 	PaletteList<T> m_PaletteList;

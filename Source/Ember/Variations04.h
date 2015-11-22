@@ -26,16 +26,16 @@ public:
 
 		ClampGteRef<T>(xmax, -1);
 
-		T mu = acosh(xmax);
-		T nu = acos(Clamp<T>(helper.In.x / xmax, -1, 1));//-Pi < nu < Pi.
+		T mu = std::acosh(xmax);
+		T nu = std::acos(Clamp<T>(helper.In.x / xmax, -1, 1));//-Pi < nu < Pi.
 
 		if (helper.In.y < 0)
 			nu *= -1;
 
 		nu = nu + mu * m_Out + m_In / mu;
 
-		helper.Out.x = m_Weight * cosh(mu) * cos(nu);
-		helper.Out.y = m_Weight * sinh(mu) * sin(nu);
+		helper.Out.x = m_Weight * std::cosh(mu) * std::cos(nu);
+		helper.Out.y = m_Weight * std::sinh(mu) * std::sin(nu);
 		helper.Out.z = m_Weight * helper.In.z;
 	}
 
@@ -57,7 +57,7 @@ public:
 		   << "\t\t	xmax = 1;\n"
 		   << "\n"
 		   << "\t\treal_t mu = acosh(xmax);\n"
-		   << "\t\treal_t nu = acos(Clamp(vIn.x / xmax, -(real_t)(1.0), (real_t)(1.0)));\n"
+		   << "\t\treal_t nu = acos(clamp(vIn.x / xmax, -(real_t)(1.0), (real_t)(1.0)));\n"
 		   << "\n"
 		   << "\t\tif (vIn.y < 0)\n"
 		   << "\t\t	nu *= -1;\n"
@@ -70,6 +70,11 @@ public:
 		   << "\t}\n";
 
 		return ss.str();
+	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "SafeSqrt" };
 	}
 
 protected:
@@ -623,6 +628,11 @@ public:
 
 		return ss.str();
 	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Zeps" };
+	}
 };
 
 /// <summary>
@@ -660,6 +670,11 @@ public:
 
 		return ss.str();
 	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Zeps" };
+	}
 };
 
 /// <summary>
@@ -683,8 +698,8 @@ public:
 
 		if (m_VarType == VARTYPE_REG)
 		{
-			helper.Out.x = 0;
-			outPoint.m_X = helper.In.x;
+			helper.Out.x = helper.In.x;
+			outPoint.m_X = 0;
 		}
 		else
 		{
@@ -729,8 +744,8 @@ public:
 
 	virtual void Precalc() override
 	{
-		m_RxSin = sin(m_Weight * T(M_PI_2));
-		m_RxCos = cos(m_Weight * T(M_PI_2));
+		m_RxSin = std::sin(m_Weight * T(M_PI_2));
+		m_RxCos = std::cos(m_Weight * T(M_PI_2));
 	}
 
 protected:
@@ -812,8 +827,8 @@ public:
 
 	virtual void Precalc() override
 	{
-		m_RySin = sin(m_Weight * T(M_PI_2));
-		m_RyCos = cos(m_Weight * T(M_PI_2));
+		m_RySin = std::sin(m_Weight * T(M_PI_2));
+		m_RyCos = std::cos(m_Weight * T(M_PI_2));
 	}
 
 protected:
@@ -853,8 +868,8 @@ public:
 
 		if (m_VarType == VARTYPE_REG)
 		{
-			helper.Out.z = 0;
-			outPoint.m_Z = helper.In.z;
+			helper.Out.z = helper.In.z;
+			outPoint.m_Z = 0;
 		}
 		else
 		{
@@ -894,8 +909,8 @@ public:
 
 	virtual void Precalc() override
 	{
-		m_RzSin = sin(m_Weight * T(M_PI_2));
-		m_RzCos = cos(m_Weight * T(M_PI_2));
+		m_RzSin = std::sin(m_Weight * T(M_PI_2));
+		m_RzCos = std::cos(m_Weight * T(M_PI_2));
 	}
 
 protected:
@@ -1181,7 +1196,7 @@ public:
 		   << "\n"
 		   << "\t\tvOut.x = xform->m_VariationWeights[" << varIndex << "] * (vIn.x + (MwcNext01(mwc) - (real_t)(0.5)) * r);\n"
 		   << "\t\tvOut.y = xform->m_VariationWeights[" << varIndex << "] * (vIn.y + (MwcNext01(mwc) - (real_t)(0.5)) * r);\n"
-		   << "\t\tvOut.z = xform->m_VariationWeights[" << varIndex << "] * vIn.z;\n"
+		   << "\t\tvOut.z = xform->m_VariationWeights[" << varIndex << "] * vIn.z;\n"//WHY IS THIS DIFFERENT THAN THE CPU ONE?//TODO
 		   << "\t}\n";
 
 		return ss.str();
@@ -1231,11 +1246,11 @@ public:
 	{
 		T jun = Zeps(fabs(m_N));
 
-		T a = (atan2(helper.In.y, pow(fabs(helper.In.x), m_Sep)) + M_2PI * Floor<T>(rand.Frand01<T>() * m_AbsN)) / jun;
-		T r = m_Weight * pow(helper.m_PrecalcSumSquares, m_Cn * m_A);
+		T a = (std::atan2(helper.In.y, std::pow(fabs(helper.In.x), m_Sep)) + M_2PI * Floor<T>(rand.Frand01<T>() * m_AbsN)) / jun;
+		T r = m_Weight * std::pow(helper.m_PrecalcSumSquares, m_Cn * m_A);
 
-		helper.Out.x = r * cos(a) + m_B;
-		helper.Out.y = r * sin(a) + m_B;
+		helper.Out.x = r * std::cos(a) + m_B;
+		helper.Out.y = r * std::sin(a) + m_B;
 		helper.Out.z = m_Weight * helper.In.z;//Original did not multiply by weight. Do it here to be consistent with others.
 	}
 
@@ -1264,6 +1279,11 @@ public:
 		   << "\t}\n";
 
 		return ss.str();
+	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Zeps" };
 	}
 
 	virtual void Precalc() override
@@ -1317,8 +1337,8 @@ public:
 		T sqY = SQR(helper.In.y);
 		T v = (sqX + sqY) * m_W;//Do not use precalcSumSquares here because its components are needed below.
 
-		helper.Out.x = m_Weight * sin(helper.In.x) * (sqX + m_W - v);
-		helper.Out.y = m_Weight * sin(helper.In.y) * (sqY + m_W - v);
+		helper.Out.x = m_Weight * std::sin(helper.In.x) * (sqX + m_W - v);
+		helper.Out.y = m_Weight * std::sin(helper.In.y) * (sqY + m_W - v);
 		helper.Out.z = (m_VarType == VARTYPE_REG) ? 0 : helper.In.z;
 	}
 
@@ -1467,7 +1487,7 @@ public:
 		return ss.str();
 	}
 
-	virtual string OpenCLFuncsString() const
+	virtual string OpenCLFuncsString() const override
 	{
 		return
 			"real_t VoronDiscreteNoise(int x)\n"
@@ -1611,8 +1631,8 @@ public:
 
 	virtual void Precalc() override
 	{
-		m_SinR = sin(m_Rotation);
-		m_CosR = cos(m_Rotation);
+		m_SinR = std::sin(m_Rotation);
+		m_CosR = std::cos(m_Rotation);
 	}
 
 protected:
@@ -1695,24 +1715,24 @@ public:
 		if (rand.RandBit())
 			phi1 = -phi1;
 
-		sinr = sin(rho1);
-		cosr = cos(rho1);
+		sinr = std::sin(rho1);
+		cosr = std::cos(rho1);
 
-		sinp = sin(phi1);
-		cosp = cos(phi1);
+		sinp = std::sin(phi1);
+		cosp = std::cos(phi1);
 
 		temp = m_M4_1 * rho1;
-		msinr = sin(temp);
-		mcosr = cos(temp);
+		msinr = std::sin(temp);
+		mcosr = std::cos(temp);
 
 		temp = m_M4_2 * phi1;
-		msinp = sin(temp);
-		mcosp = cos(temp);
+		msinp = std::sin(temp);
+		mcosp = std::cos(temp);
 
-		pr1 = m_An2_1 * pow(fabs(mcosr), m_N2_1) + m_Bn3_1 * pow(fabs(msinr), m_N3_1);
-		pr2 = m_An2_2 * pow(fabs(mcosp), m_N2_2) + m_Bn3_2 * pow(fabs(msinp), m_N3_2);
-		r1 = pow(fabs(pr1), m_N1_1) + m_Spiral * rho1;
-		r2 = pow(fabs(pr2), m_N1_2);
+		pr1 = m_An2_1 * std::pow(fabs(mcosr), m_N2_1) + m_Bn3_1 * std::pow(fabs(msinr), m_N3_1);
+		pr2 = m_An2_2 * std::pow(fabs(mcosp), m_N2_2) + m_Bn3_2 * std::pow(fabs(msinp), m_N3_2);
+		r1 = std::pow(fabs(pr1), m_N1_1) + m_Spiral * rho1;
+		r2 = std::pow(fabs(pr2), m_N1_2);
 
 		if (int(m_Toroidmap) == 1)
 		{
@@ -1810,10 +1830,10 @@ public:
 	{
 		m_N1n_1 = (-1 / m_N1_1);
 		m_N1n_2 = (-1 / m_N1_2);
-		m_An2_1 = pow(fabs(1 / m_A1), m_N2_1);
-		m_An2_2 = pow(fabs(1 / m_A2), m_N2_2);
-		m_Bn3_1 = pow(fabs(1 / m_B1), m_N3_1);
-		m_Bn3_2 = pow(fabs(1 / m_B2), m_N3_2);
+		m_An2_1 = std::pow(fabs(1 / m_A1), m_N2_1);
+		m_An2_2 = std::pow(fabs(1 / m_A2), m_N2_2);
+		m_Bn3_1 = std::pow(fabs(1 / m_B1), m_N3_1);
+		m_Bn3_2 = std::pow(fabs(1 / m_B2), m_N3_2);
 		m_M4_1 = m_M1 / 4;
 		m_M4_2 = m_M2 / 4;
 		m_Rho2Pi = m_Rho * T(M_2_PI);
@@ -1902,8 +1922,8 @@ public:
 		T t, rX, rY, rZ;
 
 		t  = Zeps(helper.m_PrecalcSumSquares + SQR(helper.In.z));
-		rX = m_Weight / pow(t, m_StretchX);
-		rY = m_Weight / pow(t, m_StretchY);
+		rX = m_Weight / std::pow(t, m_StretchX);
+		rY = m_Weight / std::pow(t, m_StretchY);
 
 		helper.Out.x = helper.In.x * rX;
 		helper.Out.y = helper.In.y * rY;
@@ -1911,7 +1931,7 @@ public:
 		//Optional 3D calculation.
 		if (int(m_ZOn) == 1)
 		{
-			rZ = m_Weight / pow(t, m_StretchZ);
+			rZ = m_Weight / std::pow(t, m_StretchZ);
 			helper.Out.z = helper.In.z * rZ;
 		}
 	}
@@ -1946,6 +1966,11 @@ public:
 		   << "\t}\n";
 
 		return ss.str();
+	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Zeps" };
 	}
 
 protected:
@@ -1987,10 +2012,10 @@ public:
 		T yi = helper.In.y - m_Y;
 
 		const T rad = std::sqrt(SQR(xi) + SQR(yi));
-		const T ang = atan2(yi, xi);
+		const T ang = std::atan2(yi, xi);
 		const T rdc = m_Radius + (rand.Frand01<T>() * T(0.5) * m_Ca);
-		const T s = sin(ang);
-		const T c = cos(ang);
+		const T s = std::sin(ang);
+		const T c = std::cos(ang);
 
 		const int esc = rad > m_Radius;
 		const int cr0 = int(m_Zero);
@@ -2131,15 +2156,15 @@ public:
 	virtual void Func(IteratorHelper<T>& helper, Point<T>& outPoint, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override
 	{
 		const T z = helper.In.z / m_AbsN;
-		const T radiusOut = m_Weight * pow(helper.m_PrecalcSumSquares + z * z, m_Cn);
+		const T radiusOut = m_Weight * std::pow(helper.m_PrecalcSumSquares + z * z, m_Cn);
 		const T x = m_A * helper.In.x + m_B * helper.In.y + m_E;
 		const T y = m_C * helper.In.x + m_D * helper.In.y + m_F;
 		const T tempRand = T(int(rand.Frand01<T>() * m_AbsN));
-		const T alpha = (atan2(y, x) + M_2PI * tempRand) / m_Power;
+		const T alpha = (std::atan2(y, x) + M_2PI * tempRand) / m_Power;
 		const T gamma = radiusOut * helper.m_PrecalcSqrtSumSquares;
 
-		helper.Out.x = gamma * cos(alpha);
-		helper.Out.y = gamma * sin(alpha);
+		helper.Out.x = gamma * std::cos(alpha);
+		helper.Out.y = gamma * std::sin(alpha);
 		helper.Out.z = radiusOut * z;
 	}
 
@@ -2234,8 +2259,8 @@ public:
 		{
 			T r = 1 / helper.m_PrecalcSqrtSumSquares;
 
-			helper.Out.x = m_Weight * r * cos(helper.m_PrecalcAtanyx);
-			helper.Out.y = m_Weight * r * sin(helper.m_PrecalcAtanyx);
+			helper.Out.x = m_Weight * r * std::cos(helper.m_PrecalcAtanyx);
+			helper.Out.y = m_Weight * r * std::sin(helper.m_PrecalcAtanyx);
 		}
 		else if (helper.In.x > 0 && helper.In.y < 0)//Quadrant I: loonie.
 		{
@@ -2262,11 +2287,11 @@ public:
 
 			if (r < m_Weight)
 			{
-				T a = atan2(y, x) + m_Spin + m_Twist * (m_Weight - r);
+				T a = std::atan2(y, x) + m_Spin + m_Twist * (m_Weight - r);
 
 				r *= m_Weight;
-				helper.Out.x = r * cos(a) + m_X;
-				helper.Out.y = r * sin(a) - m_Y;
+				helper.Out.x = r * std::cos(a) + m_X;
+				helper.Out.y = r * std::sin(a) - m_Y;
 			}
 			else
 			{
@@ -2353,6 +2378,11 @@ public:
 			<< "\t}\n";
 
 		return ss.str();
+	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Zeps" };
 	}
 
 	virtual void Precalc() override
@@ -2556,12 +2586,12 @@ public:
 	virtual void Func(IteratorHelper<T>& helper, Point<T>& outPoint, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override
 	{
 		const T zr = Hypot<T>(helper.In.z, helper.m_PrecalcSqrtSumSquares);
-		const T phi = acos(Clamp<T>(helper.In.z / zr, -1, 1));
-		const T ps = sin(phi);
-		const T pc = cos(phi);
+		const T phi = std::acos(Clamp<T>(helper.In.z / zr, -1, 1));
+		const T ps = std::sin(phi);
+		const T pc = std::cos(phi);
 
-		helper.Out.x = m_Weight * cos(helper.m_PrecalcAtanyx) * ps * (zr + m_Radius);
-		helper.Out.y = m_Weight * sin(helper.m_PrecalcAtanyx) * ps * (zr + m_Radius);
+		helper.Out.x = m_Weight * std::cos(helper.m_PrecalcAtanyx) * ps * (zr + m_Radius);
+		helper.Out.y = m_Weight * std::sin(helper.m_PrecalcAtanyx) * ps * (zr + m_Radius);
 		helper.Out.z = m_Weight * pc * (zr + m_Radius);
 	}
 
@@ -2575,7 +2605,7 @@ public:
 
 		ss << "\t{\n"
 		   << "\t\tconst real_t zr = Hypot(vIn.z, precalcSqrtSumSquares);\n"
-		   << "\t\tconst real_t phi = acos(Clamp(vIn.z / zr, -(real_t)(1.0), (real_t)(1.0)));\n"
+		   << "\t\tconst real_t phi = acos(clamp(vIn.z / zr, -(real_t)(1.0), (real_t)(1.0)));\n"
 		   << "\t\tconst real_t ps = sin(phi);\n"
 		   << "\t\tconst real_t pc = cos(phi);\n"
 		   << "\n"
@@ -2585,6 +2615,11 @@ public:
 			<< "\t}\n";
 
 		return ss.str();
+	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Hypot" };
 	}
 
 protected:
@@ -2621,11 +2656,11 @@ public:
 			Sqr(helper.In.z - m_ZOrigin)) *
 			(rand.Frand01<T>() + rand.Frand01<T>() + rand.Frand01<T>() + rand.Frand01<T>() - 2);
 		T u = rand.Frand01<T>() * M_2PI;
-		T su = sin(u);
-		T cu = cos(u);
+		T su = std::sin(u);
+		T cu = std::cos(u);
 		T v = rand.Frand01<T>() * M_2PI;
-		T sv = sin(v);
-		T cv = cos(v);
+		T sv = std::sin(v);
+		T cv = std::cos(v);
 
 		helper.Out.x = m_X * r * sv * cu;
 		helper.Out.y = m_Y * r * sv * su;
@@ -2663,6 +2698,11 @@ public:
 		   << "\t}\n";
 
 		return ss.str();
+	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Sqr" };
 	}
 
 protected:
@@ -2749,10 +2789,15 @@ public:
 		   << "\t\tvOut.x = (x * re + y * im) * r;\n"
 		   << "\t\tvOut.y = (y * re - x * im) * r;\n"
 		   << "\t\tvOut.z = (z * xform->m_VariationWeights[" << varIndex << "]) / c;\n"
-		   << "\t\toutPoint->m_ColorX = Clamp(outPoint->m_ColorX + " << dcAdjust << " * c, (real_t)(0.0), (real_t)(1.0));\n"
+		   << "\t\toutPoint->m_ColorX = clamp(outPoint->m_ColorX + " << dcAdjust << " * c, (real_t)(0.0), (real_t)(1.0));\n"
 		   << "\t}\n";
 
 		return ss.str();
+	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Hypot", "Spread", "SignNz", "Powq4", "Powq4c", "Zeps" };
 	}
 
 	virtual void Precalc() override
@@ -2810,19 +2855,19 @@ public:
 	{
 		T r = std::sqrt(fabs(helper.m_PrecalcSumSquares + helper.In.z));
 
-		r += m_Ar * sin(fma(m_Br, r, m_Cr));
+		r += m_Ar * std::sin(fma(m_Br, r, m_Cr));
 
 		if (r == 0)
 			r = EPS;
 
-		T temp = fma(m_At, sin(fma(m_Bt, r, m_Ct)), helper.m_PrecalcAtanyx);
-		T st = sin(temp);
-		T ct = cos(temp);
+		T temp = fma(m_At, std::sin(fma(m_Bt, r, m_Ct)), helper.m_PrecalcAtanyx);
+		T st = std::sin(temp);
+		T ct = std::cos(temp);
 
-		temp = fma(m_Ap, sin(fma(m_Bp, r, m_Cp)), acos(Clamp<T>(helper.In.z / r, -1, 1)));
+		temp = fma(m_Ap, std::sin(fma(m_Bp, r, m_Cp)), std::acos(Clamp<T>(helper.In.z / r, -1, 1)));
 
-		T sp = sin(temp);
-		T cp = cos(temp);
+		T sp = std::sin(temp);
+		T cp = std::cos(temp);
 
 		helper.Out.x = r * ct * sp;
 		helper.Out.y = r * st * sp;
@@ -2866,7 +2911,7 @@ public:
 		   << "\t\treal_t st = sin(temp);\n"
 		   << "\t\treal_t ct = cos(temp);\n"
 		   << "\n"
-		   << "\t\ttemp = fma(" << ap << ", sin(fma(" << bp << ", r, " << cp << ")), acos(Clamp(vIn.z / r, -(real_t)(1.0), (real_t)(1.0))));\n"
+		   << "\t\ttemp = fma(" << ap << ", sin(fma(" << bp << ", r, " << cp << ")), acos(clamp(vIn.z / r, -(real_t)(1.0), (real_t)(1.0))));\n"
 		   << "\n"
 		   << "\t\treal_t sp = sin(temp);\n"
 		   << "\t\treal_t cp = cos(temp);\n"
@@ -3080,7 +3125,7 @@ public:
 		return ss.str();
 	}
 
-	virtual string OpenCLFuncsString() const
+	virtual string OpenCLFuncsString() const override
 	{
 		return
 			"real_t Interference2Sine(real_t a, real_t b, real_t c, real_t p, real_t x)\n"
@@ -3121,17 +3166,17 @@ protected:
 private:
 	inline static T Sine(T a, T b, T c, T p, T x)
 	{
-		return a * pow(fabs(sin(b * x + c)), p);//Original did not fabs().
+		return a * std::pow(std::fabs(std::sin(b * x + c)), p);//Original did not fabs().
 	}
 
 	inline static T Tri(T a, T b, T c, T p, T x)
 	{
-		return a * 2 * pow(fabs(asin(cos(b * x + c - T(M_PI_2)))) * T(M_1_PI), p);//Original did not fabs().
+		return a * 2 * std::pow(std::fabs(std::asin(std::cos(b * x + c - T(M_PI_2)))) * T(M_1_PI), p);//Original did not fabs().
 	}
 
 	inline static T Squ(T a, T b, T c, T p, T x)
 	{
-		return a * pow(sin(b * x + c) < 0 ? EPS : T(1), p);//Original passed -1 to pow if sin() was < 0. Doing so will return NaN, so EPS is passed instead.
+		return a * std::pow(std::sin(b * x + c) < 0 ? EPS : T(1), p);//Original passed -1 to pow if sin() was < 0. Doing so will return NaN, so EPS is passed instead.
 	}
 
 	T m_A1;
@@ -3160,10 +3205,10 @@ public:
 	virtual void Func(IteratorHelper<T>& helper, Point<T>& outPoint, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override
 	{
 		T absV = Hypot<T>(helper.In.y, helper.In.z);
-		T s = sin(helper.In.x);
-		T c = cos(helper.In.x);
-		T sh = sinh(absV);
-		T ch = cosh(absV);
+		T s = std::sin(helper.In.x);
+		T c = std::cos(helper.In.x);
+		T sh = std::sinh(absV);
+		T ch = std::cosh(absV);
 		T d = m_Weight * c * sh / absV;
 
 		helper.Out.x = m_Weight * s * ch;
@@ -3191,6 +3236,11 @@ public:
 
 		return ss.str();
 	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Hypot" };
+	}
 };
 
 /// <summary>
@@ -3207,10 +3257,10 @@ public:
 	virtual void Func(IteratorHelper<T>& helper, Point<T>& outPoint, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override
 	{
 		T absV = Hypot<T>(helper.In.y, helper.In.z);
-		T s = sin(absV);
-		T c = cos(absV);
-		T sh = sinh(helper.In.x);
-		T ch = cosh(helper.In.x);
+		T s = std::sin(absV);
+		T c = std::cos(absV);
+		T sh = std::sinh(helper.In.x);
+		T ch = std::cosh(helper.In.x);
 		T d = m_Weight * ch * s / absV;
 
 		helper.Out.x = m_Weight * sh * c;
@@ -3238,6 +3288,11 @@ public:
 
 		return ss.str();
 	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Hypot" };
+	}
 };
 
 /// <summary>
@@ -3255,10 +3310,10 @@ public:
 	{
 		T absV = Hypot<T>(helper.In.y, helper.In.z);
 		T ni = m_Weight / (helper.m_PrecalcSumSquares + SQR(helper.In.z));
-		T s = sin(-helper.In.x);
-		T c = cos(-helper.In.x);
-		T sh = sinh(absV);
-		T ch = cosh(absV);
+		T s = std::sin(-helper.In.x);
+		T c = std::cos(-helper.In.x);
+		T sh = std::sinh(absV);
+		T ch = std::cosh(absV);
 		T d = ni * s * sh / absV;
 
 		helper.Out.x =   c * ch * ni;
@@ -3287,6 +3342,11 @@ public:
 
 		return ss.str();
 	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Hypot" };
+	}
 };
 
 /// <summary>
@@ -3304,10 +3364,10 @@ public:
 	{
 		T absV = Hypot<T>(helper.In.y, helper.In.z);
 		T ni = m_Weight / (helper.m_PrecalcSumSquares + SQR(helper.In.z));
-		T s = sin(absV);
-		T c = cos(absV);
-		T sh = sinh(helper.In.x);
-		T ch = cosh(helper.In.x);
+		T s = std::sin(absV);
+		T c = std::cos(absV);
+		T sh = std::sinh(helper.In.x);
+		T ch = std::cosh(helper.In.x);
 		T d = ni * sh * s / absV;
 
 		helper.Out.x =  ch * c * ni;
@@ -3336,6 +3396,11 @@ public:
 
 		return ss.str();
 	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Hypot" };
+	}
 };
 
 /// <summary>
@@ -3354,10 +3419,10 @@ public:
 		T sysz = SQR(helper.In.y) + SQR(helper.In.z);
 		T absV = std::sqrt(sysz);
 		T ni = m_Weight / (SQR(helper.In.x) + sysz);
-		T s = sin(helper.In.x);
-		T c = cos(helper.In.x);
-		T sh = sinh(absV);
-		T ch = cosh(absV);
+		T s = std::sin(helper.In.x);
+		T c = std::cos(helper.In.x);
+		T sh = std::sinh(absV);
+		T ch = std::cosh(absV);
 		T d = c * sh / absV;
 		T b = -s * sh / absV;
 		T stcv = s * ch;
@@ -3413,10 +3478,10 @@ public:
 		T sysz = SQR(helper.In.y) + SQR(helper.In.z);
 		T absV = std::sqrt(sysz);
 		T ni = m_Weight / (SQR(helper.In.x) + sysz);
-		T s = sin(absV);
-		T c = cos(absV);
-		T sh = sinh(helper.In.x);
-		T ch = cosh(helper.In.x);
+		T s = std::sin(absV);
+		T c = std::cos(absV);
+		T sh = std::sinh(helper.In.x);
+		T ch = std::cosh(helper.In.x);
 		T d = ch * s / absV;
 		T b = sh * s / absV;
 		T stcv = sh * c;
@@ -3470,10 +3535,10 @@ public:
 	virtual void Func(IteratorHelper<T>& helper, Point<T>& outPoint, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override
 	{
 		T absV = Hypot<T>(helper.In.y, helper.In.z);
-		T s = sin(helper.In.x);
-		T c = cos(helper.In.x);
-		T sh = sinh(absV);
-		T ch = cosh(absV);
+		T s = std::sin(helper.In.x);
+		T c = std::cos(helper.In.x);
+		T sh = std::sinh(absV);
+		T ch = std::cosh(absV);
 		T d = -m_Weight * s * sh / absV;
 
 		helper.Out.x = m_Weight * c * ch;
@@ -3501,6 +3566,11 @@ public:
 
 		return ss.str();
 	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Hypot" };
+	}
 };
 
 /// <summary>
@@ -3517,10 +3587,10 @@ public:
 	virtual void Func(IteratorHelper<T>& helper, Point<T>& outPoint, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override
 	{
 		T absV = Hypot<T>(helper.In.y, helper.In.z);
-		T s = sin(absV);
-		T c = cos(absV);
-		T sh = sinh(helper.In.x);
-		T ch = cosh(helper.In.x);
+		T s = std::sin(absV);
+		T c = std::cos(absV);
+		T sh = std::sinh(helper.In.x);
+		T ch = std::cosh(helper.In.x);
 		T d = -m_Weight * sh * s / absV;
 
 		helper.Out.x = m_Weight * c * ch;
@@ -3548,6 +3618,11 @@ public:
 
 		return ss.str();
 	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Hypot" };
+	}
 };
 
 /// <summary>
@@ -3566,10 +3641,10 @@ public:
 		T sysz = SQR(helper.In.y) + SQR(helper.In.z);
 		T absV = std::sqrt(sysz);
 		T ni = m_Weight / (SQR(helper.In.x) + sysz);
-		T s = sin(helper.In.x);
-		T c = cos(helper.In.x);
-		T sh = sinh(absV);
-		T ch = cosh(absV);
+		T s = std::sin(helper.In.x);
+		T c = std::cos(helper.In.x);
+		T sh = std::sinh(absV);
+		T ch = std::cosh(absV);
 		T d = c * sh / absV;
 		T b = -s * sh / absV;
 		T stcv = s * ch;
@@ -3625,10 +3700,10 @@ public:
 		T sysz = SQR(helper.In.y) + SQR(helper.In.z);
 		T absV = std::sqrt(sysz);
 		T ni = m_Weight / (SQR(helper.In.x) + sysz);
-		T s = sin(absV);
-		T c = cos(absV);
-		T sh = sinh(helper.In.x);
-		T ch = cosh(helper.In.x);
+		T s = std::sin(absV);
+		T c = std::cos(absV);
+		T sh = std::sinh(helper.In.x);
+		T ch = std::cosh(helper.In.x);
 		T d = ch * s / absV;
 		T b = sh * s / absV;
 		T stcv = sh * c;
@@ -3683,10 +3758,10 @@ public:
 	{
 		T absV = Hypot<T>(helper.In.y, helper.In.z);
 		T ni = m_Weight / (helper.m_PrecalcSumSquares + SQR(helper.In.z));
-		T s = sin(helper.In.x);
-		T c = cos(helper.In.x);
-		T sh = sinh(absV);
-		T ch = cosh(absV);
+		T s = std::sin(helper.In.x);
+		T c = std::cos(helper.In.x);
+		T sh = std::sinh(absV);
+		T ch = std::cosh(absV);
 		T d = ni * c * sh / absV;
 
 		helper.Out.x =   s * ch * ni;
@@ -3715,6 +3790,11 @@ public:
 
 		return ss.str();
 	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Hypot" };
+	}
 };
 
 /// <summary>
@@ -3732,10 +3812,10 @@ public:
 	{
 		T absV = Hypot<T>(helper.In.y, helper.In.z);
 		T ni = m_Weight / (helper.m_PrecalcSumSquares + SQR(helper.In.z));
-		T s = sin(absV);
-		T c = cos(absV);
-		T sh = sinh(helper.In.x);
-		T ch = cosh(helper.In.x);
+		T s = std::sin(absV);
+		T c = std::cos(absV);
+		T sh = std::sinh(helper.In.x);
+		T ch = std::cosh(helper.In.x);
 		T d = ni * ch * s / absV;
 
 		helper.Out.x =  sh * c * ni;
@@ -3764,6 +3844,11 @@ public:
 
 		return ss.str();
 	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Hypot" };
+	}
 };
 
 /// <summary>
@@ -3780,9 +3865,9 @@ public:
 	virtual void Func(IteratorHelper<T>& helper, Point<T>& outPoint, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override
 	{
 		T absV = Hypot<T>(helper.In.y, helper.In.z);
-		T e = exp(helper.In.x);
-		T s = sin(absV);
-		T c = cos(absV);
+		T e = std::exp(helper.In.x);
+		T s = std::sin(absV);
+		T c = std::cos(absV);
 		T a = e * s / absV;
 
 		helper.Out.x = m_Weight * e * c;
@@ -3809,6 +3894,11 @@ public:
 
 		return ss.str();
 	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Hypot" };
+	}
 };
 
 /// <summary>
@@ -3828,9 +3918,9 @@ public:
 	virtual void Func(IteratorHelper<T>& helper, Point<T>& outPoint, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override
 	{
 		T absV = Hypot<T>(helper.In.y, helper.In.z);
-		T c = m_Weight * atan2(absV, helper.In.x) / absV;
+		T c = m_Weight * std::atan2(absV, helper.In.x) / absV;
 
-		helper.Out.x = log(SQR(helper.In.x) + SQR(absV)) * m_Denom;
+		helper.Out.x = std::log(SQR(helper.In.x) + SQR(absV)) * m_Denom;
 		helper.Out.y = c * helper.In.y;
 		helper.Out.z = c * helper.In.z;
 	}
@@ -3855,10 +3945,15 @@ public:
 
 		return ss.str();
 	}
+	
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Hypot" };
+	}
 
 	virtual void Precalc() override
 	{
-		m_Denom = T(0.5) / log(m_Base);
+		m_Denom = T(0.5) / std::log(m_Base);
 	}
 
 protected:
@@ -3906,6 +4001,11 @@ public:
 		   << "\t}\n";
 
 		return ss.str();
+	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Zeps" };
 	}
 };
 
@@ -4024,7 +4124,7 @@ public:
 		T xx = (rand.Frand01<T>() - T(0.5)) * 2;
 		T yy = (rand.Frand01<T>() - T(0.5)) * 2;
 		T k = SignNz(yy);
-		T yymax = ((m_A * pow(fabs(xx), m_P) + k * m_B * std::sqrt(fabs(1 - SQR(xx)))) - m_A);
+		T yymax = ((m_A * std::pow(fabs(xx), m_P) + k * m_B * std::sqrt(fabs(1 - SQR(xx)))) - m_A);
 
 		//The function must be in a range 0-1 to work properly.
 		yymax /= Zeps(fabs(m_A) + fabs(m_B));
@@ -4081,6 +4181,11 @@ public:
 		   << "\t}\n";
 
 		return ss.str();
+	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "SignNz", "Zeps" };
 	}
 
 protected:
@@ -4190,26 +4295,26 @@ public:
 		{
 			if (tileType < 1)
 			{
-				r0 = pow((pow(fabs(x    ), m_Exponent) + pow(fabs(y    ), m_Exponent)), m_OneOverEx);
-				r1 = pow((pow(fabs(x - 1), m_Exponent) + pow(fabs(y - 1), m_Exponent)), m_OneOverEx);
+				r0 = std::pow((pow(fabs(x    ), m_Exponent) + std::pow(fabs(y    ), m_Exponent)), m_OneOverEx);
+				r1 = std::pow((pow(fabs(x - 1), m_Exponent) + std::pow(fabs(y - 1), m_Exponent)), m_OneOverEx);
 			}
 			else
 			{
-				r0 = pow((pow(fabs(x - 1), m_Exponent) + pow(fabs(y    ), m_Exponent)), m_OneOverEx);
-				r1 = pow((pow(fabs(x    ), m_Exponent) + pow(fabs(y - 1), m_Exponent)), m_OneOverEx);
+				r0 = std::pow((pow(fabs(x - 1), m_Exponent) + std::pow(fabs(y    ), m_Exponent)), m_OneOverEx);
+				r1 = std::pow((pow(fabs(x    ), m_Exponent) + std::pow(fabs(y - 1), m_Exponent)), m_OneOverEx);
 			}
 		}
 		else//Slow drawmode
 		{
 			if (tileType == 1)
 			{
-				r0 = pow((pow(fabs(x    ), m_Exponent) + pow(fabs(y    ), m_Exponent)), m_OneOverEx);
-				r1 = pow((pow(fabs(x - 1), m_Exponent) + pow(fabs(y - 1), m_Exponent)), m_OneOverEx);
+				r0 = std::pow((std::pow(fabs(x    ), m_Exponent) + std::pow(fabs(y    ), m_Exponent)), m_OneOverEx);
+				r1 = std::pow((std::pow(fabs(x - 1), m_Exponent) + std::pow(fabs(y - 1), m_Exponent)), m_OneOverEx);
 			}
 			else
 			{
-				r0 = pow((pow(fabs(x - 1), m_Exponent) + pow(fabs(y    ), m_Exponent)), m_OneOverEx);
-				r1 = pow((pow(fabs(x    ), m_Exponent) + pow(fabs(y - 1), m_Exponent)), m_OneOverEx);
+				r0 = std::pow((std::pow(fabs(x - 1), m_Exponent) + std::pow(fabs(y    ), m_Exponent)), m_OneOverEx);
+				r1 = std::pow((std::pow(fabs(x    ), m_Exponent) + std::pow(fabs(y - 1), m_Exponent)), m_OneOverEx);
 			}
 		}
 
@@ -4378,13 +4483,18 @@ public:
 		return ss.str();
 	}
 
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Round" };
+	}
+
 	virtual void Precalc() override
 	{
 		m_OneOverEx = 1 / m_Exponent;
 		m_AbsSeed = fabs(m_Seed);
 		m_Seed2 = std::sqrt(Zeps(m_AbsSeed + (m_AbsSeed / 2))) / Zeps((m_AbsSeed * T(0.5))) * T(0.25);
-		m_OneOverRmax = 1 / (T(0.5) * (pow(T(2), 1 / m_Exponent) - 1) * m_ArcWidth);
-		m_Scale = (cos(-m_Rotation) - sin(-m_Rotation)) / m_Weight;
+		m_OneOverRmax = 1 / (T(0.5) * (std::pow(T(2), 1 / m_Exponent) - 1) * m_ArcWidth);
+		m_Scale = (std::cos(-m_Rotation) - std::sin(-m_Rotation)) / m_Weight;
 	}
 
 protected:
@@ -4508,7 +4618,7 @@ public:
 		return ss.str();
 	}
 
-	virtual string OpenCLFuncsString() const
+	virtual string OpenCLFuncsString() const override
 	{
 		return
 			"inline real_t GdoffsFcip(real_t a) { return (real_t)((a < 0) ? -((int)(fabs(a)) + 1) : 0) + ((a > 1) ? ((int)(a)) : 0); }\n"
@@ -4561,7 +4671,7 @@ private:
 	static inline T GdoffsFcip(T a) { return T((a < 0) ? -(int(fabs(a)) + 1) : 0) + ((a > 1) ? (int(a)) : 0); }
 	static inline T GdoffsFclp(T a) { return ((a < 0) ? -(fmod(fabs(a), T(1))) : fmod(fabs(a), T(1))); }
 	static inline T GdoffsFscl(T a) { return GdoffsFclp((a + 1) / 2); }
-	static inline T GdoffsFosc(T p, T a) { return GdoffsFscl(-1 * cos(p * a * M_2PI)); }
+	static inline T GdoffsFosc(T p, T a) { return GdoffsFscl(-1 * std::cos(p * a * M_2PI)); }
 	static inline T GdoffsFlip(T a, T b, T c) { return (c * (b - a) + a); }
 
 	T m_DeltaX;//Params.
@@ -4703,6 +4813,11 @@ public:
 		return ss.str();
 	}
 
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Zeps" };
+	}
+
 protected:
 	void Init()
 	{
@@ -4748,8 +4863,8 @@ public:
 				r *= m_R2 / m_R1;
 				temp = atan2(helper.In.y, c1mx);
 
-				helper.Out.x = m_Weight * (r * cos(temp) - m_C2);
-				helper.Out.y = m_Weight *  r * sin(temp);
+				helper.Out.x = m_Weight * (r * std::cos(temp) - m_C2);
+				helper.Out.y = m_Weight *  r * std::sin(temp);
 			}
 			else
 			{
@@ -4767,8 +4882,8 @@ public:
 				r *= m_R1 / m_R2;
 				temp = atan2(helper.In.y, c1mx);
 
-				helper.Out.x = m_Weight * (r * cos(temp) + m_C1);
-				helper.Out.y = m_Weight *  r * sin(temp);
+				helper.Out.x = m_Weight * (r * std::cos(temp) + m_C1);
+				helper.Out.y = m_Weight *  r * std::sin(temp);
 			}
 			else
 			{
@@ -4887,12 +5002,12 @@ public:
 	virtual void Func(IteratorHelper<T>& helper, Point<T>& outPoint, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override
 	{
 		T arg = helper.m_PrecalcAtanyx + fmod(T(rand.Rand()), T(1 / m_ReInv)) * M_2PI;
-		T lnmod = m_Dist * T(0.5) * log(helper.m_PrecalcSumSquares);
+		T lnmod = m_Dist * T(0.5) * std::log(helper.m_PrecalcSumSquares);
 		T temp = arg * m_ReInv + lnmod * m_Im100;
-		T mod2 = exp(lnmod * m_ReInv - arg * m_Im100);
+		T mod2 = std::exp(lnmod * m_ReInv - arg * m_Im100);
 
-		helper.Out.x = m_Weight * mod2 * cos(temp);
-		helper.Out.y = m_Weight * mod2 * sin(temp);
+		helper.Out.x = m_Weight * mod2 * std::cos(temp);
+		helper.Out.y = m_Weight * mod2 * std::sin(temp);
 		helper.Out.z = (m_VarType == VARTYPE_REG) ? 0 : helper.In.z;
 	}
 
@@ -5006,11 +5121,11 @@ public:
 
 	virtual void Func(IteratorHelper<T>& helper, Point<T>& outPoint, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override
 	{
-		T r = helper.m_PrecalcSqrtSumSquares * (m_BlobLow + m_BlobDiff * (T(0.5) + T(0.5) * sin(m_BlobWaves * helper.m_PrecalcAtanxy)));
+		T r = helper.m_PrecalcSqrtSumSquares * (m_BlobLow + m_BlobDiff * (T(0.5) + T(0.5) * std::sin(m_BlobWaves * helper.m_PrecalcAtanxy)));
 
 		helper.Out.x = m_Weight * helper.m_PrecalcSina * r;
 		helper.Out.y = m_Weight * helper.m_PrecalcCosa * r;
-		helper.Out.z = m_Weight * sin(m_BlobWaves * helper.m_PrecalcAtanxy) * r;
+		helper.Out.z = m_Weight * std::sin(m_BlobWaves * helper.m_PrecalcAtanxy) * r;
 	}
 
 	virtual string OpenCLString() const override
@@ -5082,7 +5197,7 @@ public:
 
 	virtual void Func(IteratorHelper<T>& helper, Point<T>& outPoint, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override
 	{
-		T t = Zeps((cos(helper.In.x) + cos(helper.In.y)) / m_Mp + 1);
+		T t = Zeps((std::cos(helper.In.x) + std::cos(helper.In.y)) / m_Mp + 1);
 		T r = m_Weight / t;
 		T tmp = helper.m_PrecalcSumSquares + 1;
 		T x2 = 2 * helper.In.x;
@@ -5135,6 +5250,11 @@ public:
 		   << "\t}\n";
 
 		return ss.str();
+	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "SafeSqrt", "Zeps" };
 	}
 
 	virtual void Precalc() override

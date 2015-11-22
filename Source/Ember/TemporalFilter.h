@@ -207,7 +207,7 @@ public:
 					slpx = T(Size() - i) / Size();
 
 				//Scale the color based on these values.
-				m_Filter[i] = pow(slpx, fabs(filterExp));
+				m_Filter[i] = std::pow(slpx, fabs(filterExp));
 
 				//Keep the max.
 				if (m_Filter[i] > maxFilt)

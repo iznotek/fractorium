@@ -6,8 +6,7 @@ namespace EmberNs
 {
 /// <summary>
 /// DC Bubble.
-/// This accesses the summed output point in a rare and different way
-/// and therefore cannot be made into pre and post variations.
+/// This accesses the summed output point in a rare and different way.
 /// </summary>
 template <typename T>
 class EMBER_API DCBubbleVariation : public ParametricVariation<T>
@@ -30,8 +29,21 @@ public:
 		helper.Out.y = r4_1 * helper.In.y;
 		helper.Out.z = m_Weight * (2 / r4_1 - 1);
 
-		T tempX = helper.Out.x + outPoint.m_X;
-		T tempY = helper.Out.y + outPoint.m_Y;
+		T sumX, sumY;
+
+		if (m_VarType == VARTYPE_PRE)
+		{
+			sumX = helper.In.x;
+			sumY = helper.In.y;
+		}
+		else
+		{
+			sumX = outPoint.m_X;
+			sumY = outPoint.m_Y;
+		}
+
+		T tempX = helper.Out.x + sumX;
+		T tempY = helper.Out.y + sumY;
 
 		outPoint.m_ColorX = fmod(fabs(m_Bdcs * (Sqr<T>(tempX + m_CenterX) + Sqr<T>(tempY + m_CenterY))), T(1.0));
 	}
@@ -56,13 +68,34 @@ public:
 		   << "\t\tvOut.y = r4_1 * vIn.y;\n"
 		   << "\t\tvOut.z = xform->m_VariationWeights[" << varIndex << "] * (2 / r4_1 - 1);\n"
 		   << "\n"
-		   << "\t\treal_t tempX = vOut.x + outPoint->m_X;\n"
-		   << "\t\treal_t tempY = vOut.y + outPoint->m_Y;\n"
+		   << "\t\treal_t sumX, sumY;\n\n";
+
+		if (m_VarType == VARTYPE_PRE)
+		{
+			ss
+				<< "\t\tsumX = vIn.x;\n"
+				<< "\t\tsumY = vIn.y;\n";
+		}
+		else
+		{
+			ss
+				<< "\t\tsumX = outPoint->m_X;\n"
+				<< "\t\tsumY = outPoint->m_Y;\n";
+		}
+
+		ss
+		   << "\t\treal_t tempX = vOut.x + sumX;\n"
+		   << "\t\treal_t tempY = vOut.y + sumY;\n"
 		   << "\n"
 		   << "\t\toutPoint->m_ColorX = fmod(fabs(" << bdcs << " * (Sqr(tempX + " << centerX << ") + Sqr(tempY + " << centerY << "))), (real_t)(1.0));\n"
 		   << "\t}\n";
 
 		return ss.str();
+	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Sqr", "Zeps" };
 	}
 
 	virtual void Precalc() override
@@ -255,7 +288,7 @@ public:
 		   << "\t\treal_t x, y, z;\n"
 		   << "\t\treal_t p = 2 * MwcNext01(mwc) - 1;\n"
 		   << "\t\treal_t q = 2 * MwcNext01(mwc) - 1;\n"
-		   << "\t\tuint i = MwcNext(mwc) % 3;\n"
+		   << "\t\tuint i = MwcNextRange(mwc, 3);\n"
 		   << "\t\tuint j = MwcNext(mwc) & 1;\n"
 		   << "\n"
 		   << "\t\tswitch (i)\n"
@@ -356,8 +389,7 @@ private:
 
 /// <summary>
 /// DC Cylinder.
-/// This accesses the summed output point in a rare and different way
-/// and therefore cannot be made into pre and post variations.
+/// This accesses the summed output point in a rare and different way.
 /// </summary>
 template <typename T>
 class EMBER_API DCCylinderVariation : public ParametricVariation<T>
@@ -373,16 +405,29 @@ public:
 	virtual void Func(IteratorHelper<T>& helper, Point<T>& outPoint, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override
 	{
 		T temp = rand.Frand01<T>() * M_2PI;
-		T sr = sin(temp);
-		T cr = cos(temp);
+		T sr = std::sin(temp);
+		T cr = std::cos(temp);
 		T r = m_Blur * (rand.Frand01<T>() + rand.Frand01<T>() + rand.Frand01<T>() + rand.Frand01<T>() - 2);
 
-		helper.Out.x = m_Weight * sin(helper.In.x + r * sr) * m_X;
+		helper.Out.x = m_Weight * std::sin(helper.In.x + r * sr) * m_X;
 		helper.Out.y = r + helper.In.y * m_Y;
-		helper.Out.z = m_Weight * cos(helper.In.x + r * cr);
+		helper.Out.z = m_Weight * std::cos(helper.In.x + r * cr);
 
-		T tempX = helper.Out.x + outPoint.m_X;
-		T tempY = helper.Out.y + outPoint.m_Y;
+		T sumX, sumY;
+
+		if (m_VarType == VARTYPE_PRE)
+		{
+			sumX = helper.In.x;
+			sumY = helper.In.y;
+		}
+		else
+		{
+			sumX = outPoint.m_X;
+			sumY = outPoint.m_Y;
+		}
+
+		T tempX = helper.Out.x + sumX;
+		T tempY = helper.Out.y + sumY;
 
 		outPoint.m_ColorX = fmod(fabs(T(0.5) * (m_Ldcs * ((m_Cosa * tempX + m_Sina * tempY + m_Offset)) + 1)), T(1.0));
 	}
@@ -413,8 +458,24 @@ public:
 		   << "\t\tvOut.y = r + vIn.y * " << y << ";\n"
 		   << "\t\tvOut.z = xform->m_VariationWeights[" << varIndex << "] * cos(vIn.x + r * cr);\n"
 		   << "\n"
-		   << "\t\treal_t tempX = vOut.x + outPoint->m_X;\n"
-		   << "\t\treal_t tempY = vOut.y + outPoint->m_Y;\n"
+		   << "\t\treal_t sumX, sumY;\n\n";
+
+		if (m_VarType == VARTYPE_PRE)
+		{
+			ss
+				<< "\t\tsumX = vIn.x;\n"
+				<< "\t\tsumY = vIn.y;\n";
+		}
+		else
+		{
+			ss
+				<< "\t\tsumX = outPoint->m_X;\n"
+				<< "\t\tsumY = outPoint->m_Y;\n";
+		}
+
+		ss
+		   << "\t\treal_t tempX = vOut.x + sumX;\n"
+		   << "\t\treal_t tempY = vOut.y + sumY;\n"
 		   << "\n"
 		   << "\t\toutPoint->m_ColorX = fmod(fabs((real_t)(0.5) * (" << ldcs << " * ((" << cosa << " * tempX + " << sina << " * tempY + " << offset << ")) + (real_t)(1.0))), (real_t)(1.0));\n"
 		   << "\t}\n";
@@ -631,12 +692,16 @@ public:
 
 		return ss.str();
 	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "LRint" };
+	}
 };
 
 /// <summary>
 /// DC Linear.
-/// This accesses the summed output point in a rare and different way
-/// and therefore cannot be made into pre and post variations.
+/// This accesses the summed output point in a rare and different way.
 /// </summary>
 template <typename T>
 class EMBER_API DCLinearVariation : public ParametricVariation<T>
@@ -655,8 +720,21 @@ public:
 		helper.Out.y = m_Weight * helper.In.y;
 		helper.Out.z = m_Weight * helper.In.z;
 
-		T tempX = helper.Out.x + outPoint.m_X;
-		T tempY = helper.Out.y + outPoint.m_Y;
+		T sumX, sumY;
+
+		if (m_VarType == VARTYPE_PRE)
+		{
+			sumX = helper.In.x;
+			sumY = helper.In.y;
+		}
+		else
+		{
+			sumX = outPoint.m_X;
+			sumY = outPoint.m_Y;
+		}
+
+		T tempX = helper.Out.x + sumX;
+		T tempY = helper.Out.y + sumY;
 
 		outPoint.m_ColorX = fmod(fabs(T(0.5) * (m_Ldcs * ((m_Cosa * tempX + m_Sina * tempY + m_Offset)) + T(1.0))), T(1.0));
 	}
@@ -680,8 +758,24 @@ public:
 		   << "\t\tvOut.y = xform->m_VariationWeights[" << varIndex << "] * vIn.y;\n"
 		   << "\t\tvOut.z = xform->m_VariationWeights[" << varIndex << "] * vIn.z;\n"
 		   << "\n"
-		   << "\t\treal_t tempX = vOut.x + outPoint->m_X;\n"
-		   << "\t\treal_t tempY = vOut.y + outPoint->m_Y;\n"
+		   << "\t\treal_t sumX, sumY;\n\n";
+
+		if (m_VarType == VARTYPE_PRE)
+		{
+			ss
+				<< "\t\tsumX = vIn.x;\n"
+				<< "\t\tsumY = vIn.y;\n";
+		}
+		else
+		{
+			ss
+				<< "\t\tsumX = outPoint->m_X;\n"
+				<< "\t\tsumY = outPoint->m_Y;\n";
+		}
+
+		ss
+		   << "\t\treal_t tempX = vOut.x + sumX;\n"
+		   << "\t\treal_t tempY = vOut.y + sumY;\n"
 		   << "\n"
 		   << "\t\toutPoint->m_ColorX = fmod(fabs((real_t)(0.5) * (" << ldcs << " * ((" << cosa << " * tempX + " << sina << " * tempY + " << offset << ")) + (real_t)(1.0))), (real_t)(1.0));\n"
 		   << "\t}\n";
@@ -1034,9 +1128,12 @@ private:
 	T m_X1_m_x0;
 };
 
+MAKEPREPOSTPARVAR(DCBubble, dc_bubble, DC_BUBBLE)
 MAKEPREPOSTPARVAR(DCCarpet, dc_carpet, DC_CARPET)
 MAKEPREPOSTPARVARASSIGN(DCCube, dc_cube, DC_CUBE, ASSIGNTYPE_SUM)
+MAKEPREPOSTPARVAR(DCCylinder, dc_cylinder, DC_CYLINDER)
 MAKEPREPOSTVAR(DCGridOut, dc_gridout, DC_GRIDOUT)
+MAKEPREPOSTPARVAR(DCLinear, dc_linear, DC_LINEAR)
 MAKEPREPOSTPARVAR(DCTriangle, dc_triangle, DC_TRIANGLE)
 MAKEPREPOSTPARVAR(DCZTransl, dc_ztransl, DC_ZTRANSL)
 }

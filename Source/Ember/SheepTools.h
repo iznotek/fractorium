@@ -185,8 +185,9 @@ public:
 	/// <param name="useVars">The variations to use if the mutation mode is random</param>
 	/// <param name="sym">The type of symmetry to add if random specified. If 0, it will be added randomly.</param>
 	/// <param name="speed">The speed to multiply the pre affine transforms by if the mutate mode is MUTATE_ALL_COEFS, else ignored.</param>
+	/// <param name="maxVars">The maximum number of variations to allow in any single xform in the ember.</param>
 	/// <returns>A string describing what was done</returns>
-	string Mutate(Ember<T>& ember, eMutateMode mode, vector<eVariationId>& useVars, intmax_t sym, T speed)
+	string Mutate(Ember<T>& ember, eMutateMode mode, vector<eVariationId>& useVars, intmax_t sym, T speed, size_t maxVars)
 	{
 		bool done = false;
 		size_t modXform;
@@ -224,7 +225,7 @@ public:
 			do
 			{
 				//Create a random flame, and use the variations to replace those in the original.
-				Random(mutation, useVars, sym, ember.TotalXformCount());
+				Random(mutation, useVars, sym, ember.TotalXformCount(), maxVars);
 
 				for (size_t i = 0; i < ember.TotalXformCount(); i++)
 				{
@@ -255,7 +256,7 @@ public:
 		else if (mode == MUTATE_ONE_XFORM_COEFS)
 		{
 			//Generate a 2-xform random.
-			Random(mutation, useVars, sym, 2);
+			Random(mutation, useVars, sym, 2, maxVars);
 
 			//Which xform to mutate?
 			modXform = m_Rand.Rand() % ember.TotalXformCount();
@@ -305,10 +306,10 @@ public:
 						T f = T(M_PI) * m_Rand.Frand11<T>();
 						T ra, rb, rd, re;
 
-						ra = (xform->m_Affine.A() * cos(f) + xform->m_Affine.B() * -sin(f));
-						rd = (xform->m_Affine.A() * sin(f) + xform->m_Affine.D() *  cos(f));
-						rb = (xform->m_Affine.B() * cos(f) + xform->m_Affine.E() * -sin(f));
-						re = (xform->m_Affine.B() * sin(f) + xform->m_Affine.E() *  cos(f));
+						ra = (xform->m_Affine.A() * std::cos(f) + xform->m_Affine.B() * -std::sin(f));
+						rd = (xform->m_Affine.A() * std::sin(f) + xform->m_Affine.D() *  std::cos(f));
+						rb = (xform->m_Affine.B() * std::cos(f) + xform->m_Affine.E() * -std::sin(f));
+						re = (xform->m_Affine.B() * std::sin(f) + xform->m_Affine.E() *  std::cos(f));
 
 						xform->m_Affine.A(ra);
 						xform->m_Affine.B(rb);
@@ -317,10 +318,10 @@ public:
 
 						f *= -1;
 
-						ra = (xform->m_Post.A() * cos(f) + xform->m_Post.B() * -sin(f));
-						rd = (xform->m_Post.A() * sin(f) + xform->m_Post.D() *  cos(f));
-						rb = (xform->m_Post.B() * cos(f) + xform->m_Post.E() * -sin(f));
-						re = (xform->m_Post.B() * sin(f) + xform->m_Post.E() *  cos(f));
+						ra = (xform->m_Post.A() * std::cos(f) + xform->m_Post.B() * -std::sin(f));
+						rd = (xform->m_Post.A() * std::sin(f) + xform->m_Post.D() *  std::cos(f));
+						rb = (xform->m_Post.B() * std::cos(f) + xform->m_Post.E() * -std::sin(f));
+						re = (xform->m_Post.B() * std::sin(f) + xform->m_Post.E() *  std::cos(f));
 
 						xform->m_Post.A(ra);
 						xform->m_Post.B(rb);
@@ -408,7 +409,7 @@ public:
 		else if (mode == MUTATE_ALL_COEFS)
 		{
 			os << "mutate all coefs";
-			Random(mutation, useVars, sym, ember.TotalXformCount());
+			Random(mutation, useVars, sym, ember.TotalXformCount(), maxVars);
 
 			//Change all the coefs by a fraction of the random.
 			for (size_t x = 0; x < ember.TotalXformCount(); x++)
@@ -599,11 +600,12 @@ public:
 	/// Thin wrapper around Random() that passes an empty vector for useVars, a random value for symmetry and 0 for max xforms.
 	/// </summary>
 	/// <param name="ember">The newly created random ember</param>
-	void Random(Ember<T>& ember)
+	/// <param name="maxVars">The maximum number of variations to allow in any single xform in the ember.</param>
+	void Random(Ember<T>& ember, size_t maxVars)
 	{
 		vector<eVariationId> useVars;
 
-		Random(ember, useVars, static_cast<intmax_t>(m_Rand.Frand<T>(-2, 2)), 0);
+		Random(ember, useVars, static_cast<intmax_t>(m_Rand.Frand<T>(-2, 2)), 0, maxVars);
 	}
 
 	/// <summary>
@@ -613,7 +615,8 @@ public:
 	/// <param name="useVars">A list of variations to use. If empty, any variation can be used.</param>
 	/// <param name="sym">The symmetry type to use from -2 to 2</param>
 	/// <param name="specXforms">The number of xforms to use. If 0, a quasi random count is used.</param>
-	void Random(Ember<T>& ember, vector<eVariationId>& useVars, intmax_t sym, size_t specXforms)
+	/// <param name="maxVars">The maximum number of variations to allow in any single xform in the ember.</param>
+	void Random(Ember<T>& ember, vector<eVariationId>& useVars, intmax_t sym, size_t specXforms, size_t maxVars)
 	{
 		bool postid, addfinal = false;
 		int var, samed, multid, samepost;
@@ -705,11 +708,13 @@ public:
 
 				if (var > -1)
 				{
-					xform->AddVariation(m_VariationList.GetVariation(var)->Copy());//Use only one variation specified for all xforms.
+					if (xform->TotalVariationCount() < maxVars)
+						xform->AddVariation(m_VariationList.GetVariation(var)->Copy());//Use only one variation specified for all xforms.
 				}
 				else if (multid && var == -1)
 				{
-					xform->AddVariation(m_VariationList.GetVariation(m_Rand.Rand() % varCount)->Copy());//Choose a random var for this xform.
+					if (xform->TotalVariationCount() < maxVars)
+						xform->AddVariation(m_VariationList.GetVariation(m_Rand.Rand() % varCount)->Copy());//Choose a random var for this xform.
 				}
 				else
 				{
@@ -719,7 +724,8 @@ public:
 						Xform<T>* prevXform = ember.GetXform(i - 1);
 
 						for (j = 0; j < prevXform->TotalVariationCount(); j++)
-							xform->AddVariation(prevXform->GetVariation(j)->Copy());
+							if (xform->TotalVariationCount() < maxVars)
+								xform->AddVariation(prevXform->GetVariation(j)->Copy());
 					}
 					else
 					{
@@ -735,21 +741,24 @@ public:
 						//the probability that multiple vars are used.
 						for (j = 0; j < n; j++)
 						{
-							if (var != -2)
+							if (xform->TotalVariationCount() < maxVars)
 							{
-								//Pick a random variation and use a random weight from 0-1.
-								Variation<T>* v = m_VariationList.GetVariationCopy(static_cast<size_t>(m_Rand.Rand() % varCount), m_Rand.Frand<T>(T(0.001), 1));
+								if (var != -2)
+								{
+									//Pick a random variation and use a random weight from 0-1.
+									Variation<T>* v = m_VariationList.GetVariationCopy(static_cast<size_t>(m_Rand.Rand() % varCount), m_Rand.Frand<T>(T(0.001), 1));
 
-								if (v && !xform->AddVariation(v))
-									delete v;//It already existed and therefore was not added.
-							}
-							else
-							{
-								//Pick a random variation from the suppled IDs and use a random weight from 0-1.
-								Variation<T>* v = m_VariationList.GetVariationCopy(useVars[m_Rand.Rand() % useVars.size()], m_Rand.Frand<T>(T(0.001), 1));
+									if (v && !xform->AddVariation(v))
+										delete v;//It already existed and therefore was not added.
+								}
+								else
+								{
+									//Pick a random variation from the suppled IDs and use a random weight from 0-1.
+									Variation<T>* v = m_VariationList.GetVariationCopy(useVars[m_Rand.Rand() % useVars.size()], m_Rand.Frand<T>(T(0.001), 1));
 
-								if (v && !xform->AddVariation(v))
-									delete v;
+									if (v && !xform->AddVariation(v))
+										delete v;
+								}
 							}
 						}
 
@@ -770,15 +779,18 @@ public:
 				//the probability that multiple vars are used.
 				for (j = 0; j < n; j++)
 				{
-					if (var != -2)
+					if (xform->TotalVariationCount() < maxVars)
 					{
-						//Pick a random variation and use a random weight from 0-1.
-						xform->AddVariation(m_VariationList.GetVariationCopy(static_cast<size_t>(m_Rand.Rand() % varCount), m_Rand.Frand<T>(T(0.001), 1)));
-					}
-					else
-					{
-						//Pick a random variation from the suppled IDs and use a random weight from 0-1.
-						xform->AddVariation(m_VariationList.GetVariationCopy(useVars[m_Rand.Rand() % useVars.size()], m_Rand.Frand<T>(T(0.001), 1)));
+						if (var != -2)
+						{
+							//Pick a random variation and use a random weight from 0-1.
+							xform->AddVariation(m_VariationList.GetVariationCopy(static_cast<size_t>(m_Rand.Rand() % varCount), m_Rand.Frand<T>(T(0.001), 1)));
+						}
+						else
+						{
+							//Pick a random variation from the suppled IDs and use a random weight from 0-1.
+							xform->AddVariation(m_VariationList.GetVariationCopy(useVars[m_Rand.Rand() % useVars.size()], m_Rand.Frand<T>(T(0.001), 1)));
+						}
 					}
 				}
 
@@ -1240,8 +1252,8 @@ public:
 	{
 		T r[2];
 		T th = by * 2 * T(M_PI) / 360;
-		T c = cos(th);
-		T s = -sin(th);
+		T c = std::cos(th);
+		T s = -std::sin(th);
 
 		newCenterX -= oldCenterX;
 		newCenterY -= oldCenterY;

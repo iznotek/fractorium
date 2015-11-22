@@ -298,6 +298,7 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\EmberCL\FinalAccumOpenCLKernelCreator.cpp" />
     <ClCompile Include="..\..\..\Source\EmberCL\DEOpenCLKernelCreator.cpp" />
+    <ClCompile Include="..\..\..\Source\EmberCL\FunctionMapper.cpp" />
     <ClCompile Include="..\..\..\Source\EmberCL\IterOpenCLKernelCreator.cpp" />
     <ClCompile Include="..\..\..\Source\EmberCL\OpenCLInfo.cpp" />
     <ClCompile Include="..\..\..\Source\EmberCL\OpenCLWrapper.cpp" />
@@ -309,6 +310,7 @@
     <ClInclude Include="..\..\..\Source\EmberCL\EmberCLStructs.h" />
     <ClInclude Include="..\..\..\Source\EmberCL\DEOpenCLKernelCreator.h" />
     <ClInclude Include="..\..\..\Source\EmberCL\FinalAccumOpenCLKernelCreator.h" />
+    <ClInclude Include="..\..\..\Source\EmberCL\FunctionMapper.h" />
     <ClInclude Include="..\..\..\Source\EmberCL\IterOpenCLKernelCreator.h" />
     <ClInclude Include="..\..\..\Source\EmberCL\OpenCLInfo.h" />
     <ClInclude Include="..\..\..\Source\EmberCL\OpenCLWrapper.h" />

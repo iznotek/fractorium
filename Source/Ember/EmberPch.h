@@ -53,6 +53,7 @@
 #include <thread>
 #include <time.h>
 #include <vector>
+#include <unordered_map>
 
 //Third party headers.
 #ifdef _WIN32

@@ -113,7 +113,7 @@ void Renderer<T, bucketT>::ComputeBounds()
 template <typename T, typename bucketT>
 void Renderer<T, bucketT>::ComputeQuality()
 {
-	m_Scale = pow(T(2.0), Zoom());
+	m_Scale = std::pow(T(2.0), Zoom());
 	m_ScaledQuality = Quality() * m_Scale * m_Scale;
 }
 
@@ -470,7 +470,7 @@ eRenderStatus Renderer<T, bucketT>::Run(vector<byte>& finalImage, double time, s
 			goto Finish;
 		}
 
-		//Don't need to do this every time through for a single image.
+		//Do this every iteration for an animation, or else do it once for a single image.
 		if (TemporalSamples() > 1 || !resume)
 		{
 			ComputeQuality();
@@ -573,7 +573,7 @@ FilterAndAccum:
 		//Apply appropriate filter if iterating is complete.
 		if (filterAndAccumOnly || temporalSample >= TemporalSamples())
 		{
-			fullRun = m_DensityFilter.get() ? GaussianDensityFilter() : LogScaleDensityFilter();
+			fullRun = m_DensityFilter.get() ? GaussianDensityFilter() : LogScaleDensityFilter(forceOutput);
 		}
 		else
 		{
@@ -581,7 +581,7 @@ FilterAndAccum:
 			if (m_DensityFilter.get() && m_InteractiveFilter == FILTER_DE)
 				fullRun = GaussianDensityFilter();
 			else if (!m_DensityFilter.get() || m_InteractiveFilter == FILTER_LOG)
-				fullRun = LogScaleDensityFilter();
+				fullRun = LogScaleDensityFilter(forceOutput);
 		}
 
 		//Only update state if iterating and filtering finished completely (didn't arrive here via forceOutput).
@@ -802,13 +802,41 @@ bool Renderer<T, bucketT>::ResetBuckets(bool resetHist, bool resetAccum)
 }
 
 /// <summary>
+/// Log scales a single row with a specially structured loop that will be vectorized by the compiler.
+/// Note this adds an epsilon to the denomiator used to compute the logScale
+/// value because the conditional check for zero would have prevented the loop from
+/// being vectorized.
+/// </summary>
+/// <param name="row">The absolute element index in the histogram this row starts on</param>
+/// <param name="rowEnd">The absolute element index in the histogram this row ends on</param>
+template <typename T, typename bucketT>
+void Renderer<T, bucketT>::VectorizedLogScale(size_t row, size_t rowEnd)
+{
+	float k1 = float(m_K1);//All types must be float.
+	float k2 = float(m_K2);
+	auto* __restrict hist = m_HistBuckets.data();//Vectorizer can't tell these point to different locations.
+	auto* __restrict acc = m_AccumulatorBuckets.data();
+
+	for (size_t i = row; i < rowEnd; i++)
+	{
+		float logScale = (k1 * std::log(1.0f + hist[i].a * k2)) / (hist[i].a + std::numeric_limits<float>::epsilon());
+
+		acc[i].r = hist[i].r * logScale;//Must break these out individually. Vectorizer can't reason about vec4's overloaded * operator.
+		acc[i].g = hist[i].g * logScale;
+		acc[i].b = hist[i].b * logScale;
+		acc[i].a = hist[i].a * logScale;
+	}
+}
+
+/// <summary>
 /// Perform log scale density filtering.
 /// Base case for simple log scale density estimation as discussed (mostly) in the paper
 /// in section 4, p. 6-9.
 /// </summary>
+/// <param name="forceOutput">Whether this output was forced due to an interactive render</param>
 /// <returns>True if not prematurely aborted, else false.</returns>
 template <typename T, typename bucketT>
-eRenderStatus Renderer<T, bucketT>::LogScaleDensityFilter()
+eRenderStatus Renderer<T, bucketT>::LogScaleDensityFilter(bool forceOutput)
 {
 	size_t startRow = 0;
 	size_t endRow = m_SuperRasH;
@@ -816,30 +844,46 @@ eRenderStatus Renderer<T, bucketT>::LogScaleDensityFilter()
 	size_t endCol = m_SuperRasW;
 	//Timing t(4);
 
-	//Original didn't parallelize this, doing so gives a 50-75% speedup.
-	//The value can be directly assigned, which is quicker than summing.
-	parallel_for(startRow, endRow, [&] (size_t j)
+	//if (forceOutput)//Assume interactive render, so speed up at the expense of slight quality.
+	//{
+	//	parallel_for(startRow, endRow, [&](size_t j)
+	//	{
+	//		if (!m_Abort)
+	//		{
+	//			size_t row = j * m_SuperRasW;
+	//			size_t rowEnd = row + endCol;
+
+	//			VectorizedLogScale(row, rowEnd);
+	//		}
+	//	});
+	//}
+	//else
 	{
-		size_t row = j * m_SuperRasW;
-		//__m128 logm128;//Figure out SSE at some point.
-		//__m128 bucketm128;
-		//__m128 scaledBucket128;
-
-		for (size_t i = startCol; (i < endCol) && !m_Abort; i++)
+		//Original didn't parallelize this, doing so gives a 50-75% speedup.
+		//The value can be directly assigned, which is quicker than summing.
+		parallel_for(startRow, endRow, [&](size_t j)
 		{
-			size_t index = row + i;
+			size_t row = j * m_SuperRasW;
+			size_t rowEnd = row + endCol;
 
-			//Check for visibility first before doing anything else to avoid all possible unnecessary calculations.
-			if (m_HistBuckets[index].a != 0)
+			if (!m_Abort)
 			{
-				bucketT logScale = (m_K1 * log(1 + m_HistBuckets[index].a * m_K2)) / m_HistBuckets[index].a;
+				for (size_t i = row; i < rowEnd; i++)
+				{
+					//Check for visibility first before doing anything else to avoid all possible unnecessary calculations.
+					if (m_HistBuckets[i].a != 0)
+					{
+						bucketT logScale = (m_K1 * std::log(1 + m_HistBuckets[i].a * m_K2)) / m_HistBuckets[i].a;
 
-				//Original did a temporary assignment, then *= logScale, then passed the result to bump_no_overflow().
-				//Combine here into one operation for a slight speedup.
-				m_AccumulatorBuckets[index] = m_HistBuckets[index] * logScale;
+						//Original did a temporary assignment, then *= logScale, then passed the result to bump_no_overflow().
+						//Combine here into one operation for a slight speedup.
+						m_AccumulatorBuckets[i] = m_HistBuckets[i] * logScale;
+					}
+				}
 			}
-		}
-	});
+		});
+	}
+
 	//t.Toc(__FUNCTION__);
 
 	return m_Abort ? RENDER_ABORT : RENDER_OK;
@@ -858,7 +902,7 @@ eRenderStatus Renderer<T, bucketT>::GaussianDensityFilter()
 	Timing totalTime, localTime;
 	bool scf = !(Supersample() & 1);
 	intmax_t ss = Floor<T>(Supersample() / T(2));
-	T scfact = pow(Supersample() / (Supersample() + T(1)), T(2));
+	T scfact = std::pow(Supersample() / (Supersample() + T(1)), T(2));
 
 	size_t threads = m_ThreadsToUse;
 	size_t startRow = Supersample() - 1;
@@ -896,7 +940,7 @@ eRenderStatus Renderer<T, bucketT>::GaussianDensityFilter()
 				if (bucket->a == 0)
 					continue;
 
-				bucketT cacheLog = (m_K1 * log(1 + bucket->a * m_K2)) / bucket->a;//Caching this calculation gives a 30% speedup.
+				bucketT cacheLog = (m_K1 * std::log(1 + bucket->a * m_K2)) / bucket->a;//Caching this calculation gives a 30% speedup.
 
 				if (ss == 0)
 				{
@@ -928,7 +972,7 @@ eRenderStatus Renderer<T, bucketT>::GaussianDensityFilter()
 				else if (filterSelect <= DE_THRESH)
 					filterSelectInt = size_t(ceil(filterSelect)) - 1;
 				else
-					filterSelectInt = DE_THRESH + size_t(Floor<T>(pow(filterSelect - DE_THRESH, m_DensityFilter->Curve())));
+					filterSelectInt = DE_THRESH + size_t(Floor<T>(std::pow(filterSelect - DE_THRESH, m_DensityFilter->Curve())));
 
 				//If the filter selected below the min specified clamp it to the min.
 				if (filterSelectInt > m_DensityFilter->MaxFilterIndex())
@@ -1214,6 +1258,13 @@ EmberStats Renderer<T, bucketT>::Iterate(size_t iterCount, size_t temporalSample
 	double percent, etaMs;
 	EmberStats stats;
 
+	//Do this every iteration for an animation, or else do it once for a single image. CPU only.
+	if (!m_LastIter)
+	{
+		m_ThreadEmbers.clear();
+		m_ThreadEmbers.insert(m_ThreadEmbers.begin(), m_ThreadsToUse, m_Ember);
+	}
+	
 #ifdef TG
 	size_t threadIndex;
 
@@ -1261,7 +1312,8 @@ EmberStats Renderer<T, bucketT>::Iterate(size_t iterCount, size_t temporalSample
 			//Finally, iterate.
 			//t.Tic();
 			//Iterating, loop 3.
-			m_BadVals[threadIndex] += m_Iterator->Iterate(m_Ember, params, m_Samples[threadIndex].data(), m_Rand[threadIndex]);
+			m_BadVals[threadIndex] += m_Iterator->Iterate(m_ThreadEmbers[threadIndex], params, m_Samples[threadIndex].data(), m_Rand[threadIndex]);
+			//m_BadVals[threadIndex] += m_Iterator->Iterate(m_Ember, params, m_Samples[threadIndex].data(), m_Rand[threadIndex]);
 			//iterationTime += t.Toc();
 
 			if (m_LockAccum)
@@ -1459,9 +1511,7 @@ void Renderer<T, bucketT>::Accumulate(QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand, Poin
 	size_t histIndex, intColorIndex, histSize = m_HistBuckets.size();
 	bucketT colorIndex, colorIndexFrac;
 	auto dmap = palette->m_Entries.data();
-	//T oneColDiv2 = m_CarToRas.OneCol() / 2;
-	//T oneRowDiv2 = m_CarToRas.OneRow() / 2;
-
+	
 	//It's critical to understand what's going on here as it's one of the most important parts of the algorithm.
 	//A color value gets retrieved from the palette and
 	//its RGB values are added to the existing RGB values in the histogram bucket.
@@ -1483,17 +1533,6 @@ void Renderer<T, bucketT>::Accumulate(QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand, Poin
 			p.m_X = (p00 * m_RotMat.A()) + (p11 * m_RotMat.B()) + CenterX();
 			p.m_Y = (p00 * m_RotMat.D()) + (p11 * m_RotMat.E()) + m_Ember.m_RotCenterY;
 		}
-
-		//T angle = rand.Frand01<T>() * M_2PI;
-		//T r = exp(T(0.5) * sqrt(-log(rand.Frand01<T>()))) - 1;
-
-		//T r = (rand.Frand01<T>() + rand.Frand01<T>() - 1);
-		//T r = (rand.Frand01<T>() + rand.Frand01<T>() + rand.Frand01<T>() + rand.Frand01<T>() - 2);
-
-		//p.m_X += (r * oneColDiv2) * cos(angle);
-		//p.m_Y += (r * oneRowDiv2) * sin(angle);
-		//p.m_X += r * cos(angle);
-		//p.m_Y += r * sin(angle);
 
 		//Checking this first before converting gives better performance than converting and checking a single value, which the original did.
 		//Second, an interesting optimization observation is that when keeping the bounds vars within m_CarToRas and calling its InBounds() member function,
@@ -1610,7 +1649,7 @@ void Renderer<T, bucketT>::GammaCorrection(tvec4<bucketT, glm::defaultp>& bucket
 
 	for (glm::length_t rgbi = 0; rgbi < 3; rgbi++)
 	{
-		a = newRgb[rgbi] + ((1 - vibrancy) * 255 * pow(bucket[rgbi], g));
+		a = newRgb[rgbi] + ((1 - vibrancy) * 255 * std::pow(bucket[rgbi], g));
 
 		if (NumChannels() <= 3 || !Transparency())
 		{

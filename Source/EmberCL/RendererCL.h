@@ -129,7 +129,7 @@ public:
 	bool ClearAccum();
 	bool WritePoints(size_t device, vector<PointCL<T>>& vec);
 #ifdef TEST_CL
-	bool WriteRandomPoints();
+	bool WriteRandomPoints(size_t device);
 #endif
 	const string& IterKernel() const;
 	const string& DEKernel() const;
@@ -159,7 +159,7 @@ protected:
 	//Protected virtual functions overridden from Renderer.
 	virtual bool Alloc(bool histOnly = false) override;
 	virtual bool ResetBuckets(bool resetHist = true, bool resetAccum = true) override;
-	virtual eRenderStatus LogScaleDensityFilter() override;
+	virtual eRenderStatus LogScaleDensityFilter(bool forceOutput = false) override;
 	virtual eRenderStatus GaussianDensityFilter() override;
 	virtual eRenderStatus AccumulatorToFinalImage(byte* pixels, size_t finalOffset) override;
 	virtual EmberStats Iterate(size_t iterCount, size_t temporalSample) override;

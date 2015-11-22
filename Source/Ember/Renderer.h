@@ -70,7 +70,7 @@ protected:
 	virtual void MakeDmap(T colorScalar);
 	virtual bool Alloc(bool histOnly = false);
 	virtual bool ResetBuckets(bool resetHist = true, bool resetAccum = true);
-	virtual eRenderStatus LogScaleDensityFilter();
+	virtual eRenderStatus LogScaleDensityFilter(bool forceOutput = false);
 	virtual eRenderStatus GaussianDensityFilter();
 	virtual eRenderStatus AccumulatorToFinalImage(vector<byte>& pixels, size_t finalOffset);
 	virtual eRenderStatus AccumulatorToFinalImage(byte* pixels, size_t finalOffset);
@@ -152,6 +152,7 @@ protected:
 	/*inline*/ void AddToAccum(const tvec4<bucketT, glm::defaultp>& bucket, intmax_t i, intmax_t ii, intmax_t j, intmax_t jj);
 	template <typename accumT> void GammaCorrection(tvec4<bucketT, glm::defaultp>& bucket, Color<bucketT>& background, bucketT g, bucketT linRange, bucketT vibrancy, bool doAlpha, bool scale, accumT* correctedChannels);
 	void CurveAdjust(bucketT& a, const glm::length_t& index);
+	void VectorizedLogScale(size_t row, size_t rowEnd);
 
 protected:
 	T m_Scale;
@@ -173,6 +174,7 @@ protected:
 	Ember<T> m_TempEmber;
 	Ember<T> m_LastEmber;
 	vector<Ember<T>> m_Embers;
+	vector<Ember<T>> m_ThreadEmbers;
 	CarToRas<T> m_CarToRas;
 	Iterator<T>* m_Iterator;
 	unique_ptr<StandardIterator<T>> m_StandardIterator;

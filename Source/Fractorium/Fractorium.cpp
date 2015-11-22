@@ -331,6 +331,8 @@ bool Fractorium::eventFilter(QObject* o, QEvent* e)
 	}
 	else if (QKeyEvent* ke = dynamic_cast<QKeyEvent*>(e))
 	{
+		bool shift = QGuiApplication::keyboardModifiers().testFlag(Qt::ShiftModifier);
+
 		if (ke->key() >= Qt::Key_F1 && ke->key() <= Qt::Key_F32)
 		{
 			int val = ke->key() - (int)Qt::Key_F1;
@@ -340,7 +342,8 @@ bool Fractorium::eventFilter(QObject* o, QEvent* e)
 		}
 		else if (o == ui.LibraryTree)
 		{
-			if (ke->key() == Qt::Key_Delete && e->type() == QEvent::KeyRelease)
+			//Require shift for deleting to prevent it from triggering when the user enters delete in the edit box.
+			if (ke->key() == Qt::Key_Delete && e->type() == QEvent::KeyRelease && shift)
 			{
 				auto p = GetCurrentEmberIndex();
 

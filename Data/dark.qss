@@ -315,6 +315,14 @@ QTreeView::item
 	background-color: rgb(53, 53, 53);
 	color: darkgray;
 	outline: none;
+	margin-right: 1px;
+}
+
+QTreeView::item:hover
+{
+	border: 0px none black;
+	background-color: gray;
+	outline: none;
 }
 
 QTreeView::item:selected
@@ -609,3 +617,4 @@ QTableView#FinalRenderParamsTable QPushButton
 	margin-bottom: 2px;
 	padding: 0px;
 }
+   

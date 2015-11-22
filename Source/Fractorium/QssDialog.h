@@ -107,12 +107,12 @@ private slots:
 
 	void LoadButton_clicked();
 	void SaveButton_clicked();
-	void SaveDefaultButton_clicked();
 	void BasicButton_clicked();
 	void MediumButton_clicked();
 	void AdvancedButton_clicked();
 
 private:
+	void SaveAsDefault();
 	void InsertCssProperty(const QString &name, const QString &value);
 	void SetupFileDialog();
 	QString OpenFile();

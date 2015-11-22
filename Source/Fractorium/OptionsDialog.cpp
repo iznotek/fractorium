@@ -18,8 +18,8 @@ FractoriumOptionsDialog::FractoriumOptionsDialog(FractoriumSettings* settings, Q
 	m_Settings = settings;
 	QTableWidget* table = ui.OptionsXmlSavingTable;
 	ui.ThreadCountSpin->setRange(1, Timing::ProcessorCount());
-	connect(ui.OpenCLCheckBox, SIGNAL(stateChanged(int)),		 this, SLOT(OnOpenCLCheckBoxStateChanged(int)),	 Qt::QueuedConnection);
-	connect(ui.DeviceTable,	   SIGNAL(cellChanged(int, int)),	 this, SLOT(OnDeviceTableCellChanged(int, int)), Qt::QueuedConnection);
+	connect(ui.OpenCLCheckBox, SIGNAL(stateChanged(int)),	  this, SLOT(OnOpenCLCheckBoxStateChanged(int)),  Qt::QueuedConnection);
+	connect(ui.DeviceTable,	   SIGNAL(cellChanged(int, int)), this, SLOT(OnDeviceTableCellChanged(int, int)), Qt::QueuedConnection);
 
 	SetupSpinner<SpinBox, int>(table, this, row, 1, m_XmlTemporalSamplesSpin, spinHeight,  1,	1000, 100, "", "", true, 1000);
 	SetupSpinner<SpinBox, int>(table, this, row, 1, m_XmlQualitySpin,		  spinHeight,  1, 200000,  50, "", "", true, 1000);

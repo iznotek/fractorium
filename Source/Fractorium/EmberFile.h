@@ -114,7 +114,7 @@ public:
 			{
 				if (i != j && m_Embers[i].m_Name == m_Embers[j].m_Name)
 				{
-					m_Embers[j].m_Name = m_Embers[j].m_Name + "_" + ToString(++x).toStdString();
+					m_Embers[j].m_Name = IncrementTrailingUnderscoreInt(QString::fromStdString(m_Embers[j].m_Name)).toStdString();
 					j = 0;
 				}
 			}
@@ -128,6 +128,33 @@ public:
 	static QString DefaultFilename()
 	{
 		return "Flame_" + QDateTime(QDateTime::currentDateTime()).toString("yyyy-MM-dd-hhmmss");
+	}
+
+	/// <summary>
+	/// Return a copy of the string which ends with _# where # is the
+	/// previous number at that position incremented by one.
+	/// If the original string did not end with _#, the returned
+	/// string will just have _1 appended to it.
+	/// </summary>
+	/// <param name="str">The string to process</param>
+	/// <returns>The original string with the number after the final _ character incremented by one</returns>
+	static QString IncrementTrailingUnderscoreInt(const QString& str)
+	{
+		bool ok = false;
+		size_t num = 0;
+		QString endSection;
+		QString ret = str;
+		int lastUnderscore = str.lastIndexOf('_');
+
+		if (lastUnderscore != -1)
+		{
+			endSection = str.section('_', -1);
+			num = endSection.toULongLong(&ok);
+			ret.chop(str.size() - lastUnderscore);
+		}
+
+		ret += "_" + QString::number(num + 1);
+		return ret;
 	}
 
 	/// <summary>
@@ -146,10 +173,11 @@ public:
 		QString path = original.absolutePath() + '/';
 		QString base = original.completeBaseName();
 		QString extension = original.suffix();
-		
+
 		do
 		{
-			newPath = path + base + "_" + ToString(counter++) + "." + extension;
+			base = IncrementTrailingUnderscoreInt(base);
+			newPath = path + base + "." + extension;
 		}
 		while (QFile::exists(newPath));
 		
@@ -164,7 +192,7 @@ public:
 	/// <returns>The default ember name</returns>
 	static QString DefaultEmberName(uint i)
 	{
-		return DefaultFilename() + "-" + ToString(i);
+		return DefaultFilename() + "_" + ToString(i);
 	}
 
 	QString m_Filename;

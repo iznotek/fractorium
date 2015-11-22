@@ -915,7 +915,6 @@ public:
 			AllVarsFunc([&] (vector<Variation<T>*>& variations, bool& keepGoing)
 			{
 				for (auto var : variations)
-				//for (size_t i = 0; i < variations.size(); i++)
 				{
 					if (var->m_Weight != 0)//This should never happen, but just to be safe.
 					{
@@ -1273,7 +1272,7 @@ private:
 		if (in == 0)
 			return 0;
 		else
-			return pow(T(10.0), -log(T(1.0) / T(in)) / log(T(2)));
+			return std::pow(T(10.0), -std::log(T(1.0) / T(in)) / std::log(T(2)));
 	}
 
 	vector<T> m_Xaos;//Xaos vector which affects the probability that this xform is chosen. Usually empty.

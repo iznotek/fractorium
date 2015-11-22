@@ -207,7 +207,7 @@ protected:
 		x *= T(M_PI);
 
 		if (x != 0)
-			return sin(x) / x;
+			return std::sin(x) / x;
 
 		return 1.0;
 	}
@@ -269,7 +269,7 @@ public:
 	/// <returns>The filtered value</returns>
 	virtual T Filter(T t) const
 	{
-		return exp(-2 * t * t) * std::sqrt(2 / T(M_PI));
+		return std::exp(-2 * t * t) * std::sqrt(2 / T(M_PI));
 	}
 };
 
@@ -604,7 +604,7 @@ public:
 	/// <returns>The filtered value</returns>
 	virtual T Filter(T t) const
 	{
-		return (T(0.42) + T(0.5) * cos(T(M_PI) * t) + T(0.08) * cos(2 * T(M_PI) * t));
+		return (T(0.42) + T(0.5) * std::cos(T(M_PI) * t) + T(0.08) * std::cos(2 * T(M_PI) * t));
 	}
 };
 
@@ -675,7 +675,7 @@ public:
 	/// <returns>The filtered value</returns>
 	virtual T Filter(T t) const
 	{
-		return T(0.54) + T(0.46) * cos(T(M_PI) * t);
+		return T(0.54) + T(0.46) * std::cos(T(M_PI) * t);
 	}
 };
 
@@ -703,7 +703,7 @@ public:
 	/// <returns>The filtered value</returns>
 	virtual T Filter(T t) const
 	{
-		return T(0.5) + T(0.5) * cos(T(M_PI) * t);
+		return T(0.5) + T(0.5) * std::cos(T(M_PI) * t);
 	}
 };
 
