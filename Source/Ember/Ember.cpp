@@ -5,7 +5,7 @@
 namespace EmberNs
 {
 template<> unique_ptr<QTIsaac<ISAAC_SIZE, ISAAC_INT>> QTIsaac<ISAAC_SIZE, ISAAC_INT>::GlobalRand = unique_ptr<QTIsaac<ISAAC_SIZE, ISAAC_INT>>(new QTIsaac<ISAAC_SIZE, ISAAC_INT>());
-CriticalSection QTIsaac<ISAAC_SIZE, ISAAC_INT>::m_CS;
+template<> CriticalSection QTIsaac<ISAAC_SIZE, ISAAC_INT>::m_CS = CriticalSection();
 }
 
 #include "Curves.h"

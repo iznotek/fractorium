@@ -141,7 +141,7 @@ FunctionMapper::FunctionMapper()
 
 const string* FunctionMapper::GetGlobalFunc(const string& func)
 {
-	auto& text = m_GlobalMap.find(func);
+	const auto& text = m_GlobalMap.find(func);
 	
 	if (text != m_GlobalMap.end())
 		return &text->second;

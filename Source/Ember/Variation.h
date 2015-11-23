@@ -1690,6 +1690,20 @@ private:
 	bool m_IsState;//Whether the parameter changes state between iterations. This is also considered precalc.
 };
 
+#define VARUSINGS \
+	using Variation<T>::m_Weight; \
+	using Variation<T>::m_Xform; \
+	using Variation<T>::m_VariationId; \
+	using Variation<T>::m_Name; \
+	using Variation<T>::m_VarType; \
+	using Variation<T>::m_AssignType; \
+	using Variation<T>::SetType; \
+	using Variation<T>::IndexInXform; \
+	using Variation<T>::XformIndexInEmber; \
+	using Variation<T>::Prefix; \
+	using Variation<T>::Precalc; \
+	using Variation<T>::StateOpenCLString;
+
 /// <summary>
 /// Parametric variations use parameters in addition to weight.
 /// These values are stored in members of derived classes, however
@@ -1700,9 +1714,9 @@ private:
 template <typename T>
 class EMBER_API ParametricVariation : public Variation<T>
 {
-using Variation<T>::Precalc;
-
 public:
+	VARUSINGS
+
 	/// <summary>
 	/// Constructor which takes arguments and just passes them to the base class.
 	/// </summary>
@@ -1989,18 +2003,6 @@ protected:
 /// for classes derived directly from Variation.
 /// Defining assignment operators isn't really needed because Variations are always held as pointers.
 /// </summary>
-
-#define VARUSINGS \
-	using Variation<T>::m_Weight; \
-	using Variation<T>::m_Xform; \
-	using Variation<T>::m_VariationId; \
-	using Variation<T>::m_Name; \
-	using Variation<T>::m_VarType; \
-	using Variation<T>::m_AssignType; \
-	using Variation<T>::SetType; \
-	using Variation<T>::IndexInXform; \
-	using Variation<T>::XformIndexInEmber; \
-	using Variation<T>::Prefix;
 
 #ifdef DO_DOUBLE
 #define VARCOPYDOUBLE(name) \

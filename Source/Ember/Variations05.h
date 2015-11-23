@@ -3724,7 +3724,6 @@ public:
 	virtual string StateInitOpenCLString() const override
 	{
 		ostringstream ss, ss2;
-		intmax_t i = 0;
 		ss2 << "_" << XformIndexInEmber();
 		string stateIndex = ss2.str();
 		string prefix = Prefix();
@@ -4151,7 +4150,6 @@ public:
 	virtual string StateInitOpenCLString() const override
 	{
 		ostringstream ss, ss2;
-		intmax_t i = 0;
 		ss2 << "_" << XformIndexInEmber();
 		string stateIndex = ss2.str();
 		string prefix = Prefix();

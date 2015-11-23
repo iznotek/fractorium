@@ -31,11 +31,11 @@
 #if defined(__APPLE__) || defined(_MSC_VER)
 	#define sincos(x, s, c) *(s)=std::sin(x); *(c)=std::cos(x);
 #else
-	/*static void sincos(float x, float* s, float* c)
+	static void sincos(float x, float* s, float* c)
 	{
 		*s = std::sin(x);
 		*c = std::cos(x);
-	}*/
+	}
 #endif
 
 namespace EmberNs

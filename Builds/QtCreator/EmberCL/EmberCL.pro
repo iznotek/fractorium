@@ -18,6 +18,7 @@ SOURCES += \
 	../../../Source/EmberCL/DllMain.cpp \
 	../../../Source/EmberCL/DEOpenCLKernelCreator.cpp \
 	../../../Source/EmberCL/FinalAccumOpenCLKernelCreator.cpp \
+	../../../Source/EmberCL/FunctionMapper.cpp \
 	../../../Source/EmberCL/IterOpenCLKernelCreator.cpp \
 	../../../Source/EmberCL/OpenCLInfo.cpp \
 	../../../Source/EmberCL/OpenCLWrapper.cpp \
@@ -33,6 +34,7 @@ HEADERS += \
 	../../../Source/EmberCL/EmberCLPch.h \
 	../../../Source/EmberCL/EmberCLStructs.h \
 	../../../Source/EmberCL/FinalAccumOpenCLKernelCreator.h \
+	../../../Source/EmberCL/FunctionMapper.h \
 	../../../Source/EmberCL/IterOpenCLKernelCreator.h \
 	../../../Source/EmberCL/OpenCLInfo.h \
 	../../../Source/EmberCL/OpenCLWrapper.h \

@@ -508,7 +508,7 @@ public:
 	virtual string OpenCLString() const override
 	{
 		ostringstream ss, ss2;
-		intmax_t i = 0, varIndex = IndexInXform();
+		intmax_t i = 0;
 		ss2 << "_" << XformIndexInEmber() << "]";
 		string index = ss2.str();
 		string numEdges		   = "parVars[" + ToUpper(m_Params[i++].Name()) + index;
@@ -1724,7 +1724,7 @@ public:
 	virtual string OpenCLString() const override
 	{
 		ostringstream ss, ss2;
-		intmax_t i = 0, varIndex = IndexInXform();
+		intmax_t i = 0;
 		ss2 << "_" << XformIndexInEmber() << "]";
 		string index = ss2.str();
 		string top =		   "parVars[" + ToUpper(m_Params[i++].Name()) + index;
@@ -2881,7 +2881,7 @@ public:
 				radius = helper.m_PrecalcSqrtSumSquares;
 				theta = helper.m_PrecalcAtanxy;
 				mu = Zeps<T>(SQR(m_SynthPower));
-				radius += -2 * mu * (int)((radius + mu) / (2 * mu)) + radius * (1 - mu);
+				radius += -2 * mu * int((radius + mu) / (2 * mu)) + radius * (1 - mu);
 
 				SynthSinCos(synth, radius, s, c, synthMode);
 
@@ -2935,6 +2935,7 @@ public:
 				helper.Out.y = m_Weight * radius * c;
 				break;
 
+			default:
 			case MODE_SHIFTTHETA:  // Power YES, Smooth NO
 				// Use (adjusted) radius to move point around circle
 				Vx = helper.In.x;
@@ -3639,6 +3640,7 @@ private:
 					y *= M_2PI / frq;
 					x = 1 / Zeps<T>(std::cos(y)) - 1;
 					break;
+				default:
 				case WAVE_INGON:
 					y -= T(0.5);
 					y *= M_2PI / frq;
@@ -3659,6 +3661,7 @@ private:
 					z = synthA + synth * x;
 					thetaFactor = (thetaFactor > z ? thetaFactor : z);
 					break;
+				default:
 				case LAYER_MIN:
 					z = synthA + synth * x;
 					thetaFactor = (thetaFactor < z ? thetaFactor : z);
@@ -3760,6 +3763,7 @@ private:
 		{
 			case LERP_LINEAR:
 				return x * m;
+			default:
 			case LERP_BEZIER:
 				return BezierQuadMap(x, m);
 		}
@@ -3777,6 +3781,7 @@ private:
 				s = s * SynthValue(synth, theta);
 				c = c * SynthValue(synth, theta + T(M_PI) / 2);
 				break;
+			default:
 			case SINCOS_MIXIN:
 				s = (1 - m_SynthMix) * s + (SynthValue(synth, theta) - 1);
 				c = (1 - m_SynthMix) * c + (SynthValue(synth, theta + T(M_PI) / 2) - 1);

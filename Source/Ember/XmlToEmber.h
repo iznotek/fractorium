@@ -1366,7 +1366,7 @@ private:
 	/// <returns>The corrected name if one was found, else the passed in name.</returns>
 	static string GetCorrectedParamName(const unordered_map<string, string>& names, const char* name)
 	{
-		auto& newName = names.find(ToLower(name));
+		const auto& newName = names.find(ToLower(name));
 
 		if (newName != names.end())
 			return newName->second;

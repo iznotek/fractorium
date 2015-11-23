@@ -840,7 +840,6 @@ eRenderStatus Renderer<T, bucketT>::LogScaleDensityFilter(bool forceOutput)
 {
 	size_t startRow = 0;
 	size_t endRow = m_SuperRasH;
-	size_t startCol = 0;
 	size_t endCol = m_SuperRasW;
 	//Timing t(4);
 
