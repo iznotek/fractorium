@@ -1,3 +1,59 @@
+0.9.9.2 11/22/2015
+--User changes
+	-Add a new dialog for editing QSS stylesheets. Allow for saving, reloading and setting styles as default.
+	-Include a dark style with the installation called dark.qss.
+	-Also add support for themes such as Fusion.
+	-Resize some controls to better fit with the new style.
+	-Add an option to specify the number of random embers generated on startup. 1 is the minimum and the default.
+	-Add new variations: bubbleT3D, crob, hexaplay3D, hexcrop, hexes, hexnix3D, loonie2, loonie3, nBlur, octapol and synth.
+	-Allow for pre/post versions of dc_bubble, dc_cylinder and dc_linear whereas before they were omitted.
+	-When saving a file with multiple embers in it, detect if time values are all the same and if so, start them at zero and increment by 1 for each ember.
+	-Allow for numerous quality increases to be coalesced into one. It will pick up at the end of the current render.
+	-Show selection highlight on variations tree in response to mouse hover. This makes it easier to see for which variation or param the current mouse wheel action will apply.
+	-Make default temporal samples be 100, whereas before it was 1000 which was overkill.
+	-Require the shift key to be held with delete for deleting an ember to prevent it from triggering when the user enters delete in the edit box.
+		-This wasn't otherwise fixable without writing a lot more code.
+	
+--Bug fixes
+	-EmberGenome was crashing when generating a sequence from a source file with more than 2 embers in it.
+	-EmberGenome was improperly handling the first frame of a merge after the last frame of the loop.
+		-These bugs were due to a previous commit. Revert parts of that commit.
+	-Prevent a zoom value of less than 0 when reading from xml.
+	-Slight optimization of the crescents, and mask variations, if the compiler wasn't doing it already.
+	-Unique file naming was broken because it was looking for _# and the default names ended with -#.
+	-Disallow renaming of an ember in the library tree to an empty string.
+	-Severe bug that prevented some variations from being read correctly from params generated outside this program.
+	-Severe OpenCL randomization bug. The first x coordinates of the first points in the first kernel call of the first ember of a render since the OpenCL renderer object was created were not random and were mostly -1.
+	-Severe bug when populating xform selection distributions that could sometimes cause a crash due to roundoff error. Fix by using double.
+	-Limit the max number of variations in a random ember to MAX_CL_VARS, which is 8. This ensures they'll look the same on CPU and GPU.
+	-Properly enable/disable thread priority label in final render dialog in response to enable/disable of the OpenCL checkbox.
+	-Remove all inline stylesheets.
+	-Show xaos spinners with 6 decimal places.
+ 
+--Code changes
+	-Generalize using the running sum output point inside of a variation for all cases: pre, reg and post.
+	-Allow for array variables in variations where the address of each element is stored in m_Params.
+	-Qualify all math functions with std::
+	-No longer use our own Clamp() in OpenCL, instead use the standard clamp().
+	-Redesign how functions are used in the variations OpenCL code.
+	-Add tests to EmberTester to verify some of the new functionality.
+	-Place more const and override qualifiers on functions where appropriate.
+	-Add a global rand with a lock to be used very sparingly.
+	-Use a map instead of a vector for bad param names in Xml parsing.
+	-Prefix affine interpolation mode defines with "AFFINE_" to make their purpose more clear.
+	-Allow for variations that change state during iteration by sending a separate copy of the ember to each rendering thread.
+	-Implement this same functionality with a local struct in OpenCL. It's members are the total of all variables that need to change state within an ember.
+	-Add Contains() function to Utils.h.
+	-EmberRender: print names of kernels being printed with --dump_kernel option.
+	-Clean up EmberTester to handle some of the recent changes.
+	-Fix various casts.
+	-Replace % 2 with & 1, even though the compiler was likely doing this already.
+	-Add new file Variations06.h to accommodate new variations.
+	-Remove redundant comparisons to nullptr, use ! instead;
+	-Give some controls valid names instead of the auto generated ones.
+	-DoubleSpinBoxTableItemDelegate.h: Add virtual keyword to overridden functions.
+	-General cleanup.
+	
 0.9.9.0 Beta 09/21/2015
 --Bug fixes:
 	-Fix crash on startup when no GPU present.

@@ -579,6 +579,10 @@ string IterOpenCLKernelCreator<T>::GlobalFunctionsString(const Ember<T>& ember)
 		}
 	}
 
+	if (ember.ProjBits())
+		if (!Contains(funcNames, zeps))
+			funcNames.push_back(zeps);
+
 	for (auto& funcName : funcNames)
 		if(auto text = m_FunctionMapper.GetGlobalFunc(funcName))
 			os << *text << endl;
