@@ -53,6 +53,7 @@ QssDialog::QssDialog(Fractorium* parent) :
 {
 	ui->setupUi(this);
 	m_Parent = parent;
+	m_Theme = nullptr;
 	m_LastStyle = m_Parent->styleSheet();
 	setWindowTitle("QSS Editor - default.qss");
 	connect(ui->QssEdit, SIGNAL(textChanged()), this, SLOT(SlotTextChanged()));
