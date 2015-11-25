@@ -45,6 +45,8 @@ QssDialog::QssDialog(Fractorium* parent) :
 	QDialog(parent),
 	ui(new Ui::QssDialog),
 	m_FileDialog(nullptr),
+	m_Parent(parent),
+	m_Theme(nullptr),
 	m_AddColorAction(new QAction(tr("Add Color"), this)),
 	m_AddGeomAction(new QAction(tr("Add Geometry"), this)),
 	m_AddBorderAction(new QAction(tr("Add Border"), this)),
@@ -52,8 +54,6 @@ QssDialog::QssDialog(Fractorium* parent) :
 	m_AddStyleAction(new QAction(tr("Set Theme"), this))
 {
 	ui->setupUi(this);
-	m_Parent = parent;
-	m_Theme = nullptr;
 	m_LastStyle = m_Parent->styleSheet();
 	setWindowTitle("QSS Editor - default.qss");
 	connect(ui->QssEdit, SIGNAL(textChanged()), this, SLOT(SlotTextChanged()));
