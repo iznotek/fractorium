@@ -24,28 +24,23 @@ public:
 		static const T AXhXo = T(1.0 / 3.0);
 		static const T AXhYo = T(1.7320508075688772935 / 3.0);
 		// Now:  Xh = ( AXhXo * Xo + AXhYo * Yo ) / l;
-
 		// Yh = (-Xo + sqrt(3) * Yo) / (3 * l)
 		static const T AYhXo = T(-1.0 / 3.0);
 		static const T AYhYo = T(1.7320508075688772935 / 3.0);
 		// Now:  Yh = ( AYhXo * Xo + AYhYo * Yo ) / l;
-
 		// Xo = 3/2 * l * (Xh - Yh)
 		static const T AXoXh = T(1.5);
 		static const T AXoYh = T(-1.5);
 		// Now:  Xo = ( AXoXh * Xh + AXoYh * Yh ) * l;
-
 		// Yo = sqrt(3)/2 * l * (Xh + Yh)
 		static const T AYoXh = T(1.7320508075688772935 / 2.0);
 		static const T AYoYh = T(1.7320508075688772935 / 2.0);
 		static const v2T offset[4] { { 0, 0 }, { 0, 1 }, { 1, 0 }, { 1, 1 } };
-
 		int i = 0;
 		T di, dj;
 		T XCh, YCh, XCo, YCo, DXo, DYo, L, L1, L2, R, s, trgL, Vx, Vy;
 		v2T U;
 		v2T P[7];
-
 		//For speed/convenience.
 		s = m_Cellsize;
 
@@ -56,7 +51,6 @@ public:
 		//Get co-ordinates, and convert to hex co-ordinates.
 		U.x = helper.In.x;
 		U.y = helper.In.y;
-		
 		XCh = T(Floor((AXhXo * U.x + AXhYo * U.y) / s));
 		YCh = T(Floor((AYhXo * U.x + AYhYo * U.y) / s));
 
@@ -72,62 +66,48 @@ public:
 		}
 
 		int q = Closest(&P[0], 4, U);
-
 		//Remake list starting from chosen hex, ensure it is completely surrounded (total 7 points).
-
 		//First adjust centers according to which one was found to be closest.
 		XCh += offset[q].x;
 		YCh += offset[q].y;
-
 		//First point is central/closest.
 		XCo = (AXoXh * XCh + AXoYh * YCh) * s;
 		YCo = (AYoXh * XCh + AYoYh * YCh) * s;
 		P[0].x = XCo;
 		P[0].y = YCo;
-
 		//Next six points are based on hex graph (6 hexes around center). As long as
 		//center points are not too distorted from simple hex, this defines all possible edges.
-
 		//In hex co-ords, offsets are: (0,1) (1,1) (1,0) (0,-1) (-1,-1) (-1, 0).
-		P[1].x = XCo + (AXoYh)* s;
-		P[1].y = YCo + (AYoYh)* s;
+		P[1].x = XCo + (AXoYh) * s;
+		P[1].y = YCo + (AYoYh) * s;
 		P[2].x = XCo + (AXoXh + AXoYh) * s;
 		P[2].y = YCo + (AYoXh + AYoYh) * s;
-		P[3].x = XCo + (AXoXh)* s;
-		P[3].y = YCo + (AYoXh)* s;
+		P[3].x = XCo + (AXoXh) * s;
+		P[3].y = YCo + (AYoXh) * s;
 		P[4].x = XCo - AXoYh * s;
 		P[4].y = YCo - AYoYh * s;
 		P[5].x = XCo - (AXoXh + AXoYh) * s;
 		P[5].y = YCo - (AYoXh + AYoYh) * s;
 		P[6].x = XCo - AXoXh * s;
 		P[6].y = YCo - AYoXh * s;
-
 		L1 = Voronoi(&P[0], 7, 0, U);
-
 		//Delta vector from center of hex.
 		DXo = U.x - P[0].x;
 		DYo = U.y - P[0].y;
-
 		//Apply "interesting bit" to cell's DXo and DYo co-ordinates.
-
 		//trgL is the defined value of l, independent of any rotation.
 		trgL = std::pow(Zeps(L1), m_Power) * m_Scale;//Original added 1e-100, use Zeps to be more precise.
-
 		//Rotate.
 		Vx = DXo * m_RotCos + DYo * m_RotSin;
 		Vy = -DXo * m_RotSin + DYo * m_RotCos;
-
 		//Measure voronoi distance again.
 		U.x = Vx + P[0].x;
 		U.y = Vy + P[0].y;
 		L2 = Voronoi(&P[0], 7, 0, U);
-
 		//Scale to meet target size . . . adjust according to how close
 		//we are to the edge.
-
 		//Code here attempts to remove the "rosette" effect caused by
 		//scaling between.
-
 		//L is maximum of L1 or L2 . . .
 		//When L = 0.8 or higher . . . match trgL/L2 exactly.
 		//When L = T(0.5) or less . . . match trgL/L1 exactly.
@@ -147,11 +127,9 @@ public:
 
 		Vx *= R;
 		Vy *= R;
-
 		//Add cell center co-ordinates back in.
 		Vx += P[0].x;
 		Vy += P[0].y;
-
 		//Finally add values in.
 		helper.Out.x = m_Weight * Vx;
 		helper.Out.y = m_Weight * Vy;
@@ -170,7 +148,6 @@ public:
 		string scale	= "parVars[" + ToUpper(m_Params[i++].Name()) + index;
 		string rotsin	= "parVars[" + ToUpper(m_Params[i++].Name()) + index;
 		string rotcos	= "parVars[" + ToUpper(m_Params[i++].Name()) + index;
-
 		ss << "\t{\n"
 		   << "\t\tint i = 0;\n"
 		   << "\t\treal_t di, dj;\n"
@@ -260,7 +237,6 @@ public:
 		   << "\t\tvOut.y = xform->m_VariationWeights[" << varIndex << "] * Vy;\n"
 		   << "\t\tvOut.z = " << ((m_VarType == VARTYPE_REG) ? "0" : "vIn.z") << ";\n"
 		   << "\t}\n";
-
 		return ss.str();
 	}
 
@@ -347,7 +323,6 @@ protected:
 	void Init()
 	{
 		string prefix = Prefix();
-
 		m_Params.clear();
 		m_Params.push_back(ParamWithName<T>(&m_Cellsize, prefix + "hexes_cellsize", 1));
 		m_Params.push_back(ParamWithName<T>(&m_Power, prefix + "hexes_power", 1));
@@ -361,7 +336,6 @@ private:
 	static T Vratio(v2T& p, v2T& q, v2T& u)
 	{
 		T pmQx, pmQy;
-
 		pmQx = p.x - q.x;
 		pmQy = p.y - q.y;
 
@@ -376,7 +350,7 @@ private:
 		T d2;
 		T d2min = TMAX;
 		int i, j;
-		
+
 		for (i = 0; i < n; i++)
 		{
 			d2 = (p[i].x - u.x) * (p[i].x - u.x) + (p[i].y - u.y) * (p[i].y - u.y);
@@ -464,10 +438,9 @@ public:
 	{
 		T xTmp, yTmp;
 		RandXyParams params;
-
 		params.NumEdges = m_NumEdges;
 		params.RatioHole = m_RatioHole;
-		params.CircumCircle = m_CircumCircle; 
+		params.CircumCircle = m_CircumCircle;
 		params.EqualBlur = m_EqualBlur;
 		params.ExactCalc = m_ExactCalc;
 		params.MidAngle = m_MidAngle;
@@ -483,7 +456,6 @@ public:
 		params.RatioComplement = m_RatioComplement;
 		params.SpeedCalc1 = m_SpeedCalc1;
 		params.SpeedCalc2 = m_SpeedCalc2;
-
 		RandXY(params, rand);
 
 		if ((m_ExactCalc == 1) && (m_CircumCircle == 0))
@@ -496,10 +468,8 @@ public:
 
 		xTmp = params.X;
 		yTmp = params.Y;
-
 		params.X = m_Cosa * xTmp - m_Sina * yTmp;
 		params.Y = m_Sina * xTmp + m_Cosa * yTmp;
-
 		helper.Out.x = m_AdjustedWeight * params.X;
 		helper.Out.y = m_AdjustedWeight * params.Y;
 		helper.Out.z = (m_VarType == VARTYPE_REG) ? 0 : helper.In.z;
@@ -536,7 +506,6 @@ public:
 		string speedCalc1	   = "parVars[" + ToUpper(m_Params[i++].Name()) + index;
 		string speedCalc2	   = "parVars[" + ToUpper(m_Params[i++].Name()) + index;
 		string adjustedWeight  = "parVars[" + ToUpper(m_Params[i++].Name()) + index;
-
 		ss << "\t{\n"
 		   << "\t\treal_t xTmp, yTmp;\n"
 		   << "\t\tRandXyParams params;\n"
@@ -580,7 +549,6 @@ public:
 		   << "\t\tvOut.y = " << adjustedWeight << " * params.Y;\n"
 		   << "\t\tvOut.z = " << ((m_VarType == VARTYPE_REG) ? "0" : "vIn.z") << ";\n"
 		   << "\t}\n";
-
 		return ss.str();
 	}
 
@@ -877,7 +845,7 @@ public:
 	{
 		if (m_NumEdges < 3)
 			m_NumEdges = 3;
-		
+
 		if (m_NumStripes != 0)
 		{
 			m_HasStripes = 1;
@@ -957,7 +925,6 @@ protected:
 	void Init()
 	{
 		string prefix = Prefix();
-
 		m_Params.clear();
 		m_Params.reserve(25);
 		m_Params.push_back(ParamWithName<T>(&m_NumEdges,	   prefix + "nBlur_numEdges", 3, INTEGER));
@@ -995,7 +962,7 @@ private:
 		T xTmp, yTmp;
 		T ranTmp;
 		int count;
-		
+
 		if (params.ExactCalc == 1)
 			angXY = rand.Frand01<T>() * M_2PI;
 		else
@@ -1003,7 +970,7 @@ private:
 
 		sincos(angXY, &params.X, &params.Y);
 		angMem = angXY;
-		
+
 		while (angXY > params.MidAngle)
 			angXY -= params.MidAngle;
 
@@ -1015,7 +982,7 @@ private:
 			while (angXY > angTmp)
 			{
 				angTmp += params.AngStripes;
-				
+
 				if (angTmp > params.MidAngle)
 					angTmp = params.MidAngle;
 
@@ -1103,7 +1070,7 @@ private:
 			{
 				std::swap(params.RatioStripes, params.RatioComplement);
 				std::swap(params.SpeedCalc1, params.SpeedCalc2);
-				
+
 				if ((count & 1) == 0)
 				{
 					if ((angXY > angTmp) && (count != params.MaxStripes))
@@ -1123,7 +1090,7 @@ private:
 						count--;
 					}
 				}
-				
+
 				if (((count & 1) == 1) && (params.RatioStripes > 1))
 				{
 					if ((angXY > angTmp) && (count != params.MaxStripes))
@@ -1182,7 +1149,7 @@ private:
 				std::swap(params.SpeedCalc1, params.SpeedCalc2);
 			}
 		}
-		
+
 		xTmp = params.Tan90M2 / (params.Tan90M2 - std::tan(angXY));
 		yTmp = xTmp * std::tan(angXY);
 		params.LenOuterEdges = std::sqrt(SQR(xTmp) + SQR(yTmp));
@@ -1292,18 +1259,17 @@ public:
 		{
 			T rd = std::log(Sqr(r / m_TempRad));
 			T phi = std::atan2(y, x);
-
 			tempOut.x = m_Weight * Lerp(x, phi, rd * m_Polarweight);
 			tempOut.y = m_Weight * Lerp(y, r, rd * m_Polarweight);
 		}
 		else if (HitsSquareAroundOrigin(m_St, xy))
 		{
 			if (HitsRect(m_H, m_K, xy) || HitsRect(m_J, m_D, xy) ||
-				HitsRect(m_A, m_J, xy) || HitsRect(m_K, m_E, xy) ||
-				HitsTriangle(m_I, m_A, m_H, xy, u, v) ||
-				HitsTriangle(m_J, m_B, m_C, xy, u, v) ||
-				HitsTriangle(m_L, m_D, m_E, xy, u, v) ||
-				HitsTriangle(m_K, m_F, m_G, xy, u, v))
+					HitsRect(m_A, m_J, xy) || HitsRect(m_K, m_E, xy) ||
+					HitsTriangle(m_I, m_A, m_H, xy, u, v) ||
+					HitsTriangle(m_J, m_B, m_C, xy, u, v) ||
+					HitsTriangle(m_L, m_D, m_E, xy, u, v) ||
+					HitsTriangle(m_K, m_F, m_G, xy, u, v))
 			{
 				tempOut.x = m_Weight * x;
 				tempOut.y = m_Weight * y;
@@ -1360,75 +1326,73 @@ public:
 		string jxStartIndex = ToUpper(m_Params[i].Name()) + stateIndex; i += 2;
 		string kxStartIndex = ToUpper(m_Params[i].Name()) + stateIndex; i += 2;
 		string lxStartIndex = ToUpper(m_Params[i].Name()) + stateIndex;
-
 		ss << "\t{\n"
-			<< "\t\tbool clear = false;\n"
-			<< "\t\treal_t x = vIn.x * 0.15, y = vIn.y * 0.15, z = vIn.z, r = 0, u = 0, v = 0, x2 = 0, y2 = 0;\n"
-			<< "\t\treal2 xy = { x, y };\n"
-			<< "\t\treal2 tempOut = { 0, 0 };\n"
-			<< "\t\treal2 A = { parVars[" << axStartIndex << "], parVars[" << axStartIndex << " + 1] };\n"
-			<< "\t\treal2 B = { parVars[" << bxStartIndex << "], parVars[" << bxStartIndex << " + 1] };\n"
-			<< "\t\treal2 C = { parVars[" << cxStartIndex << "], parVars[" << cxStartIndex << " + 1] };\n"
-			<< "\t\treal2 D = { parVars[" << dxStartIndex << "], parVars[" << dxStartIndex << " + 1] };\n"
-			<< "\t\treal2 E = { parVars[" << exStartIndex << "], parVars[" << exStartIndex << " + 1] };\n"
-			<< "\t\treal2 F = { parVars[" << fxStartIndex << "], parVars[" << fxStartIndex << " + 1] };\n"
-			<< "\t\treal2 G = { parVars[" << gxStartIndex << "], parVars[" << gxStartIndex << " + 1] };\n"
-			<< "\t\treal2 H = { parVars[" << hxStartIndex << "], parVars[" << hxStartIndex << " + 1] };\n"
-			<< "\t\treal2 I = { parVars[" << ixStartIndex << "], parVars[" << ixStartIndex << " + 1] };\n"
-			<< "\t\treal2 J = { parVars[" << jxStartIndex << "], parVars[" << jxStartIndex << " + 1] };\n"
-			<< "\t\treal2 K = { parVars[" << kxStartIndex << "], parVars[" << kxStartIndex << " + 1] };\n"
-			<< "\t\treal2 L = { parVars[" << lxStartIndex << "], parVars[" << lxStartIndex << " + 1] };\n"
-			<< "\n"
-			<< "\t\tif ((" << tempRad << " > 0) && HitsCircleAroundOrigin(" << tempRad << ", &xy, &r))\n"
-			<< "\t\t{\n"
-			<< "\t\t	real_t rd = log(Sqr(r / " << tempRad << "));\n"
-			<< "\t\t	real_t phi = atan2(y, x);\n"
-			<< "\n"
-			<< "\t\t	tempOut.x = xform->m_VariationWeights[" << varIndex << "] * Lerp(x, phi, rd * " << polarweight << ");\n"
-			<< "\t\t	tempOut.y = xform->m_VariationWeights[" << varIndex << "] * Lerp(y, r, rd *   " << polarweight << ");\n"
-			<< "\t\t}\n"
-			<< "\t\telse if (HitsSquareAroundOrigin(" << st << ", &xy))\n"
-			<< "\t\t{\n"
-			<< "\t\t	if (HitsRect(&H, &K, &xy) || HitsRect(&J, &D, &xy) ||\n"
-			<< "\t\t		HitsRect(&A, &J, &xy) || HitsRect(&K, &E, &xy) ||\n"
-			<< "\t\t		HitsTriangle(&I, &A, &H, &xy, &u, &v) ||\n"
-			<< "\t\t		HitsTriangle(&J, &B, &C, &xy, &u, &v) ||\n"
-			<< "\t\t		HitsTriangle(&L, &D, &E, &xy, &u, &v) ||\n"
-			<< "\t\t		HitsTriangle(&K, &F, &G, &xy, &u, &v))\n"
-			<< "\t\t	{\n"
-			<< "\t\t		tempOut.x = xform->m_VariationWeights[" << varIndex << "] * x;\n"
-			<< "\t\t		tempOut.y = xform->m_VariationWeights[" << varIndex << "] * y;\n"
-			<< "\t\t	}\n"
-			<< "\t\t	else\n"
-			<< "\t\t		clear = true;\n"
-			<< "\t\t}\n"
-			<< "\t\telse\n"
-			<< "\t\t	clear = true;\n"
-			<< "\n"
-			<< "\t\tif (clear)\n"
-			<< "\t\t{\n";
-		
+		   << "\t\tbool clear = false;\n"
+		   << "\t\treal_t x = vIn.x * 0.15, y = vIn.y * 0.15, z = vIn.z, r = 0, u = 0, v = 0, x2 = 0, y2 = 0;\n"
+		   << "\t\treal2 xy = { x, y };\n"
+		   << "\t\treal2 tempOut = { 0, 0 };\n"
+		   << "\t\treal2 A = { parVars[" << axStartIndex << "], parVars[" << axStartIndex << " + 1] };\n"
+		   << "\t\treal2 B = { parVars[" << bxStartIndex << "], parVars[" << bxStartIndex << " + 1] };\n"
+		   << "\t\treal2 C = { parVars[" << cxStartIndex << "], parVars[" << cxStartIndex << " + 1] };\n"
+		   << "\t\treal2 D = { parVars[" << dxStartIndex << "], parVars[" << dxStartIndex << " + 1] };\n"
+		   << "\t\treal2 E = { parVars[" << exStartIndex << "], parVars[" << exStartIndex << " + 1] };\n"
+		   << "\t\treal2 F = { parVars[" << fxStartIndex << "], parVars[" << fxStartIndex << " + 1] };\n"
+		   << "\t\treal2 G = { parVars[" << gxStartIndex << "], parVars[" << gxStartIndex << " + 1] };\n"
+		   << "\t\treal2 H = { parVars[" << hxStartIndex << "], parVars[" << hxStartIndex << " + 1] };\n"
+		   << "\t\treal2 I = { parVars[" << ixStartIndex << "], parVars[" << ixStartIndex << " + 1] };\n"
+		   << "\t\treal2 J = { parVars[" << jxStartIndex << "], parVars[" << jxStartIndex << " + 1] };\n"
+		   << "\t\treal2 K = { parVars[" << kxStartIndex << "], parVars[" << kxStartIndex << " + 1] };\n"
+		   << "\t\treal2 L = { parVars[" << lxStartIndex << "], parVars[" << lxStartIndex << " + 1] };\n"
+		   << "\n"
+		   << "\t\tif ((" << tempRad << " > 0) && HitsCircleAroundOrigin(" << tempRad << ", &xy, &r))\n"
+		   << "\t\t{\n"
+		   << "\t\t	real_t rd = log(Sqr(r / " << tempRad << "));\n"
+		   << "\t\t	real_t phi = atan2(y, x);\n"
+		   << "\n"
+		   << "\t\t	tempOut.x = xform->m_VariationWeights[" << varIndex << "] * Lerp(x, phi, rd * " << polarweight << ");\n"
+		   << "\t\t	tempOut.y = xform->m_VariationWeights[" << varIndex << "] * Lerp(y, r, rd *   " << polarweight << ");\n"
+		   << "\t\t}\n"
+		   << "\t\telse if (HitsSquareAroundOrigin(" << st << ", &xy))\n"
+		   << "\t\t{\n"
+		   << "\t\t	if (HitsRect(&H, &K, &xy) || HitsRect(&J, &D, &xy) ||\n"
+		   << "\t\t		HitsRect(&A, &J, &xy) || HitsRect(&K, &E, &xy) ||\n"
+		   << "\t\t		HitsTriangle(&I, &A, &H, &xy, &u, &v) ||\n"
+		   << "\t\t		HitsTriangle(&J, &B, &C, &xy, &u, &v) ||\n"
+		   << "\t\t		HitsTriangle(&L, &D, &E, &xy, &u, &v) ||\n"
+		   << "\t\t		HitsTriangle(&K, &F, &G, &xy, &u, &v))\n"
+		   << "\t\t	{\n"
+		   << "\t\t		tempOut.x = xform->m_VariationWeights[" << varIndex << "] * x;\n"
+		   << "\t\t		tempOut.y = xform->m_VariationWeights[" << varIndex << "] * y;\n"
+		   << "\t\t	}\n"
+		   << "\t\t	else\n"
+		   << "\t\t		clear = true;\n"
+		   << "\t\t}\n"
+		   << "\t\telse\n"
+		   << "\t\t	clear = true;\n"
+		   << "\n"
+		   << "\t\tif (clear)\n"
+		   << "\t\t{\n";
+
 		if (m_VarType == VARTYPE_PRE)
 		{
 			ss
-				<< "\t\t	transX = 0;\n"
-				<< "\t\t	transY = 0;\n";
+					<< "\t\t	transX = 0;\n"
+					<< "\t\t	transY = 0;\n";
 		}
 		else
 		{
 			ss
-				<< "\t\t	outPoint->m_X = 0;\n"
-				<< "\t\t	outPoint->m_Y = 0;\n";
+					<< "\t\t	outPoint->m_X = 0;\n"
+					<< "\t\t	outPoint->m_Y = 0;\n";
 		}
 
 		ss
-		   << "\t\t}\n"
-		   << "\n"
-		   << "\t\tvOut.x = tempOut.x + (xform->m_VariationWeights[" << varIndex << "] * x);\n"
-		   << "\t\tvOut.y = tempOut.y + (xform->m_VariationWeights[" << varIndex << "] * y);\n"
-		   << "\t\tvOut.z = xform->m_VariationWeights[" << varIndex << "] * z;\n"
-		   << "\t}\n";
-
+				<< "\t\t}\n"
+				<< "\n"
+				<< "\t\tvOut.x = tempOut.x + (xform->m_VariationWeights[" << varIndex << "] * x);\n"
+				<< "\t\tvOut.y = tempOut.y + (xform->m_VariationWeights[" << varIndex << "] * y);\n"
+				<< "\t\tvOut.z = xform->m_VariationWeights[" << varIndex << "] * z;\n"
+				<< "\t}\n";
 		return ss.str();
 	}
 
@@ -1486,31 +1450,28 @@ public:
 	virtual void Precalc() override
 	{
 		static const T DENOM_SQRT2 = T(0.707106781);
-
 		m_AbsS = std::fabs(m_S);
 		m_AbsT = std::fabs(m_T);
 		m_St = m_AbsS * T(0.5) + m_AbsT;
 		m_TempRad = DENOM_SQRT2 * m_AbsS * std::fabs(m_Radius);
-
-		m_A = { -T(0.5) * m_AbsS, T(0.5) * m_AbsS + m_AbsT };
-		m_B = { T(0.5) * m_AbsS, T(0.5) * m_AbsS + m_AbsT };
-		m_C = { m_AbsT, T(0.5) * m_AbsS };
-		m_D = { m_AbsT, -T(0.5) * m_AbsS };
-		m_E = { T(0.5) * m_AbsS, -T(0.5) * m_AbsS - m_AbsT };
-		m_F = { -T(0.5) * m_AbsS, -T(0.5) * m_AbsS - m_AbsT };
-		m_G = { -m_AbsT, -T(0.5) * m_AbsS };
-		m_H = { -m_AbsT, T(0.5) * m_AbsS };
-		m_I = { -T(0.5) * m_AbsS, T(0.5) * m_AbsS };
-		m_J = { T(0.5) * m_AbsS, T(0.5) * m_AbsS };
-		m_K = { -T(0.5) * m_AbsS, -T(0.5) * m_AbsS };
-		m_L = { T(0.5) * m_AbsS, -T(0.5) * m_AbsS };
+		m_A = { -T(0.5)* m_AbsS, T(0.5)* m_AbsS + m_AbsT };
+		m_B = { T(0.5)* m_AbsS, T(0.5)* m_AbsS + m_AbsT };
+		m_C = { m_AbsT, T(0.5)* m_AbsS };
+		m_D = { m_AbsT, -T(0.5)* m_AbsS };
+		m_E = { T(0.5)* m_AbsS, -T(0.5)* m_AbsS - m_AbsT };
+		m_F = { -T(0.5)* m_AbsS, -T(0.5)* m_AbsS - m_AbsT };
+		m_G = { -m_AbsT, -T(0.5)* m_AbsS };
+		m_H = { -m_AbsT, T(0.5)* m_AbsS };
+		m_I = { -T(0.5)* m_AbsS, T(0.5)* m_AbsS };
+		m_J = { T(0.5)* m_AbsS, T(0.5)* m_AbsS };
+		m_K = { -T(0.5)* m_AbsS, -T(0.5)* m_AbsS };
+		m_L = { T(0.5)* m_AbsS, -T(0.5)* m_AbsS };
 	}
 
 protected:
 	void Init()
 	{
 		string prefix = Prefix();
-
 		m_Params.clear();
 		m_Params.push_back(ParamWithName<T>(&m_Polarweight, prefix + "octapol_polarweight"));
 		m_Params.push_back(ParamWithName<T>(&m_Radius,		prefix + "octapol_radius", 1));
@@ -1562,7 +1523,7 @@ private:
 		if (radius == 0)
 			return 1;
 
-		r = sqrt(SQR(p.x) + SQR(p.y));
+		r = std::sqrt(SQR(p.x) + SQR(p.y));
 		return (r <= radius);
 	}
 
@@ -1660,8 +1621,9 @@ public:
 					{
 						yTmp = m_Top + rand.Frand01<T>() * m_YInt2;
 						xTmp = m_Right - pow(rand.Frand01<T>(), m_DirectBlur) * m_RatioBlur * m_MinInt2;
-					} while ((yTmp - m_Y0c) / (xTmp - m_X0c) < -1);
-					
+					}
+					while ((yTmp - m_Y0c) / (xTmp - m_X0c) < -1);
+
 					if (secTmp < m_SetProbH)
 						xTmp = m_Left + m_Right - xTmp;
 
@@ -1675,7 +1637,8 @@ public:
 						xTmp = m_Right - rand.Frand01<T>() * m_XInt2;
 						yTmp = m_Top + std::pow(rand.Frand01<T>(), m_DirectBlur) * m_RatioBlur * m_MinInt2;
 						gradTmp = (yTmp - m_Y0c) / (xTmp - m_X0c);
-					} while ((gradTmp <= 0) && (gradTmp > -1));
+					}
+					while ((gradTmp <= 0) && (gradTmp > -1));
 
 					if (secTmp > m_SetProbH)
 						yTmp = m_Bottom + m_Top - yTmp;
@@ -1755,118 +1718,116 @@ public:
 		string bottomBorder =  "parVars[" + ToUpper(m_Params[i++].Name()) + index;
 		string leftBorder =	   "parVars[" + ToUpper(m_Params[i++].Name()) + index;
 		string rightBorder =   "parVars[" + ToUpper(m_Params[i++].Name()) + index;
-
 		ss << "\t{\n"
-			<< "\t\treal_t gradTmp, secTmp, xTmp, yTmp;\n"
-			<< "\n"
-			<< "\t\tif ((vIn.x < " << leftBorder << ") || (vIn.x > " << rightBorder << ") || (vIn.y < " << topBorder << ") || (vIn.y > " << bottomBorder << "))\n"
-			<< "\t\t{\n"
-			<< "\t\t	if (" << blur << " == 0)\n"
-			<< "\t\t	{\n";
+		   << "\t\treal_t gradTmp, secTmp, xTmp, yTmp;\n"
+		   << "\n"
+		   << "\t\tif ((vIn.x < " << leftBorder << ") || (vIn.x > " << rightBorder << ") || (vIn.y < " << topBorder << ") || (vIn.y > " << bottomBorder << "))\n"
+		   << "\t\t{\n"
+		   << "\t\t	if (" << blur << " == 0)\n"
+		   << "\t\t	{\n";
 
 		if (m_VarType == VARTYPE_PRE)
 		{
 			ss
-				<< "\t\t		transX = 0;\n"
-				<< "\t\t		transY = 0;\n";
+					<< "\t\t		transX = 0;\n"
+					<< "\t\t		transY = 0;\n";
 		}
 		else if (m_VarType == VARTYPE_REG)
 		{
 			ss
-				<< "\t\t		vIn.x = 0;\n"
-				<< "\t\t		vIn.y = 0;\n";
+					<< "\t\t		vIn.x = 0;\n"
+					<< "\t\t		vIn.y = 0;\n";
 		}
 		else
 		{
 			ss
-				<< "\t\t		outPoint->m_X = 0;\n"
-				<< "\t\t		outPoint->m_Y = 0;\n";
+					<< "\t\t		outPoint->m_X = 0;\n"
+					<< "\t\t		outPoint->m_Y = 0;\n";
 		}
-		
+
 		ss
-			<< "\t\t	}\n"
-			<< "\t\t	else\n"
-			<< "\t\t	{\n"
-			<< "\t\t		secTmp = MwcNext01(mwc);\n"
-			<< "\n"
-			<< "\t\t		if (secTmp < " << setProb << ")\n"
-			<< "\t\t		{\n"
-			<< "\t\t			do\n"
-			<< "\t\t			{\n"
-			<< "\t\t				yTmp = " << top << " + MwcNext01(mwc) * " << yInt2 << ";\n"
-			<< "\t\t				xTmp = " << right << " - pow(MwcNext01(mwc), " << directBlur << ") * " << ratioBlur << " * " << minInt2 << ";\n"
-			<< "\t\t			} while ((yTmp - " << y0c << ") / (xTmp - " << x0c << ") < -1);\n"
-			<< "\n"
-			<< "\t\t			if (secTmp < " << setProbH << ")\n"
-			<< "\t\t				xTmp = " << left << " + " << right << " - xTmp;\n"
-			<< "\n"
-			<< "\t\t			if ((secTmp > " << setProbQ << ") && (secTmp < " << setProbTQ << "))\n"
-			<< "\t\t				yTmp = " << bottom << " + " << top << " - yTmp;\n"
-			<< "\t\t		}\n"
-			<< "\t\t		else\n"
-			<< "\t\t		{\n"
-			<< "\t\t			do\n"
-			<< "\t\t			{\n"
-			<< "\t\t				xTmp = " << right << " - MwcNext01(mwc) * " << xInt2 << ";\n"
-			<< "\t\t				yTmp = " << top << " + pow(MwcNext01(mwc), " << directBlur << ") * " << ratioBlur << " * " << minInt2 << ";\n"
-			<< "\t\t				gradTmp = (yTmp - " << y0c << ") / (xTmp - " << x0c << ");\n"
-			<< "\t\t			} while ((gradTmp <= 0) && (gradTmp > -1));\n"
-			<< "\n"
-			<< "\t\t			if (secTmp > " << setProbH << ")\n"
-			<< "\t\t				yTmp = " << bottom << " + " << top << " - yTmp;\n"
-			<< "\n"
-			<< "\t\t			if ((secTmp > " << setProbQ << ") && (secTmp < " << setProbTQ << "))\n"
-			<< "\t\t				xTmp = " << left << " + " << right << " - xTmp;\n"
-			<< "\t\t		}\n"
-			<< "\n";
+				<< "\t\t	}\n"
+				<< "\t\t	else\n"
+				<< "\t\t	{\n"
+				<< "\t\t		secTmp = MwcNext01(mwc);\n"
+				<< "\n"
+				<< "\t\t		if (secTmp < " << setProb << ")\n"
+				<< "\t\t		{\n"
+				<< "\t\t			do\n"
+				<< "\t\t			{\n"
+				<< "\t\t				yTmp = " << top << " + MwcNext01(mwc) * " << yInt2 << ";\n"
+				<< "\t\t				xTmp = " << right << " - pow(MwcNext01(mwc), " << directBlur << ") * " << ratioBlur << " * " << minInt2 << ";\n"
+				<< "\t\t			} while ((yTmp - " << y0c << ") / (xTmp - " << x0c << ") < -1);\n"
+				<< "\n"
+				<< "\t\t			if (secTmp < " << setProbH << ")\n"
+				<< "\t\t				xTmp = " << left << " + " << right << " - xTmp;\n"
+				<< "\n"
+				<< "\t\t			if ((secTmp > " << setProbQ << ") && (secTmp < " << setProbTQ << "))\n"
+				<< "\t\t				yTmp = " << bottom << " + " << top << " - yTmp;\n"
+				<< "\t\t		}\n"
+				<< "\t\t		else\n"
+				<< "\t\t		{\n"
+				<< "\t\t			do\n"
+				<< "\t\t			{\n"
+				<< "\t\t				xTmp = " << right << " - MwcNext01(mwc) * " << xInt2 << ";\n"
+				<< "\t\t				yTmp = " << top << " + pow(MwcNext01(mwc), " << directBlur << ") * " << ratioBlur << " * " << minInt2 << ";\n"
+				<< "\t\t				gradTmp = (yTmp - " << y0c << ") / (xTmp - " << x0c << ");\n"
+				<< "\t\t			} while ((gradTmp <= 0) && (gradTmp > -1));\n"
+				<< "\n"
+				<< "\t\t			if (secTmp > " << setProbH << ")\n"
+				<< "\t\t				yTmp = " << bottom << " + " << top << " - yTmp;\n"
+				<< "\n"
+				<< "\t\t			if ((secTmp > " << setProbQ << ") && (secTmp < " << setProbTQ << "))\n"
+				<< "\t\t				xTmp = " << left << " + " << right << " - xTmp;\n"
+				<< "\t\t		}\n"
+				<< "\n";
 
 		if (m_VarType == VARTYPE_PRE)
 		{
 			ss
-				<< "\t\t		transX = xTmp;\n"
-				<< "\t\t		transY = yTmp;\n";
+					<< "\t\t		transX = xTmp;\n"
+					<< "\t\t		transY = yTmp;\n";
 		}
 		else if (m_VarType == VARTYPE_REG)
 		{
 			ss
-				<< "\t\t		vIn.x = xTmp;\n"
-				<< "\t\t		vIn.y = yTmp;\n";
+					<< "\t\t		vIn.x = xTmp;\n"
+					<< "\t\t		vIn.y = yTmp;\n";
 		}
 		else
 		{
 			ss
-				<< "\t\t		outPoint->m_X = xTmp;\n"
-				<< "\t\t		outPoint->m_Y = yTmp;\n";
+					<< "\t\t		outPoint->m_X = xTmp;\n"
+					<< "\t\t		outPoint->m_Y = yTmp;\n";
 		}
 
 		ss
-			<< "\t\t\t}\n"
-			<< "\t\t}\n"
-			<< "\n";
+				<< "\t\t\t}\n"
+				<< "\t\t}\n"
+				<< "\n";
 
 		if (m_VarType == VARTYPE_PRE)
 		{
 			ss
-				<< "\t\tvOut.x = transX;\n"
-				<< "\t\tvOut.y = transY;\n";
+					<< "\t\tvOut.x = transX;\n"
+					<< "\t\tvOut.y = transY;\n";
 		}
 		else if (m_VarType == VARTYPE_REG)
 		{
 			ss
-				<< "\t\tvOut.x = vIn.x;\n"
-				<< "\t\tvOut.y = vIn.y;\n";
+					<< "\t\tvOut.x = vIn.x;\n"
+					<< "\t\tvOut.y = vIn.y;\n";
 		}
 		else
 		{
 			ss
-				<< "\t\tvOut.x = outPoint->m_X;\n"
-				<< "\t\tvOut.y = outPoint->m_Y;\n";
+					<< "\t\tvOut.x = outPoint->m_X;\n"
+					<< "\t\tvOut.y = outPoint->m_Y;\n";
 		}
 
 		ss
-			<< "\t\tvOut.z = " << ((m_VarType == VARTYPE_REG) ? "0" : "vIn.z") << ";\n"
-			<< "\t}\n";
-
+				<< "\t\tvOut.z = " << ((m_VarType == VARTYPE_REG) ? "0" : "vIn.z") << ";\n"
+				<< "\t}\n";
 		return ss.str();
 	}
 
@@ -1874,13 +1835,13 @@ public:
 	{
 		if (m_Top > m_Bottom)
 			std::swap(m_Top, m_Bottom);
-	
+
 		if (m_Top == m_Bottom)
 		{
 			m_Top = -1;
 			m_Bottom = 1;
 		}
-		
+
 		if (m_Left > m_Right)
 			std::swap(m_Left, m_Right);
 
@@ -1900,7 +1861,7 @@ public:
 		m_YInterval = std::fabs(m_Bottom) - m_Top;
 		m_XInt2 = m_XInterval / 2;
 		m_YInt2 = m_YInterval / 2;
-		
+
 		if (m_XInt2 > m_YInt2)
 			m_MinInt2 = m_YInt2;
 		else
@@ -1946,7 +1907,7 @@ public:
 			m_TopBorder = m_Top  + m_MinInt2 * m_RatioBlur;
 			m_BottomBorder = m_Bottom - m_MinInt2 * m_RatioBlur;
 			m_LeftBorder = m_Left  + m_MinInt2 * m_RatioBlur;
-			m_RightBorder = m_Right   -m_MinInt2 * m_RatioBlur;
+			m_RightBorder = m_Right   - m_MinInt2 * m_RatioBlur;
 		}
 	}
 
@@ -1954,9 +1915,7 @@ protected:
 	void Init()
 	{
 		string prefix = Prefix();
-
 		m_Params.clear();
-
 		m_Params.push_back(ParamWithName<T>(&m_Top, prefix + "crob_top", -1));
 		m_Params.push_back(ParamWithName<T>(&m_Bottom, prefix + "crob_bottom", 1));
 		m_Params.push_back(ParamWithName<T>(&m_Left, prefix + "crob_left", -1));
@@ -2039,12 +1998,11 @@ public:
 		T rad = helper.m_PrecalcSumSquares / 4 + 1;
 		T angXY, angZ;
 		T c, s;
-
 		angXY = std::atan2(x, y);
 
 		if (angXY < 0)
 			angXY += M_2PI;
-		
+
 		if (m_AbsNumberStripes != 0)
 		{
 			while (angXY > m_AngStrip2)
@@ -2208,7 +2166,7 @@ public:
 				}
 			}
 		}
-		
+
 		helper.Out.x = m_Weight * x;
 		helper.Out.y = m_Weight * y;
 		helper.Out.z = m_Weight * z;
@@ -2220,7 +2178,6 @@ public:
 		intmax_t i = 0, varIndex = IndexInXform();
 		ss2 << "_" << XformIndexInEmber();
 		string index = ss2.str() + "]";
-
 		string numberStripes	= "parVars[" + ToUpper(m_Params[i++].Name()) + index;
 		string ratioStripes		= "parVars[" + ToUpper(m_Params[i++].Name()) + index;
 		string angleHole		= "parVars[" + ToUpper(m_Params[i++].Name()) + index;
@@ -2237,188 +2194,186 @@ public:
 		string invHole			= "parVars[" + ToUpper(m_Params[i++].Name()) + index;
 		string c				= "parVars[" + ToUpper(m_Params[i++].Name()) + index;
 		string s				= "parVars[" + ToUpper(m_Params[i++].Name()) + index;
-		
 		ss << "\t{\n"
-		"\t\treal_t x = vIn.x, y = vIn.y, z = vIn.z;\n"
-		"\t\treal_t xTmp, yTmp, angTmp, angRot, fac;\n"
-		"\t\treal_t rad = precalcSumSquares / 4 + 1;\n"
-		"\t\treal_t angXY, angZ;\n"
-		"\t\treal_t c, s;\n"
-		"\t\t\n"
-		"\t\tangXY = atan2(x, y);\n"
-		"\t\t\n"
-		"\t\tif (angXY < 0)\n"
-		"\t\t	angXY += M_2PI;\n"
-		"\t\t\n"
-		"\t\tif (" << absNumberStripes << " != 0)\n"
-		"\t\t{\n"
-		"\t\t	while (angXY > " << angStrip2 << ")\n"
-		"\t\t	{\n"
-		"\t\t		angXY -= " << angStrip2 << "; \n"
-		"\t\t	}\n"
-		"\t\t\n"
-		"\t\t	if (" << invStripes << " == 0)\n"
-		"\t\t	{\n"
-		"\t\t		if (angXY > " << angStrip1 << ")\n"
-		"\t\t		{\n"
-		"\t\t			if (" << modusBlur << " == 0)\n"
-		"\t\t			{\n"
-		"\t\t				x = 0;\n"
-		"\t\t				y = 0;\n"
-		"\t\t			}\n"
-		"\t\t			else\n"
-		"\t\t			{\n"
-		"\t\t				if (" << ratioStripes << " == 1)\n"
-		"\t\t				{\n"
-		"\t\t					xTmp = " << c << " * x - " << s << " * y;\n"
-		"\t\t					yTmp = " << s << " * x + " << c << " * y;\n"
-		"\t\t					x = xTmp;\n"
-		"\t\t					y = yTmp;\n"
-		"\t\t				}\n"
-		"\t\t				else\n"
-		"\t\t				{\n"
-		"\t\t					angRot = (angXY - " << angStrip1 << ") / (" << angStrip2 << " - " << angStrip1 << ");\n"
-		"\t\t					angRot = angXY - angRot * " << angStrip1 << ";\n"
-		"\t\t					s = sincos(angRot, &c);\n"
-		"\t\t					xTmp = c * x - s * y;\n"
-		"\t\t					yTmp = s * x + c * y;\n"
-		"\t\t					x = xTmp;\n"
-		"\t\t					y = yTmp;\n"
-		"\t\t				}\n"
-		"\t\t			}\n"
-		"\t\t		}\n"
-		"\t\t	}\n"
-		"\t\t	else\n"
-		"\t\t	{\n"
-		"\t\t		if (angXY < " << angStrip1 << ")\n"
-		"\t\t		{\n"
-		"\t\t			if (" << modusBlur << " == 0)\n"
-		"\t\t			{\n"
-		"\t\t				x = 0;\n"
-		"\t\t				y = 0;\n"
-		"\t\t			}\n"
-		"\t\t			else\n"
-		"\t\t			{\n"
-		"\t\t				if (" << absNumberStripes << " == 1)\n"
-		"\t\t				{\n"
-		"\t\t					xTmp = " << c << " * x - " << s << " * y;\n"
-		"\t\t					yTmp = " << s << " * x + " << c << " * y;\n"
-		"\t\t					x = xTmp;\n"
-		"\t\t					y = yTmp;\n"
-		"\t\t				}\n"
-		"\t\t				else\n"
-		"\t\t				{\n"
-		"\t\t					angRot = (angXY - " << angStrip1 << ") / " << angStrip1 << ";\n"
-		"\t\t					angRot = angXY - angRot * (" << angStrip2 << " - " << angStrip1 << ");\n"
-		"\t\t					s = sincos(angRot, &c);\n"
-		"\t\t					xTmp = c * x - s * y;\n"
-		"\t\t					yTmp = s * x + c * y;\n"
-		"\t\t					x = xTmp;\n"
-		"\t\t					y = yTmp;\n"
-		"\t\t				}\n"
-		"\t\t			}\n"
-		"\t\t		}\n"
-		"\t\t	}\n"
-		"\t\t}\n"
-		"\t\t\n"
-		"\t\tx = x / rad;\n"
-		"\t\ty = y / rad;\n"
-		"\t\t\n"
-		"\t\tif ((x != 0) || (y != 0))\n"
-		"\t\t{\n"
-		"\t\t	z = 2 / pow(rad, " << exponentZ << ") - 1; \n"
-		"\t\t\n"
-		"\t\t	if (" << exponentZ << " <= 2)\n"
-		"\t\t		angZ = M_PI - acos((z / (Sqr(x) + Sqr(y) + Sqr(z))));\n"
-		"\t\t	else\n"
-		"\t\t		angZ = M_PI - atan2(Sqr(Sqr(x) + Sqr(y)), z);\n"
-		"\t\t}\n"
-		"\t\telse\n"
-		"\t\t{\n"
-		"\t\t	z = 0;\n"
-		"\t\t	angZ = 0;\n"
-		"\t\t}\n"
-		"\t\t\n"
-		"\t\tif (" << symmetryZ << " == 0)\n"
-		"\t\t{\n"
-		"\t\t	if (" << invHole << " == 0)\n"
-		"\t\t	{\n"
-		"\t\t		if (angZ > " << angHoleTemp << ")\n"
-		"\t\t		{\n"
-		"\t\t			if ((" << modusBlur << " == 0) || (" << exponentZ << " != 1))\n"
-		"\t\t			{\n"
-		"\t\t				x = 0;\n"
-		"\t\t				y = 0;\n"
-		"\t\t				z = 0;\n"
-		"\t\t			}\n"
-		"\t\t			else\n"
-		"\t\t			{\n"
-		"\t\t				angTmp = (M_PI - angZ) / " << angHoleComp << " * " << angHoleTemp << " - M_PI_2; \n"
-		"\t\t				angZ -= M_PI_2;\n"
-		"\t\t				fac = cos(angTmp) / cos(angZ);\n"
-		"\t\t				x = x * fac;\n"
-		"\t\t				y = y * fac;\n"
-		"\t\t				z = z * (sin(angTmp) / sin(angZ));\n"
-		"\t\t			}\n"
-		"\t\t		}\n"
-		"\t\t	}\n"
-		"\t\t	else\n"
-		"\t\t	{\n"
-		"\t\t		if (angZ < " << angHoleTemp << ")\n"
-		"\t\t		{\n"
-		"\t\t			if ((" << modusBlur << " == 0) || (" << exponentZ << " != 1))\n"
-		"\t\t			{\n"
-		"\t\t				x = 0;\n"
-		"\t\t				y = 0;\n"
-		"\t\t				z = 0;\n"
-		"\t\t			}\n"
-		"\t\t			else\n"
-		"\t\t			{\n"
-		"\t\t				angTmp = M_PI - angZ / " << angHoleComp << " * " << angHoleTemp << " - M_PI_2; \n"
-		"\t\t				angZ -= M_PI_2;\n"
-		"\t\t				fac = cos(angTmp) / cos(angZ);\n"
-		"\t\t				x = x * fac;\n"
-		"\t\t				y = y * fac;\n"
-		"\t\t				z = z * (sin(angTmp) / sin(angZ));\n"
-		"\t\t			}\n"
-		"\t\t		}\n"
-		"\t\t	}\n"
-		"\t\t}\n"
-		"\t\telse\n"
-		"\t\t{\n"
-		"\t\t	if ((angZ > " << angHoleTemp << ") || (angZ < (M_PI - " << angHoleTemp << ")))\n"
-		"\t\t	{\n"
-		"\t\t		if ((" << modusBlur << " == 0) || (" << exponentZ << " != 1))\n"
-		"\t\t		{\n"
-		"\t\t			x = 0;\n"
-		"\t\t			y = 0;\n"
-		"\t\t			z = 0;\n"
-		"\t\t		}\n"
-		"\t\t		else\n"
-		"\t\t		{\n"
-		"\t\t			if (angZ > " << angHoleTemp << ")\n"
-		"\t\t			{\n"
-		"\t\t				angTmp = (M_PI - angZ) / " << angHoleComp << " * (M_PI - 2 * " << angHoleComp << ") + " << angHoleComp << " - M_PI_2; \n"
-		"\t\t			}\n"
-		"\t\t			else\n"
-		"\t\t			{\n"
-		"\t\t				angTmp = M_PI_2 - (angZ / " << angHoleComp << " * (M_PI - 2 * " << angHoleComp << ") + " << angHoleComp << ");\n"
-		"\t\t			}\n"
-		"\t\t\n"
-		"\t\t			angZ -= M_PI_2;\n"
-		"\t\t			fac = cos(angTmp) / cos(angZ);\n"
-		"\t\t			x = x * fac;\n"
-		"\t\t			y = y * fac;\n"
-		"\t\t			z = z * (sin(angTmp) / sin(angZ));\n"
-		"\t\t		}\n"
-		"\t\t	}\n"
-		"\t\t}\n"
-		"\t\t\n"
-		"\t\tvOut.x = xform->m_VariationWeights[" << varIndex << "] * x;\n"
-		"\t\tvOut.y = xform->m_VariationWeights[" << varIndex << "] * y;\n"
-		"\t\tvOut.z = xform->m_VariationWeights[" << varIndex << "] * z;\n"
-		"\t}\n";
-
+		   "\t\treal_t x = vIn.x, y = vIn.y, z = vIn.z;\n"
+		   "\t\treal_t xTmp, yTmp, angTmp, angRot, fac;\n"
+		   "\t\treal_t rad = precalcSumSquares / 4 + 1;\n"
+		   "\t\treal_t angXY, angZ;\n"
+		   "\t\treal_t c, s;\n"
+		   "\t\t\n"
+		   "\t\tangXY = atan2(x, y);\n"
+		   "\t\t\n"
+		   "\t\tif (angXY < 0)\n"
+		   "\t\t	angXY += M_2PI;\n"
+		   "\t\t\n"
+		   "\t\tif (" << absNumberStripes << " != 0)\n"
+		   "\t\t{\n"
+		   "\t\t	while (angXY > " << angStrip2 << ")\n"
+		   "\t\t	{\n"
+		   "\t\t		angXY -= " << angStrip2 << "; \n"
+		   "\t\t	}\n"
+		   "\t\t\n"
+		   "\t\t	if (" << invStripes << " == 0)\n"
+		   "\t\t	{\n"
+		   "\t\t		if (angXY > " << angStrip1 << ")\n"
+		   "\t\t		{\n"
+		   "\t\t			if (" << modusBlur << " == 0)\n"
+		   "\t\t			{\n"
+		   "\t\t				x = 0;\n"
+		   "\t\t				y = 0;\n"
+		   "\t\t			}\n"
+		   "\t\t			else\n"
+		   "\t\t			{\n"
+		   "\t\t				if (" << ratioStripes << " == 1)\n"
+		   "\t\t				{\n"
+		   "\t\t					xTmp = " << c << " * x - " << s << " * y;\n"
+		   "\t\t					yTmp = " << s << " * x + " << c << " * y;\n"
+		   "\t\t					x = xTmp;\n"
+		   "\t\t					y = yTmp;\n"
+		   "\t\t				}\n"
+		   "\t\t				else\n"
+		   "\t\t				{\n"
+		   "\t\t					angRot = (angXY - " << angStrip1 << ") / (" << angStrip2 << " - " << angStrip1 << ");\n"
+		   "\t\t					angRot = angXY - angRot * " << angStrip1 << ";\n"
+		   "\t\t					s = sincos(angRot, &c);\n"
+		   "\t\t					xTmp = c * x - s * y;\n"
+		   "\t\t					yTmp = s * x + c * y;\n"
+		   "\t\t					x = xTmp;\n"
+		   "\t\t					y = yTmp;\n"
+		   "\t\t				}\n"
+		   "\t\t			}\n"
+		   "\t\t		}\n"
+		   "\t\t	}\n"
+		   "\t\t	else\n"
+		   "\t\t	{\n"
+		   "\t\t		if (angXY < " << angStrip1 << ")\n"
+		   "\t\t		{\n"
+		   "\t\t			if (" << modusBlur << " == 0)\n"
+		   "\t\t			{\n"
+		   "\t\t				x = 0;\n"
+		   "\t\t				y = 0;\n"
+		   "\t\t			}\n"
+		   "\t\t			else\n"
+		   "\t\t			{\n"
+		   "\t\t				if (" << absNumberStripes << " == 1)\n"
+		   "\t\t				{\n"
+		   "\t\t					xTmp = " << c << " * x - " << s << " * y;\n"
+		   "\t\t					yTmp = " << s << " * x + " << c << " * y;\n"
+		   "\t\t					x = xTmp;\n"
+		   "\t\t					y = yTmp;\n"
+		   "\t\t				}\n"
+		   "\t\t				else\n"
+		   "\t\t				{\n"
+		   "\t\t					angRot = (angXY - " << angStrip1 << ") / " << angStrip1 << ";\n"
+		   "\t\t					angRot = angXY - angRot * (" << angStrip2 << " - " << angStrip1 << ");\n"
+		   "\t\t					s = sincos(angRot, &c);\n"
+		   "\t\t					xTmp = c * x - s * y;\n"
+		   "\t\t					yTmp = s * x + c * y;\n"
+		   "\t\t					x = xTmp;\n"
+		   "\t\t					y = yTmp;\n"
+		   "\t\t				}\n"
+		   "\t\t			}\n"
+		   "\t\t		}\n"
+		   "\t\t	}\n"
+		   "\t\t}\n"
+		   "\t\t\n"
+		   "\t\tx = x / rad;\n"
+		   "\t\ty = y / rad;\n"
+		   "\t\t\n"
+		   "\t\tif ((x != 0) || (y != 0))\n"
+		   "\t\t{\n"
+		   "\t\t	z = 2 / pow(rad, " << exponentZ << ") - 1; \n"
+		   "\t\t\n"
+		   "\t\t	if (" << exponentZ << " <= 2)\n"
+		   "\t\t		angZ = M_PI - acos((z / (Sqr(x) + Sqr(y) + Sqr(z))));\n"
+		   "\t\t	else\n"
+		   "\t\t		angZ = M_PI - atan2(Sqr(Sqr(x) + Sqr(y)), z);\n"
+		   "\t\t}\n"
+		   "\t\telse\n"
+		   "\t\t{\n"
+		   "\t\t	z = 0;\n"
+		   "\t\t	angZ = 0;\n"
+		   "\t\t}\n"
+		   "\t\t\n"
+		   "\t\tif (" << symmetryZ << " == 0)\n"
+		   "\t\t{\n"
+		   "\t\t	if (" << invHole << " == 0)\n"
+		   "\t\t	{\n"
+		   "\t\t		if (angZ > " << angHoleTemp << ")\n"
+		   "\t\t		{\n"
+		   "\t\t			if ((" << modusBlur << " == 0) || (" << exponentZ << " != 1))\n"
+		   "\t\t			{\n"
+		   "\t\t				x = 0;\n"
+		   "\t\t				y = 0;\n"
+		   "\t\t				z = 0;\n"
+		   "\t\t			}\n"
+		   "\t\t			else\n"
+		   "\t\t			{\n"
+		   "\t\t				angTmp = (M_PI - angZ) / " << angHoleComp << " * " << angHoleTemp << " - M_PI_2; \n"
+		   "\t\t				angZ -= M_PI_2;\n"
+		   "\t\t				fac = cos(angTmp) / cos(angZ);\n"
+		   "\t\t				x = x * fac;\n"
+		   "\t\t				y = y * fac;\n"
+		   "\t\t				z = z * (sin(angTmp) / sin(angZ));\n"
+		   "\t\t			}\n"
+		   "\t\t		}\n"
+		   "\t\t	}\n"
+		   "\t\t	else\n"
+		   "\t\t	{\n"
+		   "\t\t		if (angZ < " << angHoleTemp << ")\n"
+		   "\t\t		{\n"
+		   "\t\t			if ((" << modusBlur << " == 0) || (" << exponentZ << " != 1))\n"
+		   "\t\t			{\n"
+		   "\t\t				x = 0;\n"
+		   "\t\t				y = 0;\n"
+		   "\t\t				z = 0;\n"
+		   "\t\t			}\n"
+		   "\t\t			else\n"
+		   "\t\t			{\n"
+		   "\t\t				angTmp = M_PI - angZ / " << angHoleComp << " * " << angHoleTemp << " - M_PI_2; \n"
+		   "\t\t				angZ -= M_PI_2;\n"
+		   "\t\t				fac = cos(angTmp) / cos(angZ);\n"
+		   "\t\t				x = x * fac;\n"
+		   "\t\t				y = y * fac;\n"
+		   "\t\t				z = z * (sin(angTmp) / sin(angZ));\n"
+		   "\t\t			}\n"
+		   "\t\t		}\n"
+		   "\t\t	}\n"
+		   "\t\t}\n"
+		   "\t\telse\n"
+		   "\t\t{\n"
+		   "\t\t	if ((angZ > " << angHoleTemp << ") || (angZ < (M_PI - " << angHoleTemp << ")))\n"
+		   "\t\t	{\n"
+		   "\t\t		if ((" << modusBlur << " == 0) || (" << exponentZ << " != 1))\n"
+		   "\t\t		{\n"
+		   "\t\t			x = 0;\n"
+		   "\t\t			y = 0;\n"
+		   "\t\t			z = 0;\n"
+		   "\t\t		}\n"
+		   "\t\t		else\n"
+		   "\t\t		{\n"
+		   "\t\t			if (angZ > " << angHoleTemp << ")\n"
+		   "\t\t			{\n"
+		   "\t\t				angTmp = (M_PI - angZ) / " << angHoleComp << " * (M_PI - 2 * " << angHoleComp << ") + " << angHoleComp << " - M_PI_2; \n"
+		   "\t\t			}\n"
+		   "\t\t			else\n"
+		   "\t\t			{\n"
+		   "\t\t				angTmp = M_PI_2 - (angZ / " << angHoleComp << " * (M_PI - 2 * " << angHoleComp << ") + " << angHoleComp << ");\n"
+		   "\t\t			}\n"
+		   "\t\t\n"
+		   "\t\t			angZ -= M_PI_2;\n"
+		   "\t\t			fac = cos(angTmp) / cos(angZ);\n"
+		   "\t\t			x = x * fac;\n"
+		   "\t\t			y = y * fac;\n"
+		   "\t\t			z = z * (sin(angTmp) / sin(angZ));\n"
+		   "\t\t		}\n"
+		   "\t\t	}\n"
+		   "\t\t}\n"
+		   "\t\t\n"
+		   "\t\tvOut.x = xform->m_VariationWeights[" << varIndex << "] * x;\n"
+		   "\t\tvOut.y = xform->m_VariationWeights[" << varIndex << "] * y;\n"
+		   "\t\tvOut.z = xform->m_VariationWeights[" << varIndex << "] * z;\n"
+		   "\t}\n";
 		return ss.str();
 	}
 
@@ -2439,7 +2394,7 @@ public:
 			m_AbsNumberStripes = m_NumberStripes;
 			m_InvStripes = 0;
 		}
-		
+
 		if (m_AbsNumberStripes != 0)
 		{
 			m_AngStrip = T(M_PI) / m_AbsNumberStripes;
@@ -2480,7 +2435,6 @@ protected:
 	void Init()
 	{
 		string prefix = Prefix();
-
 		m_Params.clear();
 		m_Params.reserve(14);
 		m_Params.push_back(ParamWithName<T>(&m_NumberStripes, prefix + "bubbleT3D_number_of_stripes", 0, INTEGER));
@@ -2499,7 +2453,6 @@ protected:
 		m_Params.push_back(ParamWithName<T>(true, &m_InvHole,		   prefix + "bubbleT3D_inv_hole"));
 		m_Params.push_back(ParamWithName<T>(true, &m_C,				   prefix + "bubbleT3D_c"));
 		m_Params.push_back(ParamWithName<T>(true, &m_S,				   prefix + "bubbleT3D_s"));
-		
 	}
 
 private:
@@ -2599,7 +2552,6 @@ public:
 		T s, c, mu;              // Handy temp variables, s & c => sine & cosine, mu = generic temp param
 		int synthMode = int(m_SynthMode);
 		SynthStruct synth;
-
 		synth.SynthA = m_SynthA;
 		synth.SynthB = m_SynthB;
 		synth.SynthBPhs = m_SynthBPhs;
@@ -2640,13 +2592,11 @@ public:
 				Vx = helper.In.x;
 				Vy = helper.In.y;
 				radius = std::pow(Zeps<T>(helper.m_PrecalcSumSquares), (m_SynthPower + 1) / 2);
-
 				// Get angle and angular factor
 				theta = helper.m_PrecalcAtanxy;
 				thetaFactor = SynthValue(synth, theta);
 				radius = Interpolate(radius, thetaFactor, synthMode);
 				sincos(theta, &s, &c);
-
 				// Write to running totals for transform
 				helper.Out.x = m_Weight * radius * s;
 				helper.Out.y = m_Weight * radius * c;
@@ -2657,13 +2607,11 @@ public:
 				Vx = helper.In.x;
 				Vy = helper.In.y;
 				radius = helper.m_PrecalcSqrtSumSquares / (helper.m_PrecalcSumSquares / 4 + 1);
-
 				// Get angle and angular factor
 				theta = helper.m_PrecalcAtanxy;
 				thetaFactor = SynthValue(synth, theta);
 				radius = Interpolate(radius, thetaFactor, synthMode);
 				sincos(theta, &s, &c);
-
 				// Write to running totals for transform
 				helper.Out.x = m_Weight * radius * s;
 				helper.Out.y = m_Weight * radius * c;
@@ -2676,11 +2624,9 @@ public:
 				Vx = radius * std::sin(theta);
 				Vy = radius * std::cos(theta);
 				radius = std::pow(Zeps<T>(radius * radius), m_SynthPower / 2);
-
 				// Get angle and angular factor
 				thetaFactor = SynthValue(synth, theta);
 				radius = m_Weight * Interpolate(radius, thetaFactor, synthMode);
-
 				// Write back to running totals for new vector
 				helper.Out.x = Vx * radius;
 				helper.Out.y = Vy * radius;
@@ -2692,14 +2638,11 @@ public:
 				radius = T(0.5) * (rand.Frand01<T>() + rand.Frand01<T>());
 				theta = M_2PI * rand.Frand01<T>() - T(M_PI);
 				radius = std::pow(Zeps<T>(SQR(radius)), -m_SynthPower / 2);
-
 				// Get angular factor defining the shape
 				thetaFactor = SynthValue(synth, theta);
-
 				// Get final radius after synth applied
 				radius = Interpolate(radius, thetaFactor, synthMode);
 				sincos(theta, &s, &c);
-
 				// Write to running totals for transform
 				helper.Out.x = m_Weight * radius * s;
 				helper.Out.y = m_Weight * radius * c;
@@ -2711,13 +2654,10 @@ public:
 				// Vy is y value
 				Vy = 1 + T(0.1) * (rand.Frand01<T>() + rand.Frand01<T>() - 1) * m_SynthPower;
 				theta = 2 * std::asin((rand.Frand01<T>() - T(0.5)) * 2);
-
 				// Get angular factor defining the shape
 				thetaFactor = SynthValue(synth, theta);
-
 				// Get new location
 				Vy = Interpolate(Vy, thetaFactor, synthMode);
-
 				// Write to running totals for transform
 				helper.Out.x = m_Weight * (theta / T(M_PI));
 				helper.Out.y = m_Weight * (Vy - 1);
@@ -2727,12 +2667,10 @@ public:
 				// Get current radius and angle
 				radius = helper.m_PrecalcSqrtSumSquares;
 				theta = helper.m_PrecalcAtanxy;
-
 				// Calculate new radius
 				thetaFactor = SynthValue(synth, theta);
 				radius = Interpolate(radius, thetaFactor, synthMode);
 				sincos(theta, &s, &c);
-
 				// Write to running totals for transform
 				helper.Out.x = m_Weight * radius * s;
 				helper.Out.y = m_Weight * radius * c;
@@ -2742,10 +2680,8 @@ public:
 				// Use x and y values directly
 				Vx = helper.In.x;
 				Vy = helper.In.y;
-
 				// x value will be mapped according to synth(y) value
 				thetaFactor = SynthValue(synth, Vy);
-
 				// Write to running totals for transform
 				helper.Out.x = m_Weight * Interpolate(Vx, thetaFactor, synthMode);
 				helper.Out.y = m_Weight * Vy;
@@ -2755,10 +2691,8 @@ public:
 				// Use x and y values directly
 				Vx = helper.In.x;
 				Vy = helper.In.y;
-
 				// y value will be mapped according to synth(x) value
 				thetaFactor = SynthValue(synth, Vx);
-
 				// Write to running totals for transform
 				helper.Out.x = m_Weight * Vx;
 				helper.Out.y = m_Weight * Interpolate(Vy, thetaFactor, synthMode);
@@ -2768,11 +2702,9 @@ public:
 				// Use x and y values directly
 				Vx = helper.In.x;
 				Vy = helper.In.y;
-
 				// x value will be mapped according to synth(y) value
 				thetaFactor = SynthValue(synth, Vy);
 				helper.Out.x = m_Weight * Interpolate(Vx, thetaFactor, synthMode);
-
 				// y value will be mapped according to synth(x) value
 				thetaFactor = SynthValue(synth, Vx);
 				helper.Out.y = m_Weight * Interpolate(Vy, thetaFactor, synthMode);
@@ -2782,7 +2714,6 @@ public:
 				// Use x and y values directly
 				Vx = helper.In.x;
 				Vy = helper.In.y;
-
 				// Write to running totals for transform
 				helper.Out.x = m_Weight * (Vx + SynthValue(synth, Vy) - 1);
 				helper.Out.y = m_Weight * Vy;
@@ -2792,7 +2723,6 @@ public:
 				// Use x and y values directly
 				Vx = helper.In.x;
 				Vy = helper.In.y;
-
 				// Write to running totals for transform
 				helper.Out.x = m_Weight * Vx;
 				helper.Out.y = m_Weight * (Vy + SynthValue(synth, Vx) - 1);
@@ -2802,7 +2732,6 @@ public:
 				// Use x and y values directly
 				Vx = helper.In.x;
 				Vy = helper.In.y;
-
 				// Write to running totals for transform
 				helper.Out.x = m_Weight * (Vx + SynthValue(synth, Vy) - 1);
 				helper.Out.y = m_Weight * (Vy + SynthValue(synth, Vx) - 1);
@@ -2811,7 +2740,6 @@ public:
 			case MODE_SINUSOIDAL:  // Power NO, Smooth NO
 				Vx = helper.In.x;
 				Vy = helper.In.y;
-
 				// The default mix=0 is same as normal sin
 				helper.Out.x = m_Weight * (SynthValue(synth, Vx) - 1 + (1 - m_SynthMix) * std::sin(Vx));
 				helper.Out.y = m_Weight * (SynthValue(synth, Vy) - 1 + (1 - m_SynthMix) * std::sin(Vy));
@@ -2820,12 +2748,9 @@ public:
 			case MODE_SWIRL:  // Power YES, Smooth WAVE
 				Vx = helper.In.x;
 				Vy = helper.In.y;
-
 				radius = std::pow(Zeps<T>(helper.m_PrecalcSumSquares), m_SynthPower / 2);
-
 				// Synth-modified sine & cosine
 				SynthSinCos(synth, radius, s, c, synthMode);
-
 				helper.Out.x = m_Weight * (s * Vx - c * Vy);
 				helper.Out.y = m_Weight * (c * Vx + s * Vy);
 				break;
@@ -2833,13 +2758,10 @@ public:
 			case MODE_HYPERBOLIC:  // Power YES, Smooth WAVE
 				Vx = helper.In.x;
 				Vy = helper.In.y;
-
 				radius = std::pow(Zeps<T>(helper.m_PrecalcSumSquares), m_SynthPower / 2);
 				theta = helper.m_PrecalcAtanxy;
-
 				// Synth-modified sine & cosine
 				SynthSinCos(synth, theta, s, c, synthMode);
-
 				helper.Out.x = m_Weight * s / radius;
 				helper.Out.y = m_Weight * c * radius;
 				break;
@@ -2847,7 +2769,6 @@ public:
 			case MODE_JULIA: // Power YES, Smooth WAVE
 				Vx = helper.In.x;
 				Vy = helper.In.y;
-
 				radius = std::pow(Zeps<T>(helper.m_PrecalcSumSquares), m_SynthPower / 4);
 				theta = helper.m_PrecalcAtanxy / 2;
 
@@ -2856,7 +2777,6 @@ public:
 
 				// Synth-modified sine & cosine
 				SynthSinCos(synth, theta, s, c, synthMode);
-
 				helper.Out.x = m_Weight * radius * c;
 				helper.Out.y = m_Weight * radius * s;
 				break;
@@ -2864,13 +2784,10 @@ public:
 			case MODE_DISC: // Power YES, Smooth WAVE
 				Vx = helper.In.x;
 				Vy = helper.In.y;
-
 				theta = helper.m_PrecalcAtanxy / T(M_PI);
 				radius = T(M_PI) * std::pow(Zeps<T>(helper.m_PrecalcSumSquares), m_SynthPower / 2);
-
 				// Synth-modified sine & cosine
 				SynthSinCos(synth, radius, s, c, synthMode);
-
 				helper.Out.x = m_Weight * s * theta;
 				helper.Out.y = m_Weight * c * theta;
 				break;
@@ -2882,9 +2799,7 @@ public:
 				theta = helper.m_PrecalcAtanxy;
 				mu = Zeps<T>(SQR(m_SynthPower));
 				radius += -2 * mu * int((radius + mu) / (2 * mu)) + radius * (1 - mu);
-
 				SynthSinCos(synth, radius, s, c, synthMode);
-
 				helper.Out.x = m_Weight * s * theta;
 				helper.Out.y = m_Weight * c * theta;
 				break;
@@ -2893,27 +2808,21 @@ public:
 				Vx = helper.In.x;
 				Vy = helper.In.y;
 				radius = std::pow(Zeps<T>(helper.m_PrecalcSumSquares), m_SynthPower / 2);
-
 				// Modified sine only used here
 				SynthSinCos(synth, Vx, s, c, synthMode);
-
 				helper.Out.x = m_Weight * radius * s;
 				helper.Out.y = m_Weight * radius * Vy;
 				break;
 
 			case MODE_BLUR_RING:  // Power YES, Smooth YES
 				// Blur style, with normal smoothing function
-
 				radius = 1 + T(0.1) * (rand.Frand01<T>() + rand.Frand01<T>() - 1) * m_SynthPower;
 				theta = M_2PI * rand.Frand01<T>() - T(M_PI);
-
 				// Get angular factor defining the shape
 				thetaFactor = SynthValue(synth, theta);
-
 				// Get final radius after synth applied
 				radius = Interpolate(radius, thetaFactor, synthMode);
 				sincos(theta, &s, &c);
-
 				// Write to running totals for transform
 				helper.Out.x = m_Weight * radius * s;
 				helper.Out.y = m_Weight * radius * c;
@@ -2921,15 +2830,12 @@ public:
 
 			case MODE_BLUR_RING2:  // Power YES, Smooth NO
 				// Simple, same-thickness ring
-
 				// Choose radius randomly, then adjust distribution using pow
 				theta = M_2PI * rand.Frand01<T>() - T(M_PI);
 				radius = std::pow(Zeps<T>(rand.Frand01<T>()), m_SynthPower);
-
 				// Get final radius after synth applied
 				radius = SynthValue(synth, theta) + T(0.1) * radius;
 				sincos(theta, &s, &c);
-
 				// Write to running totals for transform
 				helper.Out.x = m_Weight * radius * s;
 				helper.Out.y = m_Weight * radius * c;
@@ -2940,11 +2846,9 @@ public:
 				// Use (adjusted) radius to move point around circle
 				Vx = helper.In.x;
 				Vy = helper.In.y;
-
 				radius = std::pow(Zeps<T>(helper.m_PrecalcSumSquares), m_SynthPower / 2);
 				theta = helper.m_PrecalcAtanxy - 1 + SynthValue(synth, radius);
 				sincos(theta, &s, &c);
-
 				// Write to running totals for transform
 				helper.Out.x = m_Weight * radius * s;
 				helper.Out.y = m_Weight * radius * c;
@@ -2960,7 +2864,6 @@ public:
 		intmax_t i = 0, varIndex = IndexInXform();
 		ss2 << "_" << XformIndexInEmber();
 		string index = ss2.str() + "]";
-
 		string synthA	   = "parVars[" + ToUpper(m_Params[i++].Name()) + index;
 		string synthMode   = "parVars[" + ToUpper(m_Params[i++].Name()) + index;
 		string synthPower  = "parVars[" + ToUpper(m_Params[i++].Name()) + index;
@@ -2996,7 +2899,6 @@ public:
 		string synthFFrq   = "parVars[" + ToUpper(m_Params[i++].Name()) + index;
 		string synthFPhs   = "parVars[" + ToUpper(m_Params[i++].Name()) + index;
 		string synthFLayer = "parVars[" + ToUpper(m_Params[i++].Name()) + index;
-
 		ss << "\t{\n"
 		   << "\t\treal_t Vx, Vy, radius, theta;\n"
 		   << "\t\treal_t thetaFactor;\n"
@@ -3254,7 +3156,6 @@ public:
 		   << "\n"
 		   << "\t\tvOut.z = " << ((m_VarType == VARTYPE_REG) ? "0" : "vIn.z") << ";\n"
 		   << "\t}\n";
-
 		return ss.str();
 	}
 
@@ -3516,7 +3417,6 @@ protected:
 	void Init()
 	{
 		string prefix = Prefix();
-		
 		m_Params.clear();
 		m_Params.reserve(34);
 		m_Params.push_back(ParamWithName<T>(&m_SynthA, prefix + "synth_a"));
@@ -3610,36 +3510,44 @@ private:
 					y = T(0.5) + T(0.5) * (y - z) / Zeps<T>(1 - z);// y is T(0.5) if equals z, up to 1.0
 				else
 					y = T(0.5) - T(0.5) * (z - y) / Zeps<T>(z);// y is T(0.5) if equals z, down to 0.0
-				}
+			}
 
 			switch (type)
 			{
 				case WAVE_SIN:
 					x = std::sin(y * M_2PI);
 					break;
+
 				case WAVE_COS:
 					x = std::cos(y * M_2PI);
 					break;
+
 				case WAVE_SQUARE:
 					x = y > T(0.5) ? T(1) : T(-1);
 					break;
+
 				case WAVE_SAW:
 					x = 1 - 2 * y;
 					break;
+
 				case WAVE_TRIANGLE:
 					x = y > T(0.5) ? 3 - 4 * y : 2 * y - 1;
 					break;
+
 				case WAVE_CONCAVE:
 					x = 8 * (y - T(0.5)) * (y - T(0.5)) - 1;
 					break;
+
 				case WAVE_CONVEX:
 					x = 2 * std::sqrt(y) - 1;
 					break;
+
 				case WAVE_NGON:
 					y -= T(0.5);
 					y *= M_2PI / frq;
 					x = 1 / Zeps<T>(std::cos(y)) - 1;
 					break;
+
 				default:
 				case WAVE_INGON:
 					y -= T(0.5);
@@ -3654,13 +3562,16 @@ private:
 				case LAYER_ADD:
 					thetaFactor += synth * x;
 					break;
+
 				case LAYER_MULT:
 					thetaFactor *= (1 + synth * x);
 					break;
+
 				case LAYER_MAX:
 					z = synthA + synth * x;
 					thetaFactor = (thetaFactor > z ? thetaFactor : z);
 					break;
+
 				default:
 				case LAYER_MIN:
 					z = synthA + synth * x;
@@ -3674,13 +3585,11 @@ private:
 	{
 		T x, y, z;
 		T thetaFactor = s.SynthA;
-		
 		SynthValueProc(s.SynthA, thetaFactor, theta, s.SynthB, s.SynthBPhs, s.SynthBFrq, s.SynthBSkew, x, y, z, s.SynthBType, s.SynthBLayer);
 		SynthValueProc(s.SynthA, thetaFactor, theta, s.SynthC, s.SynthCPhs, s.SynthCFrq, s.SynthCSkew, x, y, z, s.SynthCType, s.SynthCLayer);
 		SynthValueProc(s.SynthA, thetaFactor, theta, s.SynthD, s.SynthDPhs, s.SynthDFrq, s.SynthDSkew, x, y, z, s.SynthDType, s.SynthDLayer);
 		SynthValueProc(s.SynthA, thetaFactor, theta, s.SynthE, s.SynthEPhs, s.SynthEFrq, s.SynthESkew, x, y, z, s.SynthEType, s.SynthELayer);
 		SynthValueProc(s.SynthA, thetaFactor, theta, s.SynthF, s.SynthFPhs, s.SynthFFrq, s.SynthFSkew, x, y, z, s.SynthFType, s.SynthFLayer);
-		
 		// Mix is applied here, assuming 1.0 to be the "flat" line for legacy support
 		return thetaFactor * s.SynthMix + (1 - s.SynthMix);
 	}
@@ -3692,6 +3601,7 @@ private:
 
 		// Simply reflect in the y axis for negative values
 		if (m < 0) { m = -m; a = -1; }
+
 		if (x < 0) { x = -x; a = -a; }
 
 		// iM is "inverse m" used in a few places below
@@ -3714,11 +3624,10 @@ private:
 			// Bezier Curve #1
 			// Covers 0 <= $m <= 1.0, 0 <= $x <= 1.0
 			// Control points are (0,0), (m,m) and (1,m)
-
 			t = x; // Special case when m == 0.5
 
 			if (std::fabs(m - T(0.5)) > 1e-10)
-				t = (-1 * m + sqrt(m * m + (1 - 2 * m) * x)) / (1 - 2 * m);
+				t = (-1 * m + std::sqrt(m * m + (1 - 2 * m) * x)) / (1 - 2 * m);
 
 			return a * (x + (m - 1) * t * t);
 		}
@@ -3728,11 +3637,10 @@ private:
 			// Bezier Curve #2
 			// Covers m >= 1.0, 0 <= x <= 1.0
 			// Control points are (0,0), (iM,iM) and (1,m)
-
 			t = x; // Special case when m == 2
 
 			if (std::fabs(m - 2) > 1e-10)
-				t = (-1 * iM + sqrt(iM * iM + (1 - 2 * iM) * x)) / (1 - 2 * iM);
+				t = (-1 * iM + std::sqrt(iM * iM + (1 - 2 * iM) * x)) / (1 - 2 * iM);
 
 			return a * (x + (m - 1) * t * t);
 		}
@@ -3743,7 +3651,6 @@ private:
 			// Covers 0 <= m <= 1.0, 1 <= x <= L
 			// Control points are (1,m), (1,1) and (L,L)
 			// (L is x value (>1) where we re-join y = x line, and is maximum( iM, 2 * m )
-
 			t = std::sqrt((x - 1) / (L - 1));
 			return a * (x + (m - 1) * t * t + 2 * (1 - m) * t + (m - 1));
 		}
@@ -3752,7 +3659,6 @@ private:
 		// Covers 1.0 <= m, 1 <= x <= L
 		// Control points are (1,m), (m,m) and (L,L)
 		// (L is x value (>1) where we re-join y = x line, and is maximum( iM, 2 *  m )
-
 		t = (1 - m) + std::sqrt((m - 1) * (m - 1) + (x - 1));
 		return a * (x + (m - 1) * t * t - 2 * (m - 1) *  t + (m - 1));
 	}
@@ -3763,6 +3669,7 @@ private:
 		{
 			case LERP_LINEAR:
 				return x * m;
+
 			default:
 			case LERP_BEZIER:
 				return BezierQuadMap(x, m);
@@ -3781,6 +3688,7 @@ private:
 				s = s * SynthValue(synth, theta);
 				c = c * SynthValue(synth, theta + T(M_PI) / 2);
 				break;
+
 			default:
 			case SINCOS_MIXIN:
 				s = (1 - m_SynthMix) * s + (SynthValue(synth, theta) - 1);
