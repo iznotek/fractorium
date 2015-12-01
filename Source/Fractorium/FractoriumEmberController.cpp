@@ -77,7 +77,14 @@ FractoriumEmberController<T>::FractoriumEmberController(Fractorium* fractorium)
 	m_PreviewRenderer = unique_ptr<EmberNs::Renderer<T, float>>(new EmberNs::Renderer<T, float>());
 
 	//Initial combo change event to fill the palette table will be called automatically later.
-	if (!InitPaletteList(QCoreApplication::applicationDirPath().toLocal8Bit().data()))
+
+  // TODO: Use QStandardPaths::DataLocation(), on linux one of the paths it
+  // returns should be "/usr/share/fractorium". It might have to be lowercased
+  // to make sure.
+  //
+  // http://doc.qt.io/qt-5/qstandardpaths.html#StandardLocation-enum
+
+	if (!InitPaletteList(QString("/usr/share/fractorium").toLocal8Bit().data()))
 		throw "No palettes found, exiting.";
 
 	BackgroundChanged(QColor(0, 0, 0));//Default to black.
