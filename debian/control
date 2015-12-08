@@ -1,0 +1,20 @@
+Source: fractorium
+Section: graphics
+Priority: optional
+Maintainer: Gambhiro Bhikkhu <gambhiro.bhikkhu.85@gmail.com>
+Build-Depends: debhelper (>= 9), autotools-dev, g++ (>= 4.9), execstack, libgl1-mesa-dev, libgl-dev, libdbus-1-dev, libtbb-dev, libglm-dev, opencl-headers, libpng12-dev, libxml2-dev, libjpeg-dev, qtbase5-dev, qt5-default, qt5-qmake, libqt5opengl5-dev, nvidia-opencl-dev
+Standards-Version: 3.9.5
+Homepage: http://mfeemster.deviantart.com/
+Vcs-Git: https://github.com/mfeemster/fractorium
+Vcs-Browser: https://github.com/mfeemster/fractorium
+
+Package: fractorium
+Architecture: amd64
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: A Qt-based fractal flame editor
+ A Qt-based fractal flame editor which uses a C++ re-write of the flam3
+ algorithm named Ember and a GPU capable version named EmberCL which implements
+ a portion of the cuburn algorithm in OpenCL.
+ .
+ The interface is very similar to Apophysis, with most of the popular variations
+ implemented.

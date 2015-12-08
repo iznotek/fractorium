@@ -1,15 +1,25 @@
-VERSION = 0.1.4.9
+VERSION = 0.9.9.2
+
+# When this file is included:
+# - $$PWD is ./Builds/QtCreator/ 
+# - $(PWD) is the project folder, e.g. ./Builds/QtCreator/Ember/
+
+LIB_INSTALL_DIR = /usr/lib
+BIN_INSTALL_DIR = /usr/bin
+SHARE_INSTALL_DIR = /usr/share/fractorium
 
 CONFIG(release, debug|release) {
-	CONFIG += warn_off
-	DESTDIR = ../../../Bin/release
+  CONFIG += warn_off
+  DESTDIR = $$(PWD)/../../../Bin/release
 }
 
 CONFIG(debug, debug|release) {
-	DESTDIR = ../../../Bin/debug
+  DESTDIR = $$(PWD)/../../../Bin/debug
 }
 
-QMAKE_POST_LINK += $$quote(cp --update ../../../Data/flam3-palettes.xml $${DESTDIR}$$escape_expand(\n\t))
+SRC_DIR = $$(PWD)/../../../Source
+SRC_COMMON_DIR = $$(PWD)/../../../Source/EmberCommon
+ASSETS_DIR = $$(PWD)/../../../Data
 
 macx {
   LIBS += -framework OpenGL
@@ -19,7 +29,7 @@ macx {
   LIBS += -L/usr/local/lib
 
   INCLUDEPATH += /usr/local/include
-  INCLUDEPATH += ../../../Deps
+  INCLUDEPATH += $(PWD)/../Deps
 
   QMAKE_MAC_SDK = macosx10.9
   QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9
@@ -43,10 +53,10 @@ native {
   QMAKE_CXXFLAGS += -march=k8
 }
 
-OBJECTS_DIR = $$DESTDIR/.obj
-MOC_DIR = $$DESTDIR/.moc
-RCC_DIR = $$DESTDIR/.qrc
-UI_DIR = $$DESTDIR/.ui
+OBJECTS_DIR = $$PWD/.obj
+MOC_DIR = $$PWD/.moc
+RCC_DIR = $$PWD/.qrc
+UI_DIR = $$PWD/.ui
 
 LIBS += -L/usr/lib -ljpeg
 LIBS += -L/usr/lib -lpng
@@ -61,9 +71,9 @@ INCLUDEPATH += /usr/include/GL
 INCLUDEPATH += /usr/include/glm
 INCLUDEPATH += /usr/include/tbb
 INCLUDEPATH += /usr/include/libxml2
-INCLUDEPATH += ../../../Source/Ember
-INCLUDEPATH += ../../../Source/EmberCL
-INCLUDEPATH += ../../../Source/EmberCommon
+INCLUDEPATH += $$SRC_DIR/Ember
+INCLUDEPATH += $$SRC_DIR/EmberCL
+INCLUDEPATH += $$SRC_DIR/EmberCommon
 
 QMAKE_CXXFLAGS_RELEASE += -O2
 QMAKE_CXXFLAGS_RELEASE += -DNDEBUG
