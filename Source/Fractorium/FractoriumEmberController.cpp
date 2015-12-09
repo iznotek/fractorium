@@ -78,14 +78,20 @@ FractoriumEmberController<T>::FractoriumEmberController(Fractorium* fractorium)
 
 	//Initial combo change event to fill the palette table will be called automatically later.
 
-  // TODO: Use QStandardPaths::DataLocation(), on linux one of the paths it
-  // returns should be "/usr/share/fractorium". It might have to be lowercased
-  // to make sure.
-  //
-  // http://doc.qt.io/qt-5/qstandardpaths.html#StandardLocation-enum
+  // Look for a palette in:
+  // - the folder where the binary is, QCoreApplication::applicationDirPath()
+  // - shared data folder, QStandardPaths::DataLocation()
+  // - /usr/local/share/fractorium
+  // - /usr/share/fractorium
 
-	if (!InitPaletteList(QString("/usr/share/fractorium").toLocal8Bit().data()))
-		throw "No palettes found, exiting.";
+  // TODO: use QStandardPaths::DataLocation too.
+
+	if ( ! (InitPaletteList(QCoreApplication::applicationDirPath().toLocal8Bit().data()) ||
+          InitPaletteList(QString("/usr/local/share/fractorium").toLocal8Bit().data()) ||
+          InitPaletteList(QString("/usr/share/fractorium").toLocal8Bit().data())) )
+  {
+    throw "No palettes found, exiting.";
+  }
 
 	BackgroundChanged(QColor(0, 0, 0));//Default to black.
 	ClearUndo();
