@@ -7,6 +7,10 @@ TARGET = fractorium
 
 include(../defaults.pri)
 
+# TODO: Figure out how to build the app bundle correctly.
+# This will build a binary instead of an app bundle.
+macx:CONFIG -= app_bundle
+
 PRJ_DIR = $$SRC_DIR/Fractorium
 
 target.path = $$BIN_INSTALL_DIR
@@ -16,8 +20,7 @@ assets.path = $$SHARE_INSTALL_DIR
 assets.files = $$ASSETS_DIR/flam3-palettes.xml $$ASSETS_DIR/dark.qss
 INSTALLS += assets
 
-# FIXME: move to Data and install to $$SHARE_INSTALL_DIR ?
-macx:ICON = ../../package/osx/Fractorium.icns
+macx:ICON = $$ASSETS_DIR/Fractorium.icns
 
 LIBS += -L$$absolute_path($$DESTDIR) -lEmber
 LIBS += -L$$absolute_path($$DESTDIR) -lEmberCL

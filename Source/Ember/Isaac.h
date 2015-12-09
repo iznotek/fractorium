@@ -202,7 +202,7 @@ public:
 	static inline floatType LockedFrand(floatType fMin, floatType fMax)
 	{
 		m_CS.Enter();
-		floatType t = GlobalRand->Frand<floatType>(fMin, fMax);
+		floatType t = GlobalRand->template Frand<floatType>(fMin, fMax);
 		m_CS.Leave();
 		return t;
 	}
@@ -230,7 +230,7 @@ public:
 	static inline floatType LockedFrand01()
 	{
 		m_CS.Enter();
-		floatType t = GlobalRand->Frand01<floatType>();
+		floatType t = GlobalRand->template Frand01<floatType>();
 		m_CS.Leave();
 		return t;
 	}
@@ -258,7 +258,7 @@ public:
 	static inline floatType LockedFrand11()
 	{
 		m_CS.Enter();
-		floatType t = GlobalRand->Frand11<floatType>();
+		floatType t = GlobalRand->template Frand11<floatType>();
 		m_CS.Leave();
 		return t;
 	}
@@ -281,7 +281,7 @@ public:
 	static inline floatType LockedGoldenBit()
 	{
 		m_CS.Enter();
-		floatType t = GlobalRand->GoldenBit<floatType>();
+		floatType t = GlobalRand->template GoldenBit<floatType>();
 		m_CS.Leave();
 		return t;
 	}

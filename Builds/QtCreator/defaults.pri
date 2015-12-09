@@ -1,7 +1,7 @@
 VERSION = 0.9.9.2
 
 # When this file is included:
-# - $$PWD is ./Builds/QtCreator/ 
+# - $$(PWD) is ./Builds/QtCreator/ 
 # - $(PWD) is the project folder, e.g. ./Builds/QtCreator/Ember/
 
 LIB_INSTALL_DIR = /usr/lib
@@ -29,11 +29,12 @@ macx {
   LIBS += -L/usr/local/lib
 
   INCLUDEPATH += /usr/local/include
-  INCLUDEPATH += $(PWD)/../Deps
+  INCLUDEPATH += $$(PWD)/../../../Deps
 
-  QMAKE_MAC_SDK = macosx10.9
+  QMAKE_MAC_SDK = macosx10.11
   QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9
-
+  
+  QMAKE_CXXFLAGS += -mmacosx-version-min=10.9 -arch x86_64
   QMAKE_CXXFLAGS += -stdlib=libc++
 } else {
   CONFIG += precompile_header
