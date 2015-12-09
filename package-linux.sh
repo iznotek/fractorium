@@ -21,6 +21,11 @@ fi
 
 if [ ! -d "$PPA_DIR" ]; then
     mkdir -p "$PPA_DIR"
+else
+    echo -n "PPA work folder already exists: $PPA_DIR
+Move this folder aside or remove it.
+"
+    exit 2
 fi
 
 # tar 1.28 required for --exclude-vcs-ignores
