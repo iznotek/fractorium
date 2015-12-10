@@ -16,9 +16,15 @@ PRJ_DIR = $$SRC_DIR/Fractorium
 target.path = $$BIN_INSTALL_DIR
 INSTALLS += target
 
-assets.path = $$SHARE_INSTALL_DIR
-assets.files = $$ASSETS_DIR/flam3-palettes.xml $$ASSETS_DIR/dark.qss
-INSTALLS += assets
+# FIXME: flam3-palettes.xml does not install when installing from .deb, but `make install` works.
+
+palettes.path = $$SHARE_INSTALL_DIR
+palettes.files = $$ASSETS_DIR/flam3-palettes.xml
+INSTALLS += palettes
+
+themes.path = $$SHARE_INSTALL_DIR
+themes.files = $$ASSETS_DIR/dark.qss
+INSTALLS += themes
 
 macx:ICON = $$ASSETS_DIR/Fractorium.icns
 
