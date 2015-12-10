@@ -10,10 +10,9 @@ Options:
 
 -h  --help
 
--b  --binary
--nb --nobinary
--s  --source
--ns --nosource
+--binary-only
+--source-only
+--source-and-binary
 --signed
 --unsigned"
 
@@ -36,12 +35,19 @@ OPT_SIGNED=1
 
 while [ $# -gt 0 ]; do
     case "$1" in
-        -b|--binary)    OPT_BUILD_BINARY=1;;
-        -nb|--nobinary) OPT_BUILD_BINARY=0;;
-        -s|--source)    OPT_BUILD_SOURCE=1;;
-        -ns|--nosource) OPT_BUILD_SOURCE=0;;
-        --signed)       OPT_SIGNED=1;;
-        --unsigned)     OPT_SIGNED=0;;
+        --binary-only)       OPT_BUILD_SOURCE=0
+                             OPT_BUILD_BINARY=1
+                             ;;
+        --source-only)       OPT_BUILD_SOURCE=1
+                             OPT_BUILD_BINARY=0
+                             ;;
+        --source-and-binary) OPT_BUILD_SOURCE=1
+                             OPT_BUILD_BINARY=1
+                             ;;
+        --signed)            OPT_SIGNED=1
+                             ;;
+        --unsigned)          OPT_SIGNED=0
+                             ;;
         -h|--help) echo "$USAGE"
                    exit 0;;
     esac
