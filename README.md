@@ -52,18 +52,8 @@ cd Bin/release
 `sudo make install` will install the files directly. `sudo make uninstall` is
 also available.
 
-You can also compile a `.deb` package to install locally.
-
-If you want the easiest way, use the `checkinstall` tool:
-
-```
-sudo apt-get install checkinstall
-cd fractorium
-sudo checkinstall make install
-```
-
-It is not difficult to compile a `.deb` package in the regular way though. A few
-more tools will be necessary:
+You can also compile a `.deb` package to install locally. A few more tools will
+be necessary:
 
 ```
 sudo apt-get install bzr bzr-builddeb dh-make debhelper
