@@ -78,18 +78,19 @@ FractoriumEmberController<T>::FractoriumEmberController(Fractorium* fractorium)
 
 	//Initial combo change event to fill the palette table will be called automatically later.
 
-  // Look for a palette in:
-  // - the folder where the binary is, QCoreApplication::applicationDirPath()
-  // - shared data folder, QStandardPaths::DataLocation()
-  // - /usr/local/share/fractorium
-  // - /usr/share/fractorium
+  // Look hard for a palette.
 
-  // TODO: use QStandardPaths::DataLocation too.
+  // TODO
+  // QStandardPaths::AppConfigLocation -- errors out, not a member.
+  // QStandardPaths::DataLocation -- how to parse this? It should include "/usr/share/fractorium" on Linux.
 
-	if ( ! (InitPaletteList(QCoreApplication::applicationDirPath().toLocal8Bit().data()) ||
+	if ( ! (InitPaletteList(QDir::currentPath().toLocal8Bit().data()) ||
+          InitPaletteList(QDir::homePath().toLocal8Bit().data()) ||
+          InitPaletteList(QCoreApplication::applicationDirPath().toLocal8Bit().data()) ||
           InitPaletteList(QString("/usr/local/share/fractorium").toLocal8Bit().data()) ||
           InitPaletteList(QString("/usr/share/fractorium").toLocal8Bit().data())) )
   {
+    // TODO better error dialog
     throw "No palettes found, exiting.";
   }
 
