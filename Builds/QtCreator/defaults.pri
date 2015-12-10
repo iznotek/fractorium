@@ -4,9 +4,13 @@ VERSION = 0.9.9.2
 # - $$(PWD) is ./Builds/QtCreator/ 
 # - $(PWD) is the project folder, e.g. ./Builds/QtCreator/Ember/
 
-LIB_INSTALL_DIR = /usr/lib
-BIN_INSTALL_DIR = /usr/bin
-SHARE_INSTALL_DIR = /usr/share/fractorium
+# TODO: win32 install dirs?
+
+unix|macx {
+  LIB_INSTALL_DIR = /usr/lib
+  BIN_INSTALL_DIR = /usr/bin
+  SHARE_INSTALL_DIR = /usr/share/fractorium
+}
 
 CONFIG(release, debug|release) {
   CONFIG += warn_off
