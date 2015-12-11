@@ -414,14 +414,14 @@ eRenderStatus Renderer<T, bucketT>::Run(vector<byte>& finalImage, double time, s
 
 	if (m_SpatialFilter.get() == nullptr || m_TemporalFilter.get() == nullptr)
 	{
-		m_ErrorReport.push_back("Spatial and temporal filter allocations failed, aborting.\n");
+		AddToReport("Spatial and temporal filter allocations failed, aborting.\n");
 		success = RENDER_ERROR;
 		goto Finish;
 	}
 
 	if (!resume && !Alloc())
 	{
-		m_ErrorReport.push_back("Histogram, accumulator and samples buffer allocations failed, aborting.\n");
+		AddToReport("Histogram, accumulator and samples buffer allocations failed, aborting.\n");
 		success = RENDER_ERROR;
 		goto Finish;
 	}
@@ -444,7 +444,7 @@ eRenderStatus Renderer<T, bucketT>::Run(vector<byte>& finalImage, double time, s
 
 	if (!CreateDEFilter(newFilterAlloc))
 	{
-		m_ErrorReport.push_back("Density filter creation failed, aborting.\n");
+		AddToReport("Density filter creation failed, aborting.\n");
 		success = RENDER_ERROR;
 		goto Finish;
 	}
@@ -465,7 +465,7 @@ eRenderStatus Renderer<T, bucketT>::Run(vector<byte>& finalImage, double time, s
 
 		if (!resume && !AssignIterator())
 		{
-			m_ErrorReport.push_back("Iterator assignment failed, aborting.\n");
+			AddToReport("Iterator assignment failed, aborting.\n");
 			success = RENDER_ERROR;
 			goto Finish;
 		}
@@ -495,7 +495,7 @@ eRenderStatus Renderer<T, bucketT>::Run(vector<byte>& finalImage, double time, s
 		//If no iters were executed, something went catastrophically wrong.
 		if (stats.m_Iters == 0)
 		{
-			m_ErrorReport.push_back("Zero iterations ran, rendering failed, aborting.\n");
+			AddToReport("Zero iterations ran, rendering failed, aborting.\n");
 			success = RENDER_ERROR;
 			Abort();
 			goto Finish;

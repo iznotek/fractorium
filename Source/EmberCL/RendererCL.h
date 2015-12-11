@@ -69,7 +69,7 @@ using EmberNs::Renderer<T, bucketT>::RendererBase::m_Rand;
 using EmberNs::Renderer<T, bucketT>::RendererBase::m_RenderTimer;
 using EmberNs::Renderer<T, bucketT>::RendererBase::m_IterTimer;
 using EmberNs::Renderer<T, bucketT>::RendererBase::m_ProgressTimer;
-using EmberNs::Renderer<T, bucketT>::RendererBase::EmberReport::m_ErrorReport;
+using EmberNs::Renderer<T, bucketT>::RendererBase::EmberReport::AddToReport;
 using EmberNs::Renderer<T, bucketT>::RendererBase::m_ResizeCs;
 using EmberNs::Renderer<T, bucketT>::RendererBase::m_ProcessAction;
 using EmberNs::Renderer<T, bucketT>::m_RotMat;

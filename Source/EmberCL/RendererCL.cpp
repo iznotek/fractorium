@@ -125,8 +125,8 @@ bool RendererCL<T, bucketT>::Init(const vector<pair<size_t, size_t>>& devices, b
 
 			if ((b = cld->Init()))//Build a simple program to ensure OpenCL is working right.
 			{
-				if (b && !(b = cld->m_Wrapper.AddProgram(m_IterOpenCLKernelCreator.ZeroizeEntryPoint(), zeroizeProgram, m_IterOpenCLKernelCreator.ZeroizeEntryPoint(), m_DoublePrecision))) { this->m_ErrorReport.push_back(loc); }
-				if (b && !(b = cld->m_Wrapper.AddAndWriteImage("Palette", CL_MEM_READ_ONLY, m_PaletteFormat, 256, 1, 0, nullptr))) { this->m_ErrorReport.push_back(loc); }
+				if (b && !(b = cld->m_Wrapper.AddProgram(m_IterOpenCLKernelCreator.ZeroizeEntryPoint(), zeroizeProgram, m_IterOpenCLKernelCreator.ZeroizeEntryPoint(), m_DoublePrecision))) { AddToReport(loc); }
+				if (b && !(b = cld->m_Wrapper.AddAndWriteImage("Palette", CL_MEM_READ_ONLY, m_PaletteFormat, 256, 1, 0, nullptr))) { AddToReport(loc); }
 
 				if (b)
 				{
@@ -135,7 +135,7 @@ bool RendererCL<T, bucketT>::Init(const vector<pair<size_t, size_t>>& devices, b
 				else
 				{
 					os << loc << ": failed to init platform " << devices[i].first << ", device " << devices[i].second;
-					this->m_ErrorReport.push_back(loc);
+					AddToReport(loc);
 					break;
 				}
 			}
@@ -143,12 +143,12 @@ bool RendererCL<T, bucketT>::Init(const vector<pair<size_t, size_t>>& devices, b
 		catch (const std::exception& e)
 		{
 			os << loc << ": failed to init platform " << devices[i].first << ", device " << devices[i].second << ": " << e.what();
-			this->m_ErrorReport.push_back(os.str());
+			AddToReport(os.str());
 		}
 		catch (...)
 		{
 			os << loc << ": failed to init platform " << devices[i].first << ", device " << devices[i].second;
-			this->m_ErrorReport.push_back(os.str());
+			AddToReport(os.str());
 		}
 	}
 
@@ -158,8 +158,8 @@ bool RendererCL<T, bucketT>::Init(const vector<pair<size_t, size_t>>& devices, b
 		m_DEOpenCLKernelCreator = DEOpenCLKernelCreator(m_DoublePrecision, m_Devices[0]->Nvidia());
 		
 		//Build a simple program to ensure OpenCL is working right.
-		if (b && !(b = firstWrapper.AddProgram(m_DEOpenCLKernelCreator.LogScaleAssignDEEntryPoint(), m_DEOpenCLKernelCreator.LogScaleAssignDEKernel(), m_DEOpenCLKernelCreator.LogScaleAssignDEEntryPoint(), m_DoublePrecision))) { this->m_ErrorReport.push_back(loc); }
-		if (b && !(b = firstWrapper.AddProgram(m_IterOpenCLKernelCreator.SumHistEntryPoint(), sumHistProgram, m_IterOpenCLKernelCreator.SumHistEntryPoint(), m_DoublePrecision))) { this->m_ErrorReport.push_back(loc); }
+		if (b && !(b = firstWrapper.AddProgram(m_DEOpenCLKernelCreator.LogScaleAssignDEEntryPoint(), m_DEOpenCLKernelCreator.LogScaleAssignDEKernel(), m_DEOpenCLKernelCreator.LogScaleAssignDEEntryPoint(), m_DoublePrecision))) { AddToReport(loc); }
+		if (b && !(b = firstWrapper.AddProgram(m_IterOpenCLKernelCreator.SumHistEntryPoint(), sumHistProgram, m_IterOpenCLKernelCreator.SumHistEntryPoint(), m_DoublePrecision))) { AddToReport(loc); }
 
 		if (b)
 		{
@@ -174,7 +174,7 @@ bool RendererCL<T, bucketT>::Init(const vector<pair<size_t, size_t>>& devices, b
 			FillSeeds();
 
 			for (size_t device = 0; device < m_Devices.size(); device++)
-				if (b && !(b = m_Devices[device]->m_Wrapper.AddAndWriteBuffer(m_SeedsBufferName, reinterpret_cast<void*>(m_Seeds[device].data()), SizeOf(m_Seeds[device])))) { this->m_ErrorReport.push_back(loc); break; }
+				if (b && !(b = m_Devices[device]->m_Wrapper.AddAndWriteBuffer(m_SeedsBufferName, reinterpret_cast<void*>(m_Seeds[device].data()), SizeOf(m_Seeds[device])))) { AddToReport(loc); break; }
 		}
 
 		m_Init = b;
@@ -183,7 +183,7 @@ bool RendererCL<T, bucketT>::Init(const vector<pair<size_t, size_t>>& devices, b
 	{
 		m_Devices.clear();
 		os << loc << ": failed to init all devices and platforms.";
-		this->m_ErrorReport.push_back(os.str());
+		AddToReport(os.str());
 	}
 
 	return m_Init;
@@ -208,7 +208,7 @@ bool RendererCL<T, bucketT>::SetOutputTexture(GLuint outputTexID)
 
 		if (!firstWrapper.AddAndWriteImage(m_FinalImageName, CL_MEM_WRITE_ONLY, m_FinalFormat, FinalRasW(), FinalRasH(), 0, nullptr, firstWrapper.Shared(), m_OutputTexID))
 		{
-			this->m_ErrorReport.push_back(loc);
+			AddToReport(loc);
 			success = false;
 		}
 
@@ -302,7 +302,7 @@ bool RendererCL<T, bucketT>::ClearHist()
 	const char* loc = __FUNCTION__;
 
 	for (size_t i = 0; i < m_Devices.size(); i++)
-		if (b && !(b = ClearBuffer(i, m_HistBufferName, uint(SuperRasW()), uint(SuperRasH()), sizeof(v4bT)))) { this->m_ErrorReport.push_back(loc); break; }
+		if (b && !(b = ClearBuffer(i, m_HistBufferName, uint(SuperRasW()), uint(SuperRasH()), sizeof(v4bT)))) { AddToReport(loc); break; }
 
 	return b;
 }
@@ -318,7 +318,7 @@ bool RendererCL<T, bucketT>::ClearHist(size_t device)
 	bool b = device < m_Devices.size();
 	const char* loc = __FUNCTION__;
 
-	if (b && !(b = ClearBuffer(device, m_HistBufferName, uint(SuperRasW()), uint(SuperRasH()), sizeof(v4bT)))) { this->m_ErrorReport.push_back(loc); }
+	if (b && !(b = ClearBuffer(device, m_HistBufferName, uint(SuperRasW()), uint(SuperRasH()), sizeof(v4bT)))) { AddToReport(loc); }
 
 	return b;
 }
@@ -347,7 +347,7 @@ bool RendererCL<T, bucketT>::WritePoints(size_t device, vector<PointCL<T>>& vec)
 	const char* loc = __FUNCTION__;
 
 	if (device < m_Devices.size())
-		if (!(b = m_Devices[device]->m_Wrapper.WriteBuffer(m_PointsBufferName, reinterpret_cast<void*>(vec.data()), SizeOf(vec)))) { this->m_ErrorReport.push_back(loc); }
+		if (!(b = m_Devices[device]->m_Wrapper.WriteBuffer(m_PointsBufferName, reinterpret_cast<void*>(vec.data()), SizeOf(vec)))) { AddToReport(loc); }
 
 	return b;
 }
@@ -432,7 +432,7 @@ bool RendererCL<T, bucketT>::ClearFinal()
 			bool b = wrapper.WriteImage2D(index, wrapper.Shared(), FinalRasW(), FinalRasH(), 0, v.data());
 
 			if (!b)
-				this->m_ErrorReport.push_back(__FUNCTION__);
+				AddToReport(__FUNCTION__);
 
 			return b;
 		}
@@ -532,9 +532,9 @@ bool RendererCL<T, bucketT>::CreateDEFilter(bool& newAlloc)
 			const char* loc = __FUNCTION__;
 			auto& wrapper = m_Devices[0]->m_Wrapper;
 
-			if (b && !(b = wrapper.AddAndWriteBuffer(m_DECoefsBufferName,		reinterpret_cast<void*>(const_cast<bucketT*>(m_DensityFilter->Coefs())),	m_DensityFilter->CoefsSizeBytes())))		{ this->m_ErrorReport.push_back(loc); }
-			if (b && !(b = wrapper.AddAndWriteBuffer(m_DEWidthsBufferName,	    reinterpret_cast<void*>(const_cast<bucketT*>(m_DensityFilter->Widths())),	m_DensityFilter->WidthsSizeBytes())))		{ this->m_ErrorReport.push_back(loc); }
-			if (b && !(b = wrapper.AddAndWriteBuffer(m_DECoefIndicesBufferName, reinterpret_cast<void*>(const_cast<uint*>(m_DensityFilter->CoefIndices())), m_DensityFilter->CoefsIndicesSizeBytes()))) { this->m_ErrorReport.push_back(loc); }
+			if (b && !(b = wrapper.AddAndWriteBuffer(m_DECoefsBufferName,		reinterpret_cast<void*>(const_cast<bucketT*>(m_DensityFilter->Coefs())),	m_DensityFilter->CoefsSizeBytes())))		{ AddToReport(loc); }
+			if (b && !(b = wrapper.AddAndWriteBuffer(m_DEWidthsBufferName,	    reinterpret_cast<void*>(const_cast<bucketT*>(m_DensityFilter->Widths())),	m_DensityFilter->WidthsSizeBytes())))		{ AddToReport(loc); }
+			if (b && !(b = wrapper.AddAndWriteBuffer(m_DECoefIndicesBufferName, reinterpret_cast<void*>(const_cast<uint*>(m_DensityFilter->CoefIndices())), m_DensityFilter->CoefsIndicesSizeBytes()))) { AddToReport(loc); }
 		}
 	}
 	else
@@ -557,7 +557,7 @@ bool RendererCL<T, bucketT>::CreateSpatialFilter(bool& newAlloc)
 	if (!m_Devices.empty() && Renderer<T, bucketT>::CreateSpatialFilter(newAlloc))
 	{
 		if (newAlloc)
-			if (!(b = m_Devices[0]->m_Wrapper.AddAndWriteBuffer(m_SpatialFilterCoefsBufferName, reinterpret_cast<void*>(m_SpatialFilter->Filter()), m_SpatialFilter->BufferSizeBytes()))) { this->m_ErrorReport.push_back(__FUNCTION__); }
+			if (!(b = m_Devices[0]->m_Wrapper.AddAndWriteBuffer(m_SpatialFilterCoefsBufferName, reinterpret_cast<void*>(m_SpatialFilter->Filter()), m_SpatialFilter->BufferSizeBytes()))) { AddToReport(__FUNCTION__); }
 	}
 	else
 		b = false;
@@ -629,7 +629,7 @@ bool RendererCL<T, bucketT>::RandVec(vector<QTIsaac<ISAAC_SIZE, ISAAC_INT>>& ran
 		FillSeeds();
 
 		for (size_t device = 0; device < m_Devices.size(); device++)
-			if (b && !(b = m_Devices[device]->m_Wrapper.AddAndWriteBuffer(m_SeedsBufferName, reinterpret_cast<void*>(m_Seeds[device].data()), SizeOf(m_Seeds[device])))) { this->m_ErrorReport.push_back(loc); break; }
+			if (b && !(b = m_Devices[device]->m_Wrapper.AddAndWriteBuffer(m_SeedsBufferName, reinterpret_cast<void*>(m_Seeds[device].data()), SizeOf(m_Seeds[device])))) { AddToReport(loc); break; }
 	}
 	else
 		b = false;
@@ -663,25 +663,25 @@ bool RendererCL<T, bucketT>::Alloc(bool histOnly)
 
 	auto& wrapper = m_Devices[0]->m_Wrapper;
 
-	if (b && !(b = wrapper.AddBuffer(m_DEFilterParamsBufferName, sizeof(m_DensityFilterCL))))		 { this->m_ErrorReport.push_back(loc); }
-	if (b && !(b = wrapper.AddBuffer(m_SpatialFilterParamsBufferName, sizeof(m_SpatialFilterCL))))	 { this->m_ErrorReport.push_back(loc); }
-	if (b && !(b = wrapper.AddBuffer(m_CurvesCsaName, SizeOf(m_Csa.m_Entries))))					 { this->m_ErrorReport.push_back(loc); }
-	if (b && !(b = wrapper.AddBuffer(m_AccumBufferName, accumLength)))								 { this->m_ErrorReport.push_back(loc); }//Accum buffer.
+	if (b && !(b = wrapper.AddBuffer(m_DEFilterParamsBufferName, sizeof(m_DensityFilterCL))))		 { AddToReport(loc); }
+	if (b && !(b = wrapper.AddBuffer(m_SpatialFilterParamsBufferName, sizeof(m_SpatialFilterCL))))	 { AddToReport(loc); }
+	if (b && !(b = wrapper.AddBuffer(m_CurvesCsaName, SizeOf(m_Csa.m_Entries))))					 { AddToReport(loc); }
+	if (b && !(b = wrapper.AddBuffer(m_AccumBufferName, accumLength)))								 { AddToReport(loc); }//Accum buffer.
 
 	for (auto& device : m_Devices)
 	{
-		if (b && !(b = device->m_Wrapper.AddBuffer(m_EmberBufferName, sizeof(m_EmberCL))))							 { this->m_ErrorReport.push_back(loc); break; }
-		if (b && !(b = device->m_Wrapper.AddBuffer(m_XformsBufferName, SizeOf(m_XformsCL))))						 { this->m_ErrorReport.push_back(loc); break; }
-		if (b && !(b = device->m_Wrapper.AddBuffer(m_ParVarsBufferName, 128 * sizeof(T))))							 { this->m_ErrorReport.push_back(loc); break; }
-		if (b && !(b = device->m_Wrapper.AddBuffer(m_DistBufferName, CHOOSE_XFORM_GRAIN)))							 { this->m_ErrorReport.push_back(loc); break; }//Will be resized for xaos.
-		if (b && !(b = device->m_Wrapper.AddBuffer(m_CarToRasBufferName, sizeof(m_CarToRasCL))))					 { this->m_ErrorReport.push_back(loc); break; }
-		if (b && !(b = device->m_Wrapper.AddBuffer(m_HistBufferName, histLength)))									 { this->m_ErrorReport.push_back(loc); break; }//Histogram. Will memset to zero later.
-		if (b && !(b = device->m_Wrapper.AddBuffer(m_PointsBufferName, IterGridKernelCount() * sizeof(PointCL<T>)))) { this->m_ErrorReport.push_back(loc); break; }//Points between iter calls.
+		if (b && !(b = device->m_Wrapper.AddBuffer(m_EmberBufferName, sizeof(m_EmberCL))))							 { AddToReport(loc); break; }
+		if (b && !(b = device->m_Wrapper.AddBuffer(m_XformsBufferName, SizeOf(m_XformsCL))))						 { AddToReport(loc); break; }
+		if (b && !(b = device->m_Wrapper.AddBuffer(m_ParVarsBufferName, 128 * sizeof(T))))							 { AddToReport(loc); break; }
+		if (b && !(b = device->m_Wrapper.AddBuffer(m_DistBufferName, CHOOSE_XFORM_GRAIN)))							 { AddToReport(loc); break; }//Will be resized for xaos.
+		if (b && !(b = device->m_Wrapper.AddBuffer(m_CarToRasBufferName, sizeof(m_CarToRasCL))))					 { AddToReport(loc); break; }
+		if (b && !(b = device->m_Wrapper.AddBuffer(m_HistBufferName, histLength)))									 { AddToReport(loc); break; }//Histogram. Will memset to zero later.
+		if (b && !(b = device->m_Wrapper.AddBuffer(m_PointsBufferName, IterGridKernelCount() * sizeof(PointCL<T>)))) { AddToReport(loc); break; }//Points between iter calls.
 	}
 
 	LeaveResize();
 
-	if (b && !(b = SetOutputTexture(m_OutputTexID))) { this->m_ErrorReport.push_back(loc); }
+	if (b && !(b = SetOutputTexture(m_OutputTexID))) { AddToReport(loc); }
 
 	return b;
 }
@@ -734,7 +734,7 @@ eRenderStatus RendererCL<T, bucketT>::GaussianDensityFilter()
 	//	Renderer<T, bucketT>::ResetBuckets(false, true);
 	//	Renderer<T, bucketT>::GaussianDensityFilter();
 	//
-	//	if (!m_Wrapper.WriteBuffer(m_AccumBufferName, AccumulatorBuckets(), accumLength)) { this->m_ErrorReport.push_back(loc); return RENDER_ERROR; }
+	//	if (!m_Wrapper.WriteBuffer(m_AccumBufferName, AccumulatorBuckets(), accumLength)) { AddToReport(loc); return RENDER_ERROR; }
 	//		return RENDER_OK;
 	//}
 	//else
@@ -807,12 +807,12 @@ EmberStats RendererCL<T, bucketT>::Iterate(size_t iterCount, size_t temporalSamp
 		{
 			auto& wrapper = device->m_Wrapper;
 
-			if (b && !(b = wrapper.WriteBuffer		(m_EmberBufferName,	   reinterpret_cast<void*>(&m_EmberCL),		   sizeof(m_EmberCL))))								 { this->m_ErrorReport.push_back(loc); }
-			if (b && !(b = wrapper.WriteBuffer		(m_XformsBufferName,   reinterpret_cast<void*>(m_XformsCL.data()), sizeof(m_XformsCL[0]) * m_XformsCL.size())))		 { this->m_ErrorReport.push_back(loc); }
-			if (b && !(b = wrapper.AddAndWriteBuffer(m_DistBufferName,	   reinterpret_cast<void*>(const_cast<byte*>(XformDistributions())), XformDistributionsSize()))) { this->m_ErrorReport.push_back(loc); }//Will be resized for xaos.
-			if (b && !(b = wrapper.WriteBuffer		(m_CarToRasBufferName, reinterpret_cast<void*>(&m_CarToRasCL),	   sizeof(m_CarToRasCL))))							 { this->m_ErrorReport.push_back(loc); }
+			if (b && !(b = wrapper.WriteBuffer		(m_EmberBufferName,	   reinterpret_cast<void*>(&m_EmberCL),		   sizeof(m_EmberCL))))								 { AddToReport(loc); }
+			if (b && !(b = wrapper.WriteBuffer		(m_XformsBufferName,   reinterpret_cast<void*>(m_XformsCL.data()), sizeof(m_XformsCL[0]) * m_XformsCL.size())))		 { AddToReport(loc); }
+			if (b && !(b = wrapper.AddAndWriteBuffer(m_DistBufferName,	   reinterpret_cast<void*>(const_cast<byte*>(XformDistributions())), XformDistributionsSize()))) { AddToReport(loc); }//Will be resized for xaos.
+			if (b && !(b = wrapper.WriteBuffer		(m_CarToRasBufferName, reinterpret_cast<void*>(&m_CarToRasCL),	   sizeof(m_CarToRasCL))))							 { AddToReport(loc); }
 
-			if (b && !(b = wrapper.AddAndWriteImage("Palette", CL_MEM_READ_ONLY, m_PaletteFormat, m_Dmap.m_Entries.size(), 1, 0, m_Dmap.m_Entries.data()))) { this->m_ErrorReport.push_back(loc); }
+			if (b && !(b = wrapper.AddAndWriteImage("Palette", CL_MEM_READ_ONLY, m_PaletteFormat, m_Dmap.m_Entries.size(), 1, 0, m_Dmap.m_Entries.data()))) { AddToReport(loc); }
 
 			if (b)
 			{
@@ -825,7 +825,7 @@ EmberStats RendererCL<T, bucketT>::Iterate(size_t iterCount, size_t temporalSamp
 					if (!wrapper.AddAndWriteBuffer(m_ParVarsBufferName, m_Params.second.data(), m_Params.second.size() * sizeof(m_Params.second[0])))
 					{
 						m_Abort = true;
-						this->m_ErrorReport.push_back(loc);
+						AddToReport(loc);
 						return stats;
 					}
 				}
@@ -853,7 +853,7 @@ EmberStats RendererCL<T, bucketT>::Iterate(size_t iterCount, size_t temporalSamp
 	else
 	{
 		m_Abort = true;
-		this->m_ErrorReport.push_back(loc);
+		AddToReport(loc);
 	}
 
 	return stats;
@@ -885,7 +885,7 @@ bool RendererCL<T, bucketT>::BuildIterProgramForEmber(bool doAccum)
 		{
 			m_ResizeCs.Enter();//Just use the resize CS for lack of a better one.
 			b = false;
-			this->m_ErrorReport.push_back(string(loc) + "()\n" + dev->m_Wrapper.DeviceName() + ":\nBuilding the following program failed: \n" + m_IterKernel + "\n");
+			AddToReport(string(loc) + "()\n" + dev->m_Wrapper.DeviceName() + ":\nBuilding the following program failed: \n" + m_IterKernel + "\n");
 			m_ResizeCs.Leave();
 		}
 	};
@@ -979,18 +979,18 @@ bool RendererCL<T, bucketT>::RunIter(size_t iterCount, size_t temporalSample, si
 			size_t iterCountThisLaunch = iterCountPerKernel * IterGridKernelWidth() * IterGridKernelHeight();
 			//cout << "itersRemaining " << itersRemaining << ", iterCountPerKernel " << iterCountPerKernel << ", iterCountThisLaunch " << iterCountThisLaunch << endl;
 
-			if (b && !(b = wrapper.SetArg	   (kernelIndex, argIndex++, iterCountPerKernel)))   { this->m_ErrorReport.push_back(loc); }//Number of iters for each thread to run.
-			if (b && !(b = wrapper.SetArg	   (kernelIndex, argIndex++, fuse)))                 { this->m_ErrorReport.push_back(loc); }//Number of iters to fuse.
-			if (b && !(b = wrapper.SetBufferArg(kernelIndex, argIndex++, m_SeedsBufferName)))    { this->m_ErrorReport.push_back(loc); }//Seeds.
-			if (b && !(b = wrapper.SetBufferArg(kernelIndex, argIndex++, m_EmberBufferName)))    { this->m_ErrorReport.push_back(loc); }//Ember.
-			if (b && !(b = wrapper.SetBufferArg(kernelIndex, argIndex++, m_XformsBufferName)))   { this->m_ErrorReport.push_back(loc); }//Xforms.
-			if (b && !(b = wrapper.SetBufferArg(kernelIndex, argIndex++, m_ParVarsBufferName)))  { this->m_ErrorReport.push_back(loc); }//Parametric variation parameters.
-			if (b && !(b = wrapper.SetBufferArg(kernelIndex, argIndex++, m_DistBufferName)))     { this->m_ErrorReport.push_back(loc); }//Xform distributions.
-			if (b && !(b = wrapper.SetBufferArg(kernelIndex, argIndex++, m_CarToRasBufferName))) { this->m_ErrorReport.push_back(loc); }//Coordinate converter.
-			if (b && !(b = wrapper.SetBufferArg(kernelIndex, argIndex++, m_HistBufferName)))     { this->m_ErrorReport.push_back(loc); }//Histogram.
-			if (b && !(b = wrapper.SetArg	   (kernelIndex, argIndex++, histSuperSize)))		 { this->m_ErrorReport.push_back(loc); }//Histogram size.
-			if (b && !(b = wrapper.SetImageArg (kernelIndex, argIndex++, false, "Palette")))     { this->m_ErrorReport.push_back(loc); }//Palette.
-			if (b && !(b = wrapper.SetBufferArg(kernelIndex, argIndex++, m_PointsBufferName)))   { this->m_ErrorReport.push_back(loc); }//Random start points.
+			if (b && !(b = wrapper.SetArg	   (kernelIndex, argIndex++, iterCountPerKernel)))   { AddToReport(loc); }//Number of iters for each thread to run.
+			if (b && !(b = wrapper.SetArg	   (kernelIndex, argIndex++, fuse)))                 { AddToReport(loc); }//Number of iters to fuse.
+			if (b && !(b = wrapper.SetBufferArg(kernelIndex, argIndex++, m_SeedsBufferName)))    { AddToReport(loc); }//Seeds.
+			if (b && !(b = wrapper.SetBufferArg(kernelIndex, argIndex++, m_EmberBufferName)))    { AddToReport(loc); }//Ember.
+			if (b && !(b = wrapper.SetBufferArg(kernelIndex, argIndex++, m_XformsBufferName)))   { AddToReport(loc); }//Xforms.
+			if (b && !(b = wrapper.SetBufferArg(kernelIndex, argIndex++, m_ParVarsBufferName)))  { AddToReport(loc); }//Parametric variation parameters.
+			if (b && !(b = wrapper.SetBufferArg(kernelIndex, argIndex++, m_DistBufferName)))     { AddToReport(loc); }//Xform distributions.
+			if (b && !(b = wrapper.SetBufferArg(kernelIndex, argIndex++, m_CarToRasBufferName))) { AddToReport(loc); }//Coordinate converter.
+			if (b && !(b = wrapper.SetBufferArg(kernelIndex, argIndex++, m_HistBufferName)))     { AddToReport(loc); }//Histogram.
+			if (b && !(b = wrapper.SetArg	   (kernelIndex, argIndex++, histSuperSize)))		 { AddToReport(loc); }//Histogram size.
+			if (b && !(b = wrapper.SetImageArg (kernelIndex, argIndex++, false, "Palette")))     { AddToReport(loc); }//Palette.
+			if (b && !(b = wrapper.SetBufferArg(kernelIndex, argIndex++, m_PointsBufferName)))   { AddToReport(loc); }//Random start points.
 
 			if (b && !(b = wrapper.RunKernel(kernelIndex,
 											 IterGridKernelWidth(),//Total grid dims.
@@ -1002,7 +1002,7 @@ bool RendererCL<T, bucketT>::RunIter(size_t iterCount, size_t temporalSample, si
 			{
 				success = false;
 				m_Abort = true;
-				this->m_ErrorReport.push_back(loc);
+				AddToReport(loc);
 				atomLaunchesRan.fetch_sub(1);
 				break;
 			}
@@ -1073,7 +1073,7 @@ bool RendererCL<T, bucketT>::RunIter(size_t iterCount, size_t temporalSample, si
 	{
 		if (((TemporalSamples() == 1) || (temporalSample == TemporalSamples() - 1)) &&//If there are no temporal samples (not animating), or the current one is the last...
 			((m_LastIter + itersRan) >= ItersPerTemporalSample()))//...and the required number of iters for that sample have completed...
-			if (success && !(success = SumDeviceHist())) { this->m_ErrorReport.push_back(loc); }//...read the histogram from the secondary devices and sum them to the primary.
+			if (success && !(success = SumDeviceHist())) { AddToReport(loc); }//...read the histogram from the secondary devices and sum them to the primary.
 	}
 
 	//t2.Toc(__FUNCTION__);
@@ -1107,20 +1107,20 @@ eRenderStatus RendererCL<T, bucketT>::RunLogScaleFilter()
 
 			OpenCLWrapper::MakeEvenGridDims(blockW, blockH, gridW, gridH);
 
-			if (b && !(b = wrapper.AddAndWriteBuffer(m_DEFilterParamsBufferName, reinterpret_cast<void*>(&m_DensityFilterCL), sizeof(m_DensityFilterCL)))) { this->m_ErrorReport.push_back(loc); }
+			if (b && !(b = wrapper.AddAndWriteBuffer(m_DEFilterParamsBufferName, reinterpret_cast<void*>(&m_DensityFilterCL), sizeof(m_DensityFilterCL)))) { AddToReport(loc); }
 
-			if (b && !(b = wrapper.SetBufferArg(kernelIndex, argIndex++, m_HistBufferName)))           { this->m_ErrorReport.push_back(loc); }//Histogram.
-			if (b && !(b = wrapper.SetBufferArg(kernelIndex, argIndex++, m_AccumBufferName)))          { this->m_ErrorReport.push_back(loc); }//Accumulator.
-			if (b && !(b = wrapper.SetBufferArg(kernelIndex, argIndex++, m_DEFilterParamsBufferName))) { this->m_ErrorReport.push_back(loc); }//DensityFilterCL.
+			if (b && !(b = wrapper.SetBufferArg(kernelIndex, argIndex++, m_HistBufferName)))           { AddToReport(loc); }//Histogram.
+			if (b && !(b = wrapper.SetBufferArg(kernelIndex, argIndex++, m_AccumBufferName)))          { AddToReport(loc); }//Accumulator.
+			if (b && !(b = wrapper.SetBufferArg(kernelIndex, argIndex++, m_DEFilterParamsBufferName))) { AddToReport(loc); }//DensityFilterCL.
 
 			//t.Tic();
-			if (b && !(b = wrapper.RunKernel(kernelIndex, gridW, gridH, 1, blockW, blockH, 1))) { this->m_ErrorReport.push_back(loc); }
+			if (b && !(b = wrapper.RunKernel(kernelIndex, gridW, gridH, 1, blockW, blockH, 1))) { AddToReport(loc); }
 			//t.Toc(loc);
 		}
 		else
 		{
 			b = false;
-			this->m_ErrorReport.push_back(loc);
+			AddToReport(loc);
 		}
 
 		if (b && m_Callback && m_LastIterPercent >= 99.0)//Only update progress if we've really reached the end, not via forced output.
@@ -1178,7 +1178,7 @@ eRenderStatus RendererCL<T, bucketT>::RunDensityFilter()
 		uint chunkSizeH = gapH + 1;
 		double totalChunks = chunkSizeW * chunkSizeH;
 
-		if (b && !(b = wrapper.AddAndWriteBuffer(m_DEFilterParamsBufferName, reinterpret_cast<void*>(&m_DensityFilterCL), sizeof(m_DensityFilterCL)))) { this->m_ErrorReport.push_back(loc); }
+		if (b && !(b = wrapper.AddAndWriteBuffer(m_DEFilterParamsBufferName, reinterpret_cast<void*>(&m_DensityFilterCL), sizeof(m_DensityFilterCL)))) { AddToReport(loc); }
 
 #ifdef ROW_ONLY_DE
 		blockSizeW = 64;//These *must* both be divisible by 16 or else pixels will go missing.
@@ -1198,7 +1198,7 @@ eRenderStatus RendererCL<T, bucketT>::RunDensityFilter()
 			for (uint colChunk = 0; b && !m_Abort && colChunk < chunkSizeW; colChunk++)
 			{
 				//t2.Tic();
-				if (b && !(b = RunDensityFilterPrivate(kernelIndex, gridW, gridH, blockSizeW, blockSizeH, chunkSizeW, chunkSizeH, colChunk, rowChunk))) { m_Abort = true; this->m_ErrorReport.push_back(loc); }
+				if (b && !(b = RunDensityFilterPrivate(kernelIndex, gridW, gridH, blockSizeW, blockSizeH, chunkSizeW, chunkSizeH, colChunk, rowChunk))) { m_Abort = true; AddToReport(loc); }
 				//t2.Toc(loc);
 
 				if (b && m_Callback)
@@ -1221,7 +1221,7 @@ eRenderStatus RendererCL<T, bucketT>::RunDensityFilter()
 			for (uint colChunk = 0; b && !m_Abort && colChunk < chunkSizeW; colChunk++)
 			{
 				//t2.Tic();
-				if (b && !(b = RunDensityFilterPrivate(kernelIndex, gridW, gridH, blockSizeW, blockSizeH, chunkSizeW, chunkSizeH, colChunk, rowChunk))) { m_Abort = true; this->m_ErrorReport.push_back(loc); }
+				if (b && !(b = RunDensityFilterPrivate(kernelIndex, gridW, gridH, blockSizeW, blockSizeH, chunkSizeW, chunkSizeH, colChunk, rowChunk))) { m_Abort = true; AddToReport(loc); }
 				//t2.Toc(loc);
 
 				if (b && m_Callback)
@@ -1244,7 +1244,7 @@ eRenderStatus RendererCL<T, bucketT>::RunDensityFilter()
 	else
 	{
 		b = false;
-		this->m_ErrorReport.push_back(loc);
+		AddToReport(loc);
 	}
 
 	return m_Abort ? RENDER_ABORT : (b ? RENDER_OK : RENDER_ERROR);
@@ -1277,8 +1277,8 @@ eRenderStatus RendererCL<T, bucketT>::RunFinalAccum()
 		//This is needed with or without early clip.
 		ConvertSpatialFilter();
 
-		if (b && !(b = wrapper.AddAndWriteBuffer(m_SpatialFilterParamsBufferName, reinterpret_cast<void*>(&m_SpatialFilterCL), sizeof(m_SpatialFilterCL)))) { this->m_ErrorReport.push_back(loc); }
-		if (b && !(b = wrapper.AddAndWriteBuffer(m_CurvesCsaName,				  m_Csa.m_Entries.data(),					   SizeOf(m_Csa.m_Entries))))   { this->m_ErrorReport.push_back(loc); }
+		if (b && !(b = wrapper.AddAndWriteBuffer(m_SpatialFilterParamsBufferName, reinterpret_cast<void*>(&m_SpatialFilterCL), sizeof(m_SpatialFilterCL)))) { AddToReport(loc); }
+		if (b && !(b = wrapper.AddAndWriteBuffer(m_CurvesCsaName,				  m_Csa.m_Entries.data(),					   SizeOf(m_Csa.m_Entries))))   { AddToReport(loc); }
 
 		//Since early clip requires gamma correcting the entire accumulator first,
 		//it can't be done inside of the normal final accumulation kernel, so
@@ -1296,15 +1296,15 @@ eRenderStatus RendererCL<T, bucketT>::RunFinalAccum()
 				gridH = m_SpatialFilterCL.m_SuperRasH;
 				OpenCLWrapper::MakeEvenGridDims(blockW, blockH, gridW, gridH);
 
-				if (b && !(b = wrapper.SetBufferArg(gammaCorrectKernelIndex, argIndex++, m_AccumBufferName)))               { this->m_ErrorReport.push_back(loc); }//Accumulator.
-				if (b && !(b = wrapper.SetBufferArg(gammaCorrectKernelIndex, argIndex++, m_SpatialFilterParamsBufferName))) { this->m_ErrorReport.push_back(loc); }//SpatialFilterCL.
+				if (b && !(b = wrapper.SetBufferArg(gammaCorrectKernelIndex, argIndex++, m_AccumBufferName)))               { AddToReport(loc); }//Accumulator.
+				if (b && !(b = wrapper.SetBufferArg(gammaCorrectKernelIndex, argIndex++, m_SpatialFilterParamsBufferName))) { AddToReport(loc); }//SpatialFilterCL.
 
-				if (b && !(b = wrapper.RunKernel(gammaCorrectKernelIndex, gridW, gridH, 1, blockW, blockH, 1)))			  { this->m_ErrorReport.push_back(loc); }
+				if (b && !(b = wrapper.RunKernel(gammaCorrectKernelIndex, gridW, gridH, 1, blockW, blockH, 1)))			  { AddToReport(loc); }
 			}
 			else
 			{
 				b = false;
-				this->m_ErrorReport.push_back(loc);
+				AddToReport(loc);
 			}
 		}
 
@@ -1315,30 +1315,30 @@ eRenderStatus RendererCL<T, bucketT>::RunFinalAccum()
 		gridH = m_SpatialFilterCL.m_FinalRasH;
 		OpenCLWrapper::MakeEvenGridDims(blockW, blockH, gridW, gridH);
 
-		if (b && !(b = wrapper.SetBufferArg(accumKernelIndex, argIndex++, m_AccumBufferName)))                    { this->m_ErrorReport.push_back(loc); }//Accumulator.
-		if (b && !(b = wrapper.SetImageArg(accumKernelIndex,  argIndex++, wrapper.Shared(), m_FinalImageName)))	  { this->m_ErrorReport.push_back(loc); }//Final image.
-		if (b && !(b = wrapper.SetBufferArg(accumKernelIndex, argIndex++, m_SpatialFilterParamsBufferName)))      { this->m_ErrorReport.push_back(loc); }//SpatialFilterCL.
-		if (b && !(b = wrapper.SetBufferArg(accumKernelIndex, argIndex++, m_SpatialFilterCoefsBufferName)))       { this->m_ErrorReport.push_back(loc); }//Filter coefs.
-		if (b && !(b = wrapper.SetBufferArg(accumKernelIndex, argIndex++, m_CurvesCsaName)))					  { this->m_ErrorReport.push_back(loc); }//Curve points.
+		if (b && !(b = wrapper.SetBufferArg(accumKernelIndex, argIndex++, m_AccumBufferName)))                  { AddToReport(loc); }//Accumulator.
+		if (b && !(b = wrapper.SetImageArg(accumKernelIndex,  argIndex++, wrapper.Shared(), m_FinalImageName)))	{ AddToReport(loc); }//Final image.
+		if (b && !(b = wrapper.SetBufferArg(accumKernelIndex, argIndex++, m_SpatialFilterParamsBufferName)))    { AddToReport(loc); }//SpatialFilterCL.
+		if (b && !(b = wrapper.SetBufferArg(accumKernelIndex, argIndex++, m_SpatialFilterCoefsBufferName)))     { AddToReport(loc); }//Filter coefs.
+		if (b && !(b = wrapper.SetBufferArg(accumKernelIndex, argIndex++, m_CurvesCsaName)))					{ AddToReport(loc); }//Curve points.
 		
-		if (b && !(b = wrapper.SetArg	   (accumKernelIndex, argIndex++, curvesSet)))                            { this->m_ErrorReport.push_back(loc); }//Do curves.
-		if (b && !(b = wrapper.SetArg	   (accumKernelIndex, argIndex++, bucketT(alphaBase))))                   { this->m_ErrorReport.push_back(loc); }//Alpha base.
-		if (b && !(b = wrapper.SetArg	   (accumKernelIndex, argIndex++, bucketT(alphaScale))))                  { this->m_ErrorReport.push_back(loc); }//Alpha scale.
+		if (b && !(b = wrapper.SetArg	   (accumKernelIndex, argIndex++, curvesSet)))                          { AddToReport(loc); }//Do curves.
+		if (b && !(b = wrapper.SetArg	   (accumKernelIndex, argIndex++, bucketT(alphaBase))))                 { AddToReport(loc); }//Alpha base.
+		if (b && !(b = wrapper.SetArg	   (accumKernelIndex, argIndex++, bucketT(alphaScale))))                { AddToReport(loc); }//Alpha scale.
 
 		if (b && wrapper.Shared())
-			if (b && !(b = wrapper.EnqueueAcquireGLObjects(m_FinalImageName))) { this->m_ErrorReport.push_back(loc); }
+			if (b && !(b = wrapper.EnqueueAcquireGLObjects(m_FinalImageName))) { AddToReport(loc); }
 
-		if (b && !(b = wrapper.RunKernel(accumKernelIndex, gridW, gridH, 1, blockW, blockH, 1))) { this->m_ErrorReport.push_back(loc); }
+		if (b && !(b = wrapper.RunKernel(accumKernelIndex, gridW, gridH, 1, blockW, blockH, 1))) { AddToReport(loc); }
 
 		if (b && wrapper.Shared())
-			if (b && !(b = wrapper.EnqueueReleaseGLObjects(m_FinalImageName))) { this->m_ErrorReport.push_back(loc); }
+			if (b && !(b = wrapper.EnqueueReleaseGLObjects(m_FinalImageName))) { AddToReport(loc); }
 
 		//t.Toc((char*)loc);
 	}
 	else
 	{
 		b = false;
-		this->m_ErrorReport.push_back(loc);
+		AddToReport(loc);
 	}
 
 	return b ? RENDER_OK : RENDER_ERROR;
@@ -1375,14 +1375,14 @@ bool RendererCL<T, bucketT>::ClearBuffer(size_t device, const string& bufferName
 			b = true;
 			OpenCLWrapper::MakeEvenGridDims(blockW, blockH, gridW, gridH);
 
-			if (b && !(b = wrapper.SetBufferArg(kernelIndex, argIndex++, bufferName)))          { this->m_ErrorReport.push_back(loc); }//Buffer of byte.
-			if (b && !(b = wrapper.SetArg(kernelIndex, argIndex++, width * elementSize)))		{ this->m_ErrorReport.push_back(loc); }//Width.
-			if (b && !(b = wrapper.SetArg(kernelIndex, argIndex++, height)))					{ this->m_ErrorReport.push_back(loc); }//Height.
-			if (b && !(b = wrapper.RunKernel(kernelIndex, gridW, gridH, 1, blockW, blockH, 1))) { this->m_ErrorReport.push_back(loc); }
+			if (b && !(b = wrapper.SetBufferArg(kernelIndex, argIndex++, bufferName)))          { AddToReport(loc); }//Buffer of byte.
+			if (b && !(b = wrapper.SetArg(kernelIndex, argIndex++, width * elementSize)))		{ AddToReport(loc); }//Width.
+			if (b && !(b = wrapper.SetArg(kernelIndex, argIndex++, height)))					{ AddToReport(loc); }//Height.
+			if (b && !(b = wrapper.RunKernel(kernelIndex, gridW, gridH, 1, blockW, blockH, 1))) { AddToReport(loc); }
 		}
 		else
 		{
-			this->m_ErrorReport.push_back(loc);
+			AddToReport(loc);
 		}
 	}
 
@@ -1415,20 +1415,20 @@ bool RendererCL<T, bucketT>::RunDensityFilterPrivate(size_t kernelIndex, size_t 
 	{
 		auto& wrapper = m_Devices[0]->m_Wrapper;
 
-		if (b && !(b = wrapper.SetBufferArg(kernelIndex, argIndex, m_HistBufferName)))           { this->m_ErrorReport.push_back(loc); } argIndex++;//Histogram.
-		if (b && !(b = wrapper.SetBufferArg(kernelIndex, argIndex, m_AccumBufferName)))          { this->m_ErrorReport.push_back(loc); } argIndex++;//Accumulator.
-		if (b && !(b = wrapper.SetBufferArg(kernelIndex, argIndex, m_DEFilterParamsBufferName))) { this->m_ErrorReport.push_back(loc); } argIndex++;//FlameDensityFilterCL.
-		if (b && !(b = wrapper.SetBufferArg(kernelIndex, argIndex, m_DECoefsBufferName)))        { this->m_ErrorReport.push_back(loc); } argIndex++;//Coefs.
-		if (b && !(b = wrapper.SetBufferArg(kernelIndex, argIndex, m_DEWidthsBufferName)))       { this->m_ErrorReport.push_back(loc); } argIndex++;//Widths.
-		if (b && !(b = wrapper.SetBufferArg(kernelIndex, argIndex, m_DECoefIndicesBufferName)))  { this->m_ErrorReport.push_back(loc); } argIndex++;//Coef indices.
-		if (b && !(b = wrapper.SetArg(kernelIndex, argIndex, chunkSizeW)))						 { this->m_ErrorReport.push_back(loc); } argIndex++;//Chunk size width (gapW + 1).
-		if (b && !(b = wrapper.SetArg(kernelIndex, argIndex, chunkSizeH)))						 { this->m_ErrorReport.push_back(loc); } argIndex++;//Chunk size height (gapH + 1).
-		if (b && !(b = wrapper.SetArg(kernelIndex, argIndex, chunkW)))							 { this->m_ErrorReport.push_back(loc); } argIndex++;//Column chunk.
-		if (b && !(b = wrapper.SetArg(kernelIndex, argIndex, chunkH)))							 { this->m_ErrorReport.push_back(loc); } argIndex++;//Row chunk.
+		if (b && !(b = wrapper.SetBufferArg(kernelIndex, argIndex, m_HistBufferName)))           { AddToReport(loc); } argIndex++;//Histogram.
+		if (b && !(b = wrapper.SetBufferArg(kernelIndex, argIndex, m_AccumBufferName)))          { AddToReport(loc); } argIndex++;//Accumulator.
+		if (b && !(b = wrapper.SetBufferArg(kernelIndex, argIndex, m_DEFilterParamsBufferName))) { AddToReport(loc); } argIndex++;//FlameDensityFilterCL.
+		if (b && !(b = wrapper.SetBufferArg(kernelIndex, argIndex, m_DECoefsBufferName)))        { AddToReport(loc); } argIndex++;//Coefs.
+		if (b && !(b = wrapper.SetBufferArg(kernelIndex, argIndex, m_DEWidthsBufferName)))       { AddToReport(loc); } argIndex++;//Widths.
+		if (b && !(b = wrapper.SetBufferArg(kernelIndex, argIndex, m_DECoefIndicesBufferName)))  { AddToReport(loc); } argIndex++;//Coef indices.
+		if (b && !(b = wrapper.SetArg(kernelIndex, argIndex, chunkSizeW)))						 { AddToReport(loc); } argIndex++;//Chunk size width (gapW + 1).
+		if (b && !(b = wrapper.SetArg(kernelIndex, argIndex, chunkSizeH)))						 { AddToReport(loc); } argIndex++;//Chunk size height (gapH + 1).
+		if (b && !(b = wrapper.SetArg(kernelIndex, argIndex, chunkW)))							 { AddToReport(loc); } argIndex++;//Column chunk.
+		if (b && !(b = wrapper.SetArg(kernelIndex, argIndex, chunkH)))							 { AddToReport(loc); } argIndex++;//Row chunk.
 		//t.Toc(__FUNCTION__ " set args");
 
 		//t.Tic();
-		if (b && !(b = wrapper.RunKernel(kernelIndex, gridW, gridH, 1, blockW, blockH, 1))) { this->m_ErrorReport.push_back(loc); }//Method 7, accumulating to temp box area.
+		if (b && !(b = wrapper.RunKernel(kernelIndex, gridW, gridH, 1, blockW, blockH, 1))) { AddToReport(loc); }//Method 7, accumulating to temp box area.
 		//t.Toc(__FUNCTION__ " RunKernel()");
 
 		return b;
@@ -1461,7 +1461,7 @@ int RendererCL<T, bucketT>::MakeAndGetDensityFilterProgram(size_t ss, uint filte
 			if (wrapper.AddProgram(deEntryPoint, kernel, deEntryPoint, m_DoublePrecision))
 				kernelIndex = wrapper.FindKernelIndex(deEntryPoint);//Try to find it again, it will be present if successfully built.
 			else
-				this->m_ErrorReport.push_back(string(loc) + "():\nBuilding the following program failed: \n" + kernel + "\n");
+				AddToReport(string(loc) + "():\nBuilding the following program failed: \n" + kernel + "\n");
 		}
 	}
 
@@ -1493,7 +1493,7 @@ int RendererCL<T, bucketT>::MakeAndGetFinalAccumProgram(double& alphaBase, doubl
 			if (wrapper.AddProgram(finalAccumEntryPoint, kernel, finalAccumEntryPoint, m_DoublePrecision))
 				kernelIndex = wrapper.FindKernelIndex(finalAccumEntryPoint);//Try to find it again, it will be present if successfully built.
 			else
-				this->m_ErrorReport.push_back(loc);
+				AddToReport(loc);
 		}
 	}
 
@@ -1522,7 +1522,7 @@ int RendererCL<T, bucketT>::MakeAndGetGammaCorrectionProgram()
 			if (b)
 				kernelIndex = wrapper.FindKernelIndex(gammaEntryPoint);//Try to find it again, it will be present if successfully built.
 			else
-				this->m_ErrorReport.push_back(loc);
+				AddToReport(loc);
 		}
 
 		return kernelIndex;
@@ -1585,7 +1585,7 @@ bool RendererCL<T, bucketT>::SumDeviceHist()
 			ostringstream os;
 
 			os << loc << ": failed to sum histograms from the secondary device(s) to the primary device.";
-			this->m_ErrorReport.push_back(os.str());
+			AddToReport(os.str());
 		}
 
 		//t.Toc(loc);

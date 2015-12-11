@@ -146,13 +146,13 @@ public:
 	/// Add string to report.
 	/// </summary>
 	/// <param name="s">The string to add</param>
-	virtual void AddToReport(const string& s) { m_ErrorReport.push_back(s); }
+	virtual void AddToReport(const string& s) { if (!Contains(m_ErrorReport, s)) m_ErrorReport.push_back(s); }
 
 	/// <summary>
 	/// Add a vector of strings to report.
 	/// </summary>
 	/// <param name="vec">The vector of strings to add</param>
-	virtual void AddToReport(const vector<string>& vec) { m_ErrorReport.insert(m_ErrorReport.end(), vec.begin(), vec.end()); }
+	virtual void AddToReport(const vector<string>& vec) { for (auto& v : vec) AddToReport(v); }
 
 	/// <summary>
 	/// Static function to dump a vector of strings passed in.
@@ -174,7 +174,7 @@ public:
 		return ss.str();
 	}
 
-protected:
+private:
 	vector<string> m_ErrorReport;
 };
 

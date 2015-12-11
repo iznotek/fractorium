@@ -39,8 +39,8 @@ bool OpenCLWrapper::Init(size_t platformIndex, size_t deviceIndex, bool shared)
 	auto& devices = m_Info.Devices();
 
 	m_Init = false;
-	m_ErrorReport.clear();
-
+	ClearErrorReport();
+	
 	if (m_Info.Ok())
 	{
 		if (platformIndex < platforms.size() && platformIndex < devices.size())
@@ -1022,7 +1022,7 @@ bool OpenCLWrapper::CreateSPK(const string& name, const string& program, const s
 		else
 		{
 			for (auto& i : m_DeviceVec)
-				m_ErrorReport.push_back(spk.m_Program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(i, nullptr));
+				AddToReport(spk.m_Program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(i, nullptr));
 		}
 	}
 
