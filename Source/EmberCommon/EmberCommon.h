@@ -112,10 +112,9 @@ template <typename T>
 static bool InitPaletteList(const string& filename)
 {
 	PaletteList<T> paletteList;//Even though this is local, the members are static so they will remain.
+	bool added = paletteList.Add(filename);
 
-	paletteList.Add(filename);
-
-	if (!paletteList.Size())
+	if (!added || !paletteList.Size())
 	{
 		cout << "Error parsing palette file " << filename << ". Reason: " << endl;
 		cout << paletteList.ErrorReportString() << endl << "Returning without executing." << endl;

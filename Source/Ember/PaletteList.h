@@ -37,10 +37,10 @@ public:
 	/// <returns>Whether anything was read</returns>
 	bool Add(const string& filename, bool force = false)
 	{
-		bool added = false;
-		auto& palettes = m_Palettes[filename];
+		bool added = true;
+		auto palettes = m_Palettes.insert(make_pair(filename, vector<Palette<T>>()));
 
-		if (palettes.empty() || force)
+		if (force || palettes.second)
 		{
 			string buf;
 			const char* loc = __FUNCTION__;
@@ -54,20 +54,23 @@ public:
 					auto rootNode = xmlDocGetRootElement(doc);
 					auto pfilename = shared_ptr<string>(new string(filename));
 
-					palettes.clear();
-					palettes.reserve(buf.size() / 2048);//Roughly what it takes per palette.
-					ParsePalettes(rootNode, pfilename, palettes);
+					palettes.first->second.clear();
+					palettes.first->second.reserve(buf.size() / 2048);//Roughly what it takes per palette.
+					ParsePalettes(rootNode, pfilename, palettes.first->second);
 					xmlFreeDoc(doc);
-					added = true;
 				}
 				else
 				{
-					m_ErrorReport.push_back(string(loc) + " : Couldn't load xml doc");
+					added = false;
+					m_Palettes.erase(filename);
+					AddToReport(string(loc) + " : Couldn't load xml doc");
 				}
 			}
 			else
 			{
-				m_ErrorReport.push_back(string(loc) + " : Couldn't read palette file " + filename);
+				added = false;
+				m_Palettes.erase(filename);
+				AddToReport(string(loc) + " : Couldn't read palette file " + filename);
 			}
 		}
 
@@ -258,7 +261,7 @@ private:
 
 							if (ret != 3)
 							{
-								m_ErrorReport.push_back(string(loc) + " : Problem reading hexadecimal color data " + string(&val[colorIndex]));
+								AddToReport(string(loc) + " : Problem reading hexadecimal color data " + string(&val[colorIndex]));
 								hexError = true;
 								break;
 							}

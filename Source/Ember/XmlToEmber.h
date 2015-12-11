@@ -285,7 +285,7 @@ public:
 		xmlNodePtr rootnode;
 		Locale locale;//Sets and restores on exit.
 		//Timing t;
-		m_ErrorReport.clear();
+		ClearErrorReport();
 
 		//Parse XML string into internal document.
 		xmlPtr = CX(&buf[0]);
@@ -296,7 +296,7 @@ public:
 
 		if (doc == nullptr)
 		{
-			m_ErrorReport.push_back(string(loc) + " : Error parsing xml file " + string(filename));
+			AddToReport(string(loc) + " : Error parsing xml file " + string(filename));
 			return false;
 		}
 
@@ -367,7 +367,7 @@ public:
 		//Ensure palette list is setup first.
 		if (!m_PaletteList.Size())
 		{
-			m_ErrorReport.push_back(string(loc) + " : Palette list must be initialized before parsing embers.");
+			AddToReport(string(loc) + " : Palette list must be initialized before parsing embers.");
 			return false;
 		}
 
@@ -398,7 +398,7 @@ public:
 
 		if (istr.bad() || istr.fail())
 		{
-			m_ErrorReport.push_back(string(loc) + " : Error converting " + string(str));
+			AddToReport(string(loc) + " : Error converting " + string(str));
 			b = false;
 		}
 
@@ -479,7 +479,7 @@ private:
 				if (!parseEmberSuccess)
 				{
 					//Original leaked memory here, ours doesn't.
-					m_ErrorReport.push_back(string(loc) + " : Error parsing ember element");
+					AddToReport(string(loc) + " : Error parsing ember element");
 					return;
 				}
 
@@ -488,11 +488,11 @@ private:
 					if (auto pal = m_PaletteList.GetPalette(PaletteList<T>::m_DefaultFilename, currentEmber.PaletteIndex()))
 						currentEmber.m_Palette = *pal;
 					else
-						m_ErrorReport.push_back(string(loc) + " : Error assigning palette with index " + Itos(currentEmber.PaletteIndex()));
+						AddToReport(string(loc) + " : Error assigning palette with index " + Itos(currentEmber.PaletteIndex()));
 				}
 
 				//if (!Interpolater<T>::InterpMissingColors(currentEmber.m_Palette.m_Entries))
-				//	m_ErrorReport.push_back(string(loc) + " : Error interpolating missing palette colors");
+				//	AddToReport(string(loc) + " : Error interpolating missing palette colors");
 
 				currentEmber.CacheXforms();
 				currentEmber.m_Index = embers.size();
@@ -531,7 +531,7 @@ private:
 
 		if (att == nullptr)
 		{
-			m_ErrorReport.push_back(string(loc) + " : <flame> element has no attributes");
+			AddToReport(string(loc) + " : <flame> element has no attributes");
 			return false;
 		}
 
@@ -581,7 +581,7 @@ private:
 				else if (!_stricmp("smooth", attStr))
 					currentEmber.m_Interp = EMBER_INTERP_SMOOTH;
 				else
-					m_ErrorReport.push_back(string(loc) + " : Unrecognized interpolation type " + string(attStr));
+					AddToReport(string(loc) + " : Unrecognized interpolation type " + string(attStr));
 			}
 			else if (!Compare(curAtt->name, "palette_interpolation"))
 			{
@@ -590,7 +590,7 @@ private:
 				else if (!_stricmp("sweep", attStr))
 					currentEmber.m_PaletteInterp = INTERP_SWEEP;
 				else
-					m_ErrorReport.push_back(string(loc) + " : Unrecognized palette interpolation type " + string(attStr));
+					AddToReport(string(loc) + " : Unrecognized palette interpolation type " + string(attStr));
 			}
 			else if (!Compare(curAtt->name, "interpolation_space") || !Compare(curAtt->name, "interpolation_type"))
 			{
@@ -603,7 +603,7 @@ private:
 				else if (!_stricmp("older", attStr))
 					currentEmber.m_AffineInterp = AFFINE_INTERP_OLDER;
 				else
-					m_ErrorReport.push_back(string(loc) + " : Unrecognized interpolation type " + string(attStr));
+					AddToReport(string(loc) + " : Unrecognized interpolation type " + string(attStr));
 			}
 			else if (!Compare(curAtt->name, "name"))
 			{
@@ -619,7 +619,7 @@ private:
 			{
 				if (sscanf_s(attStr, "%lu %lu", &currentEmber.m_FinalRasW, &currentEmber.m_FinalRasH) != 2)
 				{
-					m_ErrorReport.push_back(string(loc) + " : Invalid size attribute " + string(attStr));
+					AddToReport(string(loc) + " : Invalid size attribute " + string(attStr));
 					xmlFree(attStr);
 
 					//These return statements are bad. One because they are inconsistent with others that just assign defaults.
@@ -634,7 +634,7 @@ private:
 			{
 				if (sscanf_s(attStr, "%lf %lf", &vals[0], &vals[1]) != 2)
 				{
-					m_ErrorReport.push_back(string(loc) + " : Invalid center attribute " + string(attStr));
+					AddToReport(string(loc) + " : Invalid center attribute " + string(attStr));
 					xmlFree(attStr);
 					return false;
 				}
@@ -659,14 +659,14 @@ private:
 				else
 				{
 					currentEmber.m_PaletteMode = PALETTE_STEP;
-					m_ErrorReport.push_back(string(loc) + " : Unrecognized palette mode " + string(attStr) + ", using step");
+					AddToReport(string(loc) + " : Unrecognized palette mode " + string(attStr) + ", using step");
 				}
 			}
 			else if (!Compare(curAtt->name, "background"))
 			{
 				if (sscanf_s(attStr, "%lf %lf %lf", &vals[0], &vals[1], &vals[2]) != 3)
 				{
-					m_ErrorReport.push_back(string(loc) + " : Invalid background attribute " + string(attStr));
+					AddToReport(string(loc) + " : Invalid background attribute " + string(attStr));
 					xmlFree(attStr);
 					return false;
 				}
@@ -706,7 +706,7 @@ private:
 
 				if (att == nullptr)
 				{
-					m_ErrorReport.push_back(string(loc) + " : No attributes for color element");
+					AddToReport(string(loc) + " : No attributes for color element");
 					continue;
 				}
 
@@ -727,21 +727,21 @@ private:
 					else if(!Compare(curAtt->name, "rgb"))
 					{
 						if (sscanf_s(attStr, "%lf %lf %lf", &r, &g, &b) != 3)
-							m_ErrorReport.push_back(string(loc) + " : Invalid rgb attribute " + string(attStr));
+							AddToReport(string(loc) + " : Invalid rgb attribute " + string(attStr));
 					}
 					else if(!Compare(curAtt->name, "rgba"))
 					{
 						if (sscanf_s(attStr, "%lf %lf %lf %lf", &r, &g, &b, &a) != 4)
-							m_ErrorReport.push_back(string(loc) + " : Invalid rgba attribute " + string(attStr));
+							AddToReport(string(loc) + " : Invalid rgba attribute " + string(attStr));
 					}
 					else if(!Compare(curAtt->name, "a"))
 					{
 						if (sscanf_s(attStr, "%lf", &a) != 1)
-							m_ErrorReport.push_back(string(loc) + " : Invalid a attribute " + string(attStr));
+							AddToReport(string(loc) + " : Invalid a attribute " + string(attStr));
 					}
 					else
 					{
-						m_ErrorReport.push_back(string(loc) + " : Unknown color attribute " + string(CCX(curAtt->name)));
+						AddToReport(string(loc) + " : Unknown color attribute " + string(CCX(curAtt->name)));
 					}
 
 					xmlFree(attStr);
@@ -762,7 +762,7 @@ private:
 				{
 					stringstream ss;
 					ss << "ParseEmberElement() : Color element with bad/missing index attribute " << index;
-					m_ErrorReport.push_back(ss.str());
+					AddToReport(ss.str());
 				}
 			}
 			else if (!Compare(childNode->name, "colors"))
@@ -772,7 +772,7 @@ private:
 
 				if (att == nullptr)
 				{
-					m_ErrorReport.push_back(string(loc) + " : No attributes for colors element");
+					AddToReport(string(loc) + " : No attributes for colors element");
 					continue;
 				}
 
@@ -788,12 +788,12 @@ private:
 					{
 						if (!ParseHexColors(attStr, currentEmber, count, -4))
 						{
-							m_ErrorReport.push_back(string(loc) + " : Error parsing hexformatted colors, some may be set to zero");
+							AddToReport(string(loc) + " : Error parsing hexformatted colors, some may be set to zero");
 						}
 					}
 					else
 					{
-						m_ErrorReport.push_back(string(loc) + " : Unknown color attribute " + string(CCX(curAtt->name)));
+						AddToReport(string(loc) + " : Unknown color attribute " + string(CCX(curAtt->name)));
 					}
 
 					xmlFree(attStr);
@@ -811,7 +811,7 @@ private:
 
 				if (att == nullptr)
 				{
-					m_ErrorReport.push_back(string(loc) + " : No attributes for palette element");
+					AddToReport(string(loc) + " : No attributes for palette element");
 					continue;
 				}
 
@@ -831,13 +831,13 @@ private:
 							numBytes = 4;
 						else
 						{
-							m_ErrorReport.push_back(string(loc) + " : Unrecognized palette format string " + string(attStr) + ", defaulting to RGB");
+							AddToReport(string(loc) + " : Unrecognized palette format string " + string(attStr) + ", defaulting to RGB");
 							numBytes = 3;
 						}
 					}
 					else
 					{
-						m_ErrorReport.push_back(string(loc) + " : Unknown palette attribute " + string(CCX(curAtt->name)));
+						AddToReport(string(loc) + " : Unknown palette attribute " + string(CCX(curAtt->name)));
 					}
 
 					xmlFree(attStr);
@@ -849,7 +849,7 @@ private:
 
 				if (!ParseHexColors(palStr, currentEmber, numColors, numBytes))
 				{
-					m_ErrorReport.push_back(string(loc) + " : Problem reading hexadecimal color data in palette");
+					AddToReport(string(loc) + " : Problem reading hexadecimal color data in palette");
 				}
 
 				xmlFree(palStr);
@@ -863,7 +863,7 @@ private:
 
 				if (att == nullptr)
 				{
-					m_ErrorReport.push_back(string(loc) + " : No attributes for palette element");
+					AddToReport(string(loc) + " : No attributes for palette element");
 					continue;
 				}
 
@@ -877,7 +877,7 @@ private:
 					}
 					else
 					{
-						m_ErrorReport.push_back(string(loc) + " : Unknown symmetry attribute " + string(attStr));
+						AddToReport(string(loc) + " : Unknown symmetry attribute " + string(attStr));
 						continue;
 					}
 
@@ -899,14 +899,14 @@ private:
 
 					if (!ParseXform(childNode, finalXform, false, fromEmber))
 					{
-						m_ErrorReport.push_back(string(loc) + " : Error parsing final xform");
+						AddToReport(string(loc) + " : Error parsing final xform");
 					}
 					else
 					{
 						if (finalXform.m_Weight != 0)
 						{
 							finalXform.m_Weight = 0;
-							m_ErrorReport.push_back(string(loc) + " : Final xforms should not have weight specified, setting to zero");
+							AddToReport(string(loc) + " : Final xforms should not have weight specified, setting to zero");
 						}
 
 						currentEmber.SetFinalXform(finalXform);
@@ -919,7 +919,7 @@ private:
 
 					if (!ParseXform(childNode, xform, false, fromEmber))
 					{
-						m_ErrorReport.push_back(string(loc) + " : Error parsing xform");
+						AddToReport(string(loc) + " : Error parsing xform");
 					}
 					else
 					{
@@ -933,7 +933,7 @@ private:
 					//Check for non-zero motion params.
 					if (fabs(theXform->m_MotionFreq) > 0.0)//Original checked for motion func being non-zero, but it was set to MOTION_SIN (1) in Xform::Init(), so don't check for 0 here.
 					{
-						m_ErrorReport.push_back(string(loc) + " : Motion parameters should not be specified in regular, non-motion xforms");
+						AddToReport(string(loc) + " : Motion parameters should not be specified in regular, non-motion xforms");
 					}
 
 					//Motion Language:  Check the xform element for children - should be named 'motion'.
@@ -944,7 +944,7 @@ private:
 							Xform<T> xform(false);//Will only have valid values in fields parsed for motion, all others will be EMPTYFIELD.
 
 							if (!ParseXform(motionNode, xform, true, fromEmber))
-								m_ErrorReport.push_back(string(loc) + " : Error parsing motion xform");
+								AddToReport(string(loc) + " : Error parsing motion xform");
 							else
 								theXform->m_Motion.push_back(xform);
 						}
@@ -966,7 +966,7 @@ private:
 
 				if (att == nullptr)
 				{
-					m_ErrorReport.push_back(string(loc) + " : <flame_motion> element has no attributes");
+					AddToReport(string(loc) + " : <flame_motion> element has no attributes");
 					return false;
 				}
 
@@ -990,7 +990,7 @@ private:
 							motion.m_MotionFunc = MOTION_SAW;
 						else
 						{
-							m_ErrorReport.push_back(string(loc) + " : invalid flame motion function " + func);
+							AddToReport(string(loc) + " : invalid flame motion function " + func);
 							return false;
 						}
 					}
@@ -1024,7 +1024,7 @@ private:
 
 						if (sscanf_s(attStr, "%lf %lf %lf", &r, &g, &b) != 3)
 						{
-							m_ErrorReport.push_back(string(loc) + " : Invalid flame motion background attribute " + string(attStr));
+							AddToReport(string(loc) + " : Invalid flame motion background attribute " + string(attStr));
 							xmlFree(attStr);
 							return false;
 						}
@@ -1044,7 +1044,7 @@ private:
 
 						if (sscanf_s(attStr, "%lf %lf", &cx, &cy) != 2)
 						{
-							m_ErrorReport.push_back(string(loc) + " : Invalid flame motion center attribute " + string(attStr));
+							AddToReport(string(loc) + " : Invalid flame motion center attribute " + string(attStr));
 							xmlFree(attStr);
 							return false;
 						}
@@ -1057,7 +1057,7 @@ private:
 					}
 					else
 					{
-						m_ErrorReport.push_back(string(loc) + " : Unknown flame motion attribute " + string(CCX(curAtt->name)));
+						AddToReport(string(loc) + " : Unknown flame motion attribute " + string(CCX(curAtt->name)));
 						xmlFree(attStr);
 						return false;
 					}
@@ -1076,7 +1076,7 @@ private:
 			if (soloXform >= 0 && i != soloXform)
 				currentEmber.GetXform(i)->m_Opacity = 0;//Will calc the cached adjusted viz value later.
 
-		return m_ErrorReport.empty();
+		return ErrorReport().empty();
 	}
 
 	/// <summary>
@@ -1100,7 +1100,7 @@ private:
 		}
 		else
 		{
-			m_ErrorReport.push_back(string(loc) + " : Failed to parse float value for flame motion attribute \"" + string(CCX(att->name)) + "\" : " + string(attStr));
+			AddToReport(string(loc) + " : Failed to parse float value for flame motion attribute \"" + string(CCX(att->name)) + "\" : " + string(attStr));
 		}
 
 		return r;
@@ -1129,7 +1129,7 @@ private:
 
 		if (attPtr == nullptr)
 		{
-			m_ErrorReport.push_back(string(loc) + " : Error: No attributes for element");
+			AddToReport(string(loc) + " : Error: No attributes for element");
 			return false;
 		}
 
@@ -1173,7 +1173,7 @@ private:
 				else
 				{
 					xform.m_MotionFunc = MOTION_SIN;
-					m_ErrorReport.push_back(string(loc) + " : Unknown motion function " + string(attStr) + ", using sin");
+					AddToReport(string(loc) + " : Unknown motion function " + string(attStr) + ", using sin");
 				}
 			}
 			else if (!Compare(curAtt->name, "color"))
@@ -1193,7 +1193,7 @@ private:
 				else
 				{
 					xform.m_ColorX = xform.m_ColorY = T(0.5);
-					m_ErrorReport.push_back(string(loc) + " : Malformed xform color attribute " + string(attStr) + ", using 0.5, 0.5");
+					AddToReport(string(loc) + " : Malformed xform color attribute " + string(attStr) + ", using 0.5, 0.5");
 				}
 			}
 			else if (!Compare(curAtt->name, "chaos"))
@@ -1211,7 +1211,7 @@ private:
 			{
 				if (motion == 1)
 				{
-					m_ErrorReport.push_back(string(loc) + " : Motion element cannot have a plotmode attribute");
+					AddToReport(string(loc) + " : Motion element cannot have a plotmode attribute");
 				}
 				else if (!_stricmp("off", attStr))
 					xform.m_Opacity = 0;
@@ -1221,7 +1221,7 @@ private:
 				if (sscanf_s(attStr, "%lf %lf %lf %lf %lf %lf", &a, &d, &b, &e, &c, &f) != 6)//Original did a complicated parsing scheme. This is easier.//ORIG
 				{
 					a = d = b = e = c = f = 0;
-					m_ErrorReport.push_back(string(loc) + " : Bad coeffs attribute " + string(attStr));
+					AddToReport(string(loc) + " : Bad coeffs attribute " + string(attStr));
 				}
 
 				xform.m_Affine.A(T(a));
@@ -1236,7 +1236,7 @@ private:
 				if (sscanf_s(attStr, "%lf %lf %lf %lf %lf %lf", &a, &d, &b, &e, &c, &f) != 6)//Original did a complicated parsing scheme. This is easier.//ORIG
 				{
 					a = d = b = e = c = f = 0;
-					m_ErrorReport.push_back(string(loc) + " : Bad post coeffs attribute " + string(attStr));
+					AddToReport(string(loc) + " : Bad post coeffs attribute " + string(attStr));
 				}
 
 				xform.m_Post.A(T(a));
@@ -1260,7 +1260,7 @@ private:
 				}
 				//else
 				//{
-				//	m_ErrorReport.push_back("Unsupported variation: " + string((const char*)curAtt->name));
+				//	AddToReport("Unsupported variation: " + string((const char*)curAtt->name));
 				//}
 			}
 
@@ -1291,7 +1291,7 @@ private:
 				}
 
 				if (!var1)
-					m_ErrorReport.push_back(string(loc) + " : Bad value for var1 " + string(attStr));
+					AddToReport(string(loc) + " : Bad value for var1 " + string(attStr));
 
 				xmlFree(attStr);
 				break;
@@ -1316,7 +1316,7 @@ private:
 				}
 
 				if (!var)
-					m_ErrorReport.push_back(string(loc) + " : Bad value for var " + string(attStr));
+					AddToReport(string(loc) + " : Bad value for var " + string(attStr));
 
 				xmlFree(attStr);
 				break;
@@ -1345,7 +1345,7 @@ private:
 						}
 						else
 						{
-							m_ErrorReport.push_back(string(loc) + " : Failed to parse parametric variation parameter " + s + " - " + string(attStr));
+							AddToReport(string(loc) + " : Failed to parse parametric variation parameter " + s + " - " + string(attStr));
 						}
 
 						xmlFree(attStr);
@@ -1466,7 +1466,7 @@ private:
 			{
 				ok = false;
 				r = g = b = 0;
-				m_ErrorReport.push_back(string(loc) + " : Problem reading hexadecimal color data, assigning to 0");
+				AddToReport(string(loc) + " : Problem reading hexadecimal color data, assigning to 0");
 				break;
 			}
 
@@ -1490,7 +1490,7 @@ private:
 		if (sscanf_s(&(colstr[colorIndex]),"%1s", tmps) > 0)
 #endif
 		{
-			m_ErrorReport.push_back(string(loc) + " : Extra data at end of hex color data " + string(&(colstr[colorIndex])));
+			AddToReport(string(loc) + " : Extra data at end of hex color data " + string(&(colstr[colorIndex])));
 			ok = false;
 		}
 

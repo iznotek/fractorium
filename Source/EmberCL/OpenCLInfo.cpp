@@ -330,7 +330,7 @@ bool OpenCLInfo::CheckCL(cl_int err, const char* name)
 	{
 		ostringstream ss;
 		ss << "ERROR: " << ErrorToStringCL(err) << " in " << name << "." << endl;
-		m_ErrorReport.push_back(ss.str());
+		AddToReport(ss.str());
 	}
 
 	return err == CL_SUCCESS;
