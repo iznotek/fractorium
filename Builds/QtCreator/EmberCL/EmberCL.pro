@@ -4,40 +4,45 @@ CONFIG += shared
 CONFIG -= app_bundle
 CONFIG -= qt
 
-include(../shared_settings.pri)
+include(../defaults.pri)
+
+PRJ_DIR = $$SRC_DIR/EmberCL
+
+target.path = $$LIB_INSTALL_DIR
+INSTALLS += target
 
 LIBS += -L$$absolute_path($$DESTDIR) -lEmber
 
-!macx:PRECOMPILED_HEADER = ../../../Source/EmberCL/EmberCLPch.h
+!macx:PRECOMPILED_HEADER = $$PRJ_DIR/EmberCLPch.h
 
-QMAKE_CXXFLAGS += -D_USRDLL 
+QMAKE_CXXFLAGS += -D_USRDLL
 QMAKE_CXXFLAGS += -D_CONSOLE
 QMAKE_CXXFLAGS += -BUILDING_EMBERCL
 
 SOURCES += \
-	../../../Source/EmberCL/DllMain.cpp \
-	../../../Source/EmberCL/DEOpenCLKernelCreator.cpp \
-	../../../Source/EmberCL/FinalAccumOpenCLKernelCreator.cpp \
-	../../../Source/EmberCL/FunctionMapper.cpp \
-	../../../Source/EmberCL/IterOpenCLKernelCreator.cpp \
-	../../../Source/EmberCL/OpenCLInfo.cpp \
-	../../../Source/EmberCL/OpenCLWrapper.cpp \
-	../../../Source/EmberCL/RendererCL.cpp \
-	../../../Source/EmberCL/RendererCLDevice.cpp
+    $$PRJ_DIR/DEOpenCLKernelCreator.cpp \
+    $$PRJ_DIR/DllMain.cpp \
+    $$PRJ_DIR/FinalAccumOpenCLKernelCreator.cpp \
+    $$PRJ_DIR/FunctionMapper.cpp \
+    $$PRJ_DIR/IterOpenCLKernelCreator.cpp \
+    $$PRJ_DIR/OpenCLInfo.cpp \
+    $$PRJ_DIR/OpenCLWrapper.cpp \
+    $$PRJ_DIR/RendererCL.cpp \
+    $$PRJ_DIR/RendererClDevice.cpp
 
 include(deployment.pri)
 qtcAddDeployment()
 
 HEADERS += \
-	../../../Source/EmberCL/DEOpenCLKernelCreator.h \
-	../../../Source/EmberCL/EmberCLFunctions.h \
-	../../../Source/EmberCL/EmberCLPch.h \
-	../../../Source/EmberCL/EmberCLStructs.h \
-	../../../Source/EmberCL/FinalAccumOpenCLKernelCreator.h \
-	../../../Source/EmberCL/FunctionMapper.h \
-	../../../Source/EmberCL/IterOpenCLKernelCreator.h \
-	../../../Source/EmberCL/OpenCLInfo.h \
-	../../../Source/EmberCL/OpenCLWrapper.h \
-	../../../Source/EmberCL/RendererCL.h \
-	../../../Source/EmberCL/RendererCLDevice.h
+    $$PRJ_DIR/DEOpenCLKernelCreator.h \
+    $$PRJ_DIR/EmberCLFunctions.h \
+    $$PRJ_DIR/EmberCLPch.h \
+    $$PRJ_DIR/EmberCLStructs.h \
+    $$PRJ_DIR/FinalAccumOpenCLKernelCreator.h \
+    $$PRJ_DIR/FunctionMapper.h \
+    $$PRJ_DIR/IterOpenCLKernelCreator.h \
+    $$PRJ_DIR/OpenCLInfo.h \
+    $$PRJ_DIR/OpenCLWrapper.h \
+    $$PRJ_DIR/RendererClDevice.h \
+    $$PRJ_DIR/RendererCL.h
 

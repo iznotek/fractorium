@@ -4,56 +4,62 @@ CONFIG += shared
 CONFIG -= app_bundle
 CONFIG -= qt
 
-include(../shared_settings.pri)
+include(../defaults.pri)
 
-!macx:PRECOMPILED_HEADER = ../../../Source/Ember/EmberPch.h
+PRJ_DIR = $$SRC_DIR/Ember
 
-QMAKE_CXXFLAGS += -D_USRDLL 
+target.path = $$LIB_INSTALL_DIR
+INSTALLS += target
+
+!macx:PRECOMPILED_HEADER = $$PRJ_DIR/EmberPch.h
+
+QMAKE_CXXFLAGS += -D_USRDLL
 QMAKE_CXXFLAGS += -D_CONSOLE
 QMAKE_CXXFLAGS += -BUILDING_EMBER
 
 SOURCES += \
-    ../../../Source/Ember/Affine2D.cpp \
-    ../../../Source/Ember/DllMain.cpp \
-    ../../../Source/Ember/Ember.cpp \
-    ../../../Source/Ember/EmberPch.cpp \
-    ../../../Source/Ember/Renderer.cpp \
-    ../../../Source/Ember/RendererBase.cpp
+    $$PRJ_DIR/Affine2D.cpp \
+    $$PRJ_DIR/DllMain.cpp \
+    $$PRJ_DIR/Ember.cpp \
+    $$PRJ_DIR/EmberPch.cpp \
+    $$PRJ_DIR/RendererBase.cpp \
+    $$PRJ_DIR/Renderer.cpp
 
 include(deployment.pri)
 qtcAddDeployment()
 
 HEADERS += \
-    ../../../Source/Ember/Affine2D.h \
-    ../../../Source/Ember/CarToRas.h \
-    ../../../Source/Ember/DensityFilter.h \
-    ../../../Source/Ember/Ember.h \
-    ../../../Source/Ember/EmberDefines.h \
-    ../../../Source/Ember/EmberPch.h \
-    ../../../Source/Ember/EmberToXml.h \
-    ../../../Source/Ember/Interpolate.h \
-    ../../../Source/Ember/Isaac.h \
-    ../../../Source/Ember/Iterator.h \
-    ../../../Source/Ember/Palette.h \
-    ../../../Source/Ember/PaletteList.h \
-    ../../../Source/Ember/Point.h \
-    ../../../Source/Ember/Renderer.h \
-    ../../../Source/Ember/RendererBase.h \
-    ../../../Source/Ember/SheepTools.h \
-    ../../../Source/Ember/SpatialFilter.h \
-    ../../../Source/Ember/TemporalFilter.h \
-    ../../../Source/Ember/Timing.h \
-    ../../../Source/Ember/Utils.h \
-    ../../../Source/Ember/Variation.h \
-    ../../../Source/Ember/VariationList.h \
-    ../../../Source/Ember/Variations01.h \
-    ../../../Source/Ember/Variations02.h \
-    ../../../Source/Ember/Variations03.h \
-    ../../../Source/Ember/Variations04.h \
-    ../../../Source/Ember/Variations05.h \
-	../../../Source/Ember/Variations06.h \
-	../../../Source/Ember/VariationsDC.h \
-    ../../../Source/Ember/Xform.h \
-    ../../../Source/Ember/XmlToEmber.h \
-    ../../../Source/Ember/EmberMotion.h
+    $$PRJ_DIR/Affine2D.h \
+    $$PRJ_DIR/CarToRas.h \
+    $$PRJ_DIR/Curves.h \
+    $$PRJ_DIR/DensityFilter.h \
+    $$PRJ_DIR/EmberDefines.h \
+    $$PRJ_DIR/Ember.h \
+    $$PRJ_DIR/EmberMotion.h \
+    $$PRJ_DIR/EmberPch.h \
+    $$PRJ_DIR/EmberToXml.h \
+    $$PRJ_DIR/Interpolate.h \
+    $$PRJ_DIR/Isaac.h \
+    $$PRJ_DIR/Iterator.h \
+    $$PRJ_DIR/Palette.h \
+    $$PRJ_DIR/PaletteList.h \
+    $$PRJ_DIR/Point.h \
+    $$PRJ_DIR/RendererBase.h \
+    $$PRJ_DIR/Renderer.h \
+    $$PRJ_DIR/SheepTools.h \
+    $$PRJ_DIR/SpatialFilter.h \
+    $$PRJ_DIR/TemporalFilter.h \
+    $$PRJ_DIR/Timing.h \
+    $$PRJ_DIR/Utils.h \
+    $$PRJ_DIR/Variation.h \
+    $$PRJ_DIR/VariationList.h \
+    $$PRJ_DIR/Variations01.h \
+    $$PRJ_DIR/Variations02.h \
+    $$PRJ_DIR/Variations03.h \
+    $$PRJ_DIR/Variations04.h \
+    $$PRJ_DIR/Variations05.h \
+    $$PRJ_DIR/Variations06.h \
+    $$PRJ_DIR/VariationsDC.h \
+    $$PRJ_DIR/Xform.h \
+    $$PRJ_DIR/XmlToEmber.h
 
