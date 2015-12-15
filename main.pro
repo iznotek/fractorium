@@ -3,6 +3,8 @@ CONFIG += ordered
 
 unix {
   symlinks.commands = \
+  test -d $$PWD/lib || mkdir -p $$PWD/lib; \
+  test -d $$PWD/include || mkdir -p $$PWD/include; \
   test -e $$PWD/lib/libOpenCL.so || \
     ln -s /usr/lib/x86_64-linux-gnu/libOpenCL.so.1 $$PWD/lib/libOpenCL.so; \
   test -e $$PWD/include/GL || \
