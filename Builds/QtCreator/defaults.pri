@@ -24,6 +24,8 @@ CONFIG(debug, debug|release) {
 SRC_DIR = $$(PWD)/../../../Source
 SRC_COMMON_DIR = $$(PWD)/../../../Source/EmberCommon
 ASSETS_DIR = $$(PWD)/../../../Data
+LOCAL_LIB_DIR = $$(PWD)/../../../lib
+LOCAL_INCLUDE_DIR = $$(PWD)/../../../include
 
 macx {
   LIBS += -framework OpenGL
@@ -45,8 +47,8 @@ macx {
 !macx {
   CONFIG += precompile_header
 
-  LIBS += -L/usr/lib/x86_64-linux-gnu -lGL
-  LIBS += -L/usr/lib/x86_64-linux-gnu -lOpenCL
+  LIBS += -L/usr/lib/x86_64-linux-gnu -L$LOCAL_LIB_DIR -lGL
+  LIBS += -L/usr/lib/x86_64-linux-gnu -L$LOCAL_LIB_DIR -lOpenCL
 
   QMAKE_LFLAGS_RELEASE += -s
 }
