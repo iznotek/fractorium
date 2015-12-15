@@ -19,6 +19,7 @@
 *.bsc
 *.exe
 *.xml
+!./Data/flam3-palettes.xml
 *.ilk
 *.wixobj
 *.pch
