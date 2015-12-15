@@ -51,9 +51,12 @@ macx {
   QMAKE_LFLAGS_RELEASE += -s
 }
 
-nvidia {
-  QMAKE_CXXFLAGS += -DNVIDIA
-}
+# The NVIDIA def was used to force OpenCL 1.1.
+# The Linux drivers support OpenCL 1.2 now.
+
+#nvidia {
+#  QMAKE_CXXFLAGS += -DNVIDIA
+#}
 
 native {
   QMAKE_CXXFLAGS += -march=native
