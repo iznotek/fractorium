@@ -40,10 +40,13 @@ macx {
   
   QMAKE_CXXFLAGS += -mmacosx-version-min=10.9 -arch x86_64
   QMAKE_CXXFLAGS += -stdlib=libc++
-} else {
+}
+
+!macx {
   CONFIG += precompile_header
-  LIBS += -L/usr/lib -lGL
-  LIBS += -L/usr/lib -lOpenCL
+
+  LIBS += -L/usr/lib/x86_64-linux-gnu -lGL
+  LIBS += -L/usr/lib/x86_64-linux-gnu -lOpenCL
 
   QMAKE_LFLAGS_RELEASE += -s
 }
@@ -71,8 +74,20 @@ LIBS += -L/usr/lib/x86_64-linux-gnu -lxml2
 
 CMAKE_CXXFLAGS += -DCL_USE_DEPRECATED_OPENCL_1_1_APIS
 
+# NOTE: last path will be the first to search. gcc -I and -L appends to the
+# beginning of the path list.
+
+# NOTE: qmake will resolve symlinks. If /usr/local/include/CL is a symlink to
+# /usr/include/nvidia-352/CL, qmake will generate Makefiles using the latter.
+
+INCLUDEPATH += /usr/include
+INCLUDEPATH += /usr/local/include
+
 INCLUDEPATH += /usr/include/CL
+INCLUDEPATH += /usr/local/include/CL
 INCLUDEPATH += /usr/include/GL
+INCLUDEPATH += /usr/local/include/GL
+
 INCLUDEPATH += /usr/include/glm
 INCLUDEPATH += /usr/include/tbb
 INCLUDEPATH += /usr/include/libxml2
