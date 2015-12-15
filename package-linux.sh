@@ -75,6 +75,7 @@ fi
 # FIXME: somehow it didn't ignore the 'Bin' folder.
 
 tar --exclude='package-linux.sh' \
+    --exclude='debian' \
     --exclude='Bin' \
     --exclude-vcs \
     --exclude-vcs-ignores \
@@ -83,17 +84,16 @@ tar --exclude='package-linux.sh' \
 
 [ $? -ne 0 ] && echo "Tar command failed." && exit 2
 
-# TODO: find the option to specify single binary, so the question can be skipped.
-
-cd "$PPA_DIR" &&\
-    bzr dh-make $PROJECT $VERSION $TAR_NAME &&\
-    cd fractorium/debian &&\
-    rm *.ex *.EX README.Debian README.source &&\
-    cd ..
+cd "$PPA_DIR"
+bzr dh-make $PROJECT $VERSION $TAR_NAME
 
 [ $? -ne 0 ] && echo "bzr dh-make command failed." && exit 2
 
-bzr add . &&\
+rm "$PPA_DIR/fractorium/debian" -r
+cp -R "$PROJECT_ROOT/debian" "$PPA_DIR/fractorium"
+
+cd "$PPA_DIR/fractorium" &&\
+    bzr add . &&\
     bzr commit -m "Debian package $VERSION"
 
 [ $? -ne 0 ] && echo "bzr command failed." && exit 2
