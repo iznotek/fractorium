@@ -1,3 +1,9 @@
+fractorium (0.9.9.2b-0ubuntu3) wily; urgency=low
+
+  * include paths and deps for wily
+
+ -- Gambhiro Bhikkhu <gambhiro.bhikkhu.85@gmail.com>  Tue, 15 Dec 2015 13:44:16 +0000
+
 fractorium (0.9.9.2b-0ubuntu1) vivid; urgency=low
 
   * now it's all qmake
