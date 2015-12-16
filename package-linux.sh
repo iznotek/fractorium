@@ -17,7 +17,7 @@ Options:
 --unsigned"
 
 # version for the debian package
-VERSION=0.9.9.2b
+VERSION=0.9.9.2d
 PROJECT=fractorium
 PROJECT_ROOT=$PWD
 PPA_DIR="$HOME/PPA/$PROJECT-$VERSION"

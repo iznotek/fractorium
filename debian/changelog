@@ -1,3 +1,9 @@
+fractorium (0.9.9.2d-0ubuntu1) wily; urgency=low
+
+  * lib symlink fix
+
+ -- Gambhiro Bhikkhu <gambhiro.bhikkhu.85@gmail.com>  Tue, 15 Dec 2015 18:28:11 +0000
+
 fractorium (0.9.9.2b-0ubuntu3) wily; urgency=low
 
   * include paths and deps for wily

@@ -47,8 +47,8 @@ macx {
 !macx {
   CONFIG += precompile_header
 
-  LIBS += -L/usr/lib/x86_64-linux-gnu -L$LOCAL_LIB_DIR -lGL
-  LIBS += -L/usr/lib/x86_64-linux-gnu -L$LOCAL_LIB_DIR -lOpenCL
+  LIBS += -L/usr/lib/x86_64-linux-gnu -L$$LOCAL_LIB_DIR -lGL
+  LIBS += -L/usr/lib/x86_64-linux-gnu -L$$LOCAL_LIB_DIR -lOpenCL
 
   QMAKE_LFLAGS_RELEASE += -s
 }
