@@ -1,8 +1,8 @@
-fractorium (0.9.9.2d-0ubuntu1) wily; urgency=low
+fractorium (0.9.9.2e-0ubuntu1) wily; urgency=low
 
   * lib symlink fix
 
- -- Gambhiro Bhikkhu <gambhiro.bhikkhu.85@gmail.com>  Tue, 15 Dec 2015 18:28:11 +0000
+ -- Gambhiro Bhikkhu <gambhiro.bhikkhu.85@gmail.com>  Wed, 16 Dec 2015 13:00:40 +0000
 
 fractorium (0.9.9.2b-0ubuntu3) wily; urgency=low
 

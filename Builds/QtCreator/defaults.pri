@@ -1,8 +1,7 @@
 VERSION = 0.9.9.2
 
 # When this file is included:
-# - $$(PWD) is ./Builds/QtCreator/ 
-# - $(PWD) is the project folder, e.g. ./Builds/QtCreator/Ember/
+# - $$(PWD) is the project folder, e.g. ./Builds/QtCreator/Ember/
 
 # TODO: win32 install dirs?
 
@@ -24,8 +23,8 @@ CONFIG(debug, debug|release) {
 SRC_DIR = $$(PWD)/../../../Source
 SRC_COMMON_DIR = $$(PWD)/../../../Source/EmberCommon
 ASSETS_DIR = $$(PWD)/../../../Data
-LOCAL_LIB_DIR = $$(PWD)/../../../lib
-LOCAL_INCLUDE_DIR = $$(PWD)/../../../include
+LOCAL_LIB_DIR = $$(PWD)/../../lib
+LOCAL_INCLUDE_DIR = $$(PWD)/../../include
 
 macx {
   LIBS += -framework OpenGL
@@ -35,7 +34,6 @@ macx {
   LIBS += -L/usr/local/lib
 
   INCLUDEPATH += /usr/local/include
-  INCLUDEPATH += $$(PWD)/../../../Deps
 
   QMAKE_MAC_SDK = macosx10.11
   QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9
@@ -87,9 +85,13 @@ CMAKE_CXXFLAGS += -DCL_USE_DEPRECATED_OPENCL_1_1_APIS
 
 INCLUDEPATH += /usr/include
 INCLUDEPATH += /usr/local/include
+INCLUDEPATH += $$LOCAL_INCLUDE_DIR/vendor
+INCLUDEPATH += $$LOCAL_INCLUDE_DIR
 
-INCLUDEPATH += /usr/include/CL
-INCLUDEPATH += /usr/local/include/CL
+# Using a local version of opencl-headers, to make sure version 1.2.
+#INCLUDEPATH += /usr/include/CL
+#INCLUDEPATH += /usr/local/include/CL
+
 INCLUDEPATH += /usr/include/GL
 INCLUDEPATH += /usr/local/include/GL
 

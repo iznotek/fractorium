@@ -61,6 +61,6 @@ Builds/QtCreator/EmberCL/Makefile
 Builds/QtCreator/EmberGenome/Makefile
 Builds/QtCreator/EmberRender/Makefile
 Builds/QtCreator/Fractorium/Makefile
-lib/libOpenCL.so
-include/CL
-include/GL
+Builds/lib/libOpenCL.so
+Builds/include/CL
+Builds/include/GL

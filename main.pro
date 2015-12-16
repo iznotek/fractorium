@@ -1,16 +1,19 @@
 TEMPLATE = subdirs
 CONFIG += ordered
 
+LOCAL_LIB_DIR = $$(PWD)/Builds/lib
+LOCAL_INCLUDE_DIR = $$(PWD)/Builds/include
+
 unix {
   symlinks.commands = \
-  test -d $$PWD/lib || mkdir -p $$PWD/lib; \
-  test -d $$PWD/include || mkdir -p $$PWD/include; \
-  test -e $$PWD/lib/libOpenCL.so || \
-    ln -s /usr/lib/x86_64-linux-gnu/libOpenCL.so.1 $$PWD/lib/libOpenCL.so; \
-  test -e $$PWD/include/GL || \
-    ln -s /usr/include/nvidia-352/GL $$PWD/include; \
+  test -d $$LOCAL_LIB_DIR || mkdir -p $$LOCAL_LIB_DIR ; \
+  test -d $$LOCAL_INCLUDE_DIR || mkdir -p $$LOCAL_INCLUDE_DIR ; \
+  test -e $$LOCAL_LIB_DIR/libOpenCL.so || \
+    ln -s /usr/lib/x86_64-linux-gnu/libOpenCL.so.1 $$LOCAL_LIB_DIR/libOpenCL.so ; \
+  test -e $$LOCAL_INCLUDE_DIR/GL || \
+    ln -s /usr/include/nvidia-352/GL $$LOCAL_INCLUDE_DIR ; \
   test -e $$PWD/include/CL || \
-    ln -s /usr/include/nvidia-352/CL $$PWD/include;
+    ln -s /usr/include/nvidia-352/CL $$LOCAL_INCLUDE_DIR ;
 }
 
 SUBDIRS += Builds/QtCreator/Ember Builds/QtCreator/EmberCL Builds/QtCreator/EmberAnimate Builds/QtCreator/EmberGenome Builds/QtCreator/EmberRender Builds/QtCreator/Fractorium
