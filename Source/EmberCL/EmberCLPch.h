@@ -24,6 +24,8 @@
 
 #include <utility>
 
+// OpenCL 1.2 is supported in the Linux Nvidia drivers now.
+/*
 #ifdef NVIDIA
 	#ifdef CL_VERSION_1_2
 		#undef CL_VERSION_1_2
@@ -35,6 +37,7 @@
 		#endif
 	#endif
 #endif
+*/
 
 #include <CL/cl.hpp>
 
