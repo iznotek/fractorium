@@ -33,7 +33,7 @@ Install the dependencies.
 For Ubuntu 15.04 (vivid) and 15.10 (wily):
 
 ```
-sudo apt-get install g++ libdbus-1-dev libgl1-mesa-dev libgl-dev libglm-dev libjpeg-dev libpng12-dev libtbb-dev libxml2-dev qt5-default qt5-qmake qtbase5-dev libqt5opengl5-dev nvidia-libopencl1-352
+sudo apt-get install g++ libdbus-1-dev libgl1-mesa-dev libgl-dev libglm-dev libjpeg-dev libpng12-dev libtbb-dev libxml2-dev qt5-default qt5-qmake qtbase5-dev libqt5opengl5-dev ocl-icd-libopencl1
 ```
 
 Install the OpenCL drivers and opencl support for your hardware. For Nvidia:
