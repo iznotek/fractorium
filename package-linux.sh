@@ -16,9 +16,8 @@ Options:
 --signed
 --unsigned"
 
-# version for the debian package
-VERSION=0.9.9.2e
 PROJECT=fractorium
+VERSION=$(cat ./debian/changelog | head -n 1 | sed 's/^'$PROJECT' (\([^-]\+\)-.*/\1/')
 PROJECT_ROOT=$PWD
 PPA_DIR="$HOME/PPA/$PROJECT-$VERSION"
 TAR_NAME="$PROJECT-$VERSION.tar.gz"
