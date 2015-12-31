@@ -11,6 +11,13 @@ unix|macx {
   SHARE_INSTALL_DIR = /usr/share/fractorium
 }
 
+EMBER_ROOT = ./../../../
+SRC_DIR = $$EMBER_ROOT/Source
+SRC_COMMON_DIR = $$EMBER_ROOT/Source/EmberCommon
+ASSETS_DIR = $$EMBER_ROOT/Data
+LOCAL_LIB_DIR = $$(PWD)/../../lib
+LOCAL_INCLUDE_DIR = $$(PWD)/../../include
+
 CONFIG(release, debug|release) {
   CONFIG += warn_off
   DESTDIR = $$(PWD)/../../../Bin/release
@@ -19,12 +26,6 @@ CONFIG(release, debug|release) {
 CONFIG(debug, debug|release) {
   DESTDIR = $$(PWD)/../../../Bin/debug
 }
-
-SRC_DIR = $$(PWD)/../../../Source
-SRC_COMMON_DIR = $$(PWD)/../../../Source/EmberCommon
-ASSETS_DIR = $$(PWD)/../../../Data
-LOCAL_LIB_DIR = $$(PWD)/../../lib
-LOCAL_INCLUDE_DIR = $$(PWD)/../../include
 
 macx {
   LIBS += -framework OpenGL
@@ -50,13 +51,6 @@ macx {
 
   QMAKE_LFLAGS_RELEASE += -s
 }
-
-# The NVIDIA def was used to force OpenCL 1.1.
-# The Linux drivers support OpenCL 1.2 now.
-
-#nvidia {
-#  QMAKE_CXXFLAGS += -DNVIDIA
-#}
 
 native {
   QMAKE_CXXFLAGS += -march=native
