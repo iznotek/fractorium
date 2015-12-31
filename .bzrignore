@@ -19,6 +19,7 @@
 *.bsc
 *.exe
 *.xml
+!./Data/flam3-palettes.xml
 *.ilk
 *.wixobj
 *.pch
@@ -61,3 +62,6 @@ Builds/QtCreator/EmberCL/Makefile
 Builds/QtCreator/EmberGenome/Makefile
 Builds/QtCreator/EmberRender/Makefile
 Builds/QtCreator/Fractorium/Makefile
+Builds/lib/libOpenCL.so
+Builds/include/CL
+Builds/include/GL

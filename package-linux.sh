@@ -16,9 +16,27 @@ Options:
 --signed
 --unsigned"
 
-# version for the debian package
-VERSION=0.9.9.2b
 PROJECT=fractorium
+
+changelogVersion=$(cat ./debian/changelog | head -n 1 | sed 's/^'$PROJECT' (\([^-]\+\)-.*/\1/')
+emberVersion=$(grep '#define EMBER_VERSION' ./Source/Ember/EmberDefines.h | sed 's/^.*EMBER_VERSION "\([^"]\+\)".*/\1/')
+
+a=$(echo -n "$changelogVersion" | sed 's/[a-z]//g')
+b=$(echo -n "$emberVersion" | sed 's/[a-z]//g')
+
+if [[ "$a" != "$b" ]]; then
+    echo "Error: Different version numbers were found. Please update the correct file,
+the version numbers should agree up to the digits in:
+
+$changelogVersion
+$emberVersion
+
+./debian/changelog            : $a
+./Source/Ember/EmberDefines.h : $b"
+    exit 2
+fi
+
+VERSION=$changelogVersion
 PROJECT_ROOT=$PWD
 PPA_DIR="$HOME/PPA/$PROJECT-$VERSION"
 TAR_NAME="$PROJECT-$VERSION.tar.gz"
@@ -75,6 +93,7 @@ fi
 # FIXME: somehow it didn't ignore the 'Bin' folder.
 
 tar --exclude='package-linux.sh' \
+    --exclude='debian' \
     --exclude='Bin' \
     --exclude-vcs \
     --exclude-vcs-ignores \
@@ -83,17 +102,16 @@ tar --exclude='package-linux.sh' \
 
 [ $? -ne 0 ] && echo "Tar command failed." && exit 2
 
-# TODO: find the option to specify single binary, so the question can be skipped.
-
-cd "$PPA_DIR" &&\
-    bzr dh-make $PROJECT $VERSION $TAR_NAME &&\
-    cd fractorium/debian &&\
-    rm *.ex *.EX README.Debian README.source &&\
-    cd ..
+cd "$PPA_DIR"
+bzr dh-make $PROJECT $VERSION $TAR_NAME
 
 [ $? -ne 0 ] && echo "bzr dh-make command failed." && exit 2
 
-bzr add . &&\
+rm "$PPA_DIR/fractorium/debian" -r
+cp -R "$PROJECT_ROOT/debian" "$PPA_DIR/fractorium"
+
+cd "$PPA_DIR/fractorium" &&\
+    bzr add . &&\
     bzr commit -m "Debian package $VERSION"
 
 [ $? -ne 0 ] && echo "bzr command failed." && exit 2

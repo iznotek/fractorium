@@ -1,8 +1,7 @@
 VERSION = 0.9.9.2
 
 # When this file is included:
-# - $$(PWD) is ./Builds/QtCreator/ 
-# - $(PWD) is the project folder, e.g. ./Builds/QtCreator/Ember/
+# - $$(PWD) is the project folder, e.g. ./Builds/QtCreator/Ember/
 
 # TODO: win32 install dirs?
 
@@ -12,19 +11,20 @@ unix|macx {
   SHARE_INSTALL_DIR = /usr/share/fractorium
 }
 
-EMBER_ROOT = ./../../../
-SRC_DIR = $$EMBER_ROOT/Source
-SRC_COMMON_DIR = $$EMBER_ROOT/Source/EmberCommon
-ASSETS_DIR = $$EMBER_ROOT/Data
-
 CONFIG(release, debug|release) {
   CONFIG += warn_off
-  DESTDIR = $$EMBER_ROOT/Bin/release
+  DESTDIR = $$(PWD)/../../../Bin/release
 }
 
 CONFIG(debug, debug|release) {
-  DESTDIR = $$EMBER_ROOT/Bin/debug
+  DESTDIR = $$(PWD)/../../../Bin/debug
 }
+
+SRC_DIR = $$(PWD)/../../../Source
+SRC_COMMON_DIR = $$(PWD)/../../../Source/EmberCommon
+ASSETS_DIR = $$(PWD)/../../../Data
+LOCAL_LIB_DIR = $$(PWD)/../../lib
+LOCAL_INCLUDE_DIR = $$(PWD)/../../include
 
 macx {
   LIBS += -framework OpenGL
@@ -34,20 +34,29 @@ macx {
   LIBS += -L/usr/local/lib
 
   INCLUDEPATH += /usr/local/include
-  INCLUDEPATH += $$(PWD)/../../../Deps
 
   QMAKE_MAC_SDK = macosx10.11
   QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9
   
   QMAKE_CXXFLAGS += -mmacosx-version-min=10.9 -arch x86_64
   QMAKE_CXXFLAGS += -stdlib=libc++
-} else {
+}
+
+!macx {
   CONFIG += precompile_header
-  LIBS += -L/usr/lib -lGL
-  LIBS += -L/usr/lib -lOpenCL
+
+  LIBS += -L/usr/lib/x86_64-linux-gnu -L$$LOCAL_LIB_DIR -lGL
+  LIBS += -L/usr/lib/x86_64-linux-gnu -L$$LOCAL_LIB_DIR -lOpenCL
 
   QMAKE_LFLAGS_RELEASE += -s
 }
+
+# The NVIDIA def was used to force OpenCL 1.1.
+# The Linux drivers support OpenCL 1.2 now.
+
+#nvidia {
+#  QMAKE_CXXFLAGS += -DNVIDIA
+#}
 
 native {
   QMAKE_CXXFLAGS += -march=native
@@ -68,8 +77,24 @@ LIBS += -L/usr/lib/x86_64-linux-gnu -lxml2
 
 CMAKE_CXXFLAGS += -DCL_USE_DEPRECATED_OPENCL_1_1_APIS
 
-INCLUDEPATH += /usr/include/CL
+# NOTE: last path will be the first to search. gcc -I and -L appends to the
+# beginning of the path list.
+
+# NOTE: qmake will resolve symlinks. If /usr/local/include/CL is a symlink to
+# /usr/include/nvidia-352/CL, qmake will generate Makefiles using the latter.
+
+INCLUDEPATH += /usr/include
+INCLUDEPATH += /usr/local/include
+INCLUDEPATH += $$LOCAL_INCLUDE_DIR/vendor
+INCLUDEPATH += $$LOCAL_INCLUDE_DIR
+
+# Using a local version of opencl-headers, to make sure version 1.2.
+#INCLUDEPATH += /usr/include/CL
+#INCLUDEPATH += /usr/local/include/CL
+
 INCLUDEPATH += /usr/include/GL
+INCLUDEPATH += /usr/local/include/GL
+
 INCLUDEPATH += /usr/include/glm
 INCLUDEPATH += /usr/include/tbb
 INCLUDEPATH += /usr/include/libxml2

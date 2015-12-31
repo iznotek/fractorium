@@ -28,10 +28,18 @@ sudo apt-get install git
 git clone https://github.com/mfeemster/fractorium
 ```
 
-Install the dependencies:
+Install the dependencies.
+
+For Ubuntu 15.04 (vivid) and 15.10 (wily):
 
 ```
-sudo apt-get install g++ libdbus-1-dev libgl1-mesa-dev libgl-dev libglm-dev libjpeg-dev libpng12-dev libtbb-dev libxml2-dev qt5-default qt5-qmake qtbase5-dev libqt5opengl5-dev opencl-headers nvidia-opencl-dev
+sudo apt-get install g++ libdbus-1-dev libgl1-mesa-dev libgl-dev libglm-dev libjpeg-dev libpng12-dev libtbb-dev libxml2-dev qt5-default qt5-qmake qtbase5-dev libqt5opengl5-dev ocl-icd-libopencl1
+```
+
+Install the OpenCL drivers and opencl support for your hardware. For Nvidia:
+
+```
+sudo apt-get install nvidia-352 nvidia-352-dev nvidia-opencl-icd-352 nvidia-libopencl1-352 nvidia-prime nvidia-modprobe
 ```
 
 Compile the binary:
