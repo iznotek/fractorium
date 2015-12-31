@@ -28,6 +28,7 @@
 
 //Standard headers.
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <complex>
 #include <cstdint>
@@ -38,9 +39,9 @@
 #include <iomanip>
 #include <limits>
 #ifdef __APPLE__
-#include <malloc/malloc.h>
+	#include <malloc/malloc.h>
 #else
-#include <malloc.h>
+	#include <malloc.h>
 #endif
 #include <map>
 #include <math.h>
@@ -57,9 +58,9 @@
 
 //Third party headers.
 #ifdef _WIN32
-#include "libxml/parser.h"
+	#include "libxml/parser.h"
 #else
-#include "libxml2/libxml/parser.h"
+	#include "libxml2/libxml/parser.h"
 #endif
 
 //Intel's Threading Building Blocks is what's used for all threading.
@@ -69,7 +70,7 @@
 
 #define GLM_FORCE_RADIANS 1
 #ifndef __APPLE__
-#define GLM_FORCE_INLINE 1
+	#define GLM_FORCE_INLINE 1
 #endif
 
 //glm is what's used for matrix math.

@@ -9,19 +9,18 @@ namespace EmberCLns
 /// global OpenCLInfo object. The caller must explicitly do it.
 /// </summary>
 OpenCLWrapper::OpenCLWrapper()
-	: m_Info(OpenCLInfo::Instance())
 {
 	m_Init = false;
 	m_Shared = false;
 	m_PlatformIndex = 0;
 	m_DeviceIndex = 0;
 	m_LocalMemSize = 0;
-
 	//Pre-allocate some space to avoid temporary copying.
 	m_Programs.reserve(4);
 	m_Buffers.reserve(4);
 	m_Images.reserve(4);
 	m_GLImages.reserve(4);
+	m_Info = OpenCLInfo::Instance();
 }
 
 /// <summary>
@@ -35,25 +34,24 @@ OpenCLWrapper::OpenCLWrapper()
 bool OpenCLWrapper::Init(size_t platformIndex, size_t deviceIndex, bool shared)
 {
 	cl_int err;
-	auto& platforms = m_Info.Platforms();
-	auto& devices = m_Info.Devices();
-
+	auto& platforms = m_Info->Platforms();
+	auto& devices = m_Info->Devices();
 	m_Init = false;
 	ClearErrorReport();
-	
-	if (m_Info.Ok())
+
+	if (m_Info->Ok())
 	{
 		if (platformIndex < platforms.size() && platformIndex < devices.size())
 		{
 			cl::Context context;
 
-			if (m_Info.CreateContext(platforms[platformIndex], context, shared))//Platform index is within range, now do context.
+			if (m_Info->CreateContext(platforms[platformIndex], context, shared))//Platform index is within range, now do context.
 			{
 				if (deviceIndex < devices[platformIndex].size())//Context is ok, now do device.
 				{
 					auto q = cl::CommandQueue(context, devices[platformIndex][deviceIndex], 0, &err);//At least one GPU device is present, so create a command queue.
 
-					if (m_Info.CheckCL(err, "cl::CommandQueue()"))//Everything was successful so assign temporaries to members.
+					if (m_Info->CheckCL(err, "cl::CommandQueue()"))//Everything was successful so assign temporaries to members.
 					{
 						m_Platform = platforms[platformIndex];
 						m_Device = devices[platformIndex][deviceIndex];
@@ -63,9 +61,9 @@ bool OpenCLWrapper::Init(size_t platformIndex, size_t deviceIndex, bool shared)
 						m_DeviceIndex = deviceIndex;
 						m_DeviceVec.clear();
 						m_DeviceVec.push_back(m_Device);
-						m_LocalMemSize = size_t(m_Info.GetInfo<cl_ulong>(m_PlatformIndex, m_DeviceIndex, CL_DEVICE_LOCAL_MEM_SIZE));
-						m_GlobalMemSize = size_t(m_Info.GetInfo<cl_ulong>(m_PlatformIndex, m_DeviceIndex, CL_DEVICE_GLOBAL_MEM_SIZE));
-						m_MaxAllocSize = size_t(m_Info.GetInfo<cl_ulong>(m_PlatformIndex, m_DeviceIndex, CL_DEVICE_MAX_MEM_ALLOC_SIZE));
+						m_LocalMemSize = size_t(m_Info->GetInfo<cl_ulong>(m_PlatformIndex, m_DeviceIndex, CL_DEVICE_LOCAL_MEM_SIZE));
+						m_GlobalMemSize = size_t(m_Info->GetInfo<cl_ulong>(m_PlatformIndex, m_DeviceIndex, CL_DEVICE_GLOBAL_MEM_SIZE));
+						m_MaxAllocSize = size_t(m_Info->GetInfo<cl_ulong>(m_PlatformIndex, m_DeviceIndex, CL_DEVICE_MAX_MEM_ALLOC_SIZE));
 						m_Shared = shared;
 						m_Init = true;//Command queue is ok, it's now ok to begin building and running programs.
 					}
@@ -139,28 +137,25 @@ bool OpenCLWrapper::AddBuffer(const string& name, size_t size, cl_mem_flags flag
 		{
 			cl::Buffer buff(m_Context, flags, size, nullptr, &err);
 
-			if (!m_Info.CheckCL(err, "cl::Buffer()"))
+			if (!m_Info->CheckCL(err, "cl::Buffer()"))
 				return false;
 
 			NamedBuffer nb(buff, name);
-
 			m_Buffers.push_back(nb);
 		}
 		else if (GetBufferSize(bufferIndex) != size)//If it did exist, only create and add if the sizes were different.
 		{
 			m_Buffers[bufferIndex] = NamedBuffer(cl::Buffer(m_Context, flags, 0, nullptr, &err), "emptybuffer");//First clear out the original so the two don't exist in memory at once.
-
 			cl::Buffer buff(m_Context, flags, size, nullptr, &err);//Create the new buffer.
 
-			if (!m_Info.CheckCL(err, "cl::Buffer()"))
+			if (!m_Info->CheckCL(err, "cl::Buffer()"))
 				return false;
 
 			NamedBuffer nb(buff, name);//Make a named buffer out of the new buffer.
-
 			m_Buffers[bufferIndex] = nb;//Finally, assign.
 		}
-		//If the buffer existed and the sizes were the same, take no action.
 
+		//If the buffer existed and the sizes were the same, take no action.
 		return true;
 	}
 
@@ -199,7 +194,6 @@ bool OpenCLWrapper::AddAndWriteBuffer(const string& name, void* data, size_t siz
 bool OpenCLWrapper::WriteBuffer(const string& name, void* data, size_t size)
 {
 	int bufferIndex = FindBufferIndex(name);
-
 	return bufferIndex != -1 ? WriteBuffer(bufferIndex, data, size) : false;
 }
 
@@ -216,11 +210,10 @@ bool OpenCLWrapper::WriteBuffer(size_t bufferIndex, void* data, size_t size)
 	{
 		cl::Event e;
 		cl_int err = m_Queue.enqueueWriteBuffer(m_Buffers[bufferIndex].m_Buffer, CL_TRUE, 0, size, data, nullptr, &e);
-
 		e.wait();
 		m_Queue.finish();
 
-		if (m_Info.CheckCL(err, "cl::CommandQueue::enqueueWriteBuffer()"))
+		if (m_Info->CheckCL(err, "cl::CommandQueue::enqueueWriteBuffer()"))
 			return true;
 	}
 
@@ -237,7 +230,6 @@ bool OpenCLWrapper::WriteBuffer(size_t bufferIndex, void* data, size_t size)
 bool OpenCLWrapper::ReadBuffer(const string& name, void* data, size_t size)
 {
 	int bufferIndex = FindBufferIndex(name);
-
 	return bufferIndex != -1 ? ReadBuffer(bufferIndex, data, size) : false;
 }
 
@@ -254,11 +246,10 @@ bool OpenCLWrapper::ReadBuffer(size_t bufferIndex, void* data, size_t size)
 	{
 		cl::Event e;
 		cl_int err = m_Queue.enqueueReadBuffer(m_Buffers[bufferIndex].m_Buffer, CL_TRUE, 0, size, data, nullptr, &e);
-
 		e.wait();
 		m_Queue.finish();
 
-		if (m_Info.CheckCL(err, "cl::CommandQueue::enqueueReadBuffer()"))
+		if (m_Info->CheckCL(err, "cl::CommandQueue::enqueueReadBuffer()"))
 			return true;
 	}
 
@@ -287,7 +278,6 @@ int OpenCLWrapper::FindBufferIndex(const string& name)
 size_t OpenCLWrapper::GetBufferSize(const string& name)
 {
 	int bufferIndex = FindBufferIndex(name);
-
 	return bufferIndex != -1 ? GetBufferSize(bufferIndex) : 0;
 }
 
@@ -345,7 +335,7 @@ bool OpenCLWrapper::AddAndWriteImage(const string& name, cl_mem_flags flags, con
 				IMAGEGL2D imageGL(m_Context, flags, GL_TEXTURE_2D, 0, texName, &err);
 				NamedImage2DGL namedImageGL(imageGL, name);
 
-				if (m_Info.CheckCL(err, "cl::ImageGL()"))
+				if (m_Info->CheckCL(err, "cl::ImageGL()"))
 				{
 					m_GLImages.push_back(namedImageGL);
 
@@ -359,7 +349,7 @@ bool OpenCLWrapper::AddAndWriteImage(const string& name, cl_mem_flags flags, con
 			{
 				NamedImage2D namedImage(cl::Image2D(m_Context, flags, format, width, height, row_pitch, data, &err), name);
 
-				if (m_Info.CheckCL(err, "cl::Image2D()"))
+				if (m_Info->CheckCL(err, "cl::Image2D()"))
 				{
 					m_Images.push_back(namedImage);
 					return true;
@@ -376,7 +366,7 @@ bool OpenCLWrapper::AddAndWriteImage(const string& name, cl_mem_flags flags, con
 				{
 					NamedImage2DGL namedImageGL(IMAGEGL2D(m_Context, flags, GL_TEXTURE_2D, 0, texName, &err), name);//Sizes are different, so create new.
 
-					if (m_Info.CheckCL(err, "cl::ImageGL()"))
+					if (m_Info->CheckCL(err, "cl::ImageGL()"))
 					{
 						m_GLImages[imageIndex] = namedImageGL;
 					}
@@ -395,10 +385,9 @@ bool OpenCLWrapper::AddAndWriteImage(const string& name, cl_mem_flags flags, con
 				if (!CompareImageParams(m_Images[imageIndex].m_Image, flags, format, width, height, row_pitch))
 				{
 					m_Images[imageIndex] = NamedImage2D();//First clear out the original so the two don't exist in memory at once.
-
 					NamedImage2D namedImage(cl::Image2D(m_Context, flags, format, width, height, row_pitch, data, &err), name);
 
-					if (m_Info.CheckCL(err, "cl::Image2D()"))
+					if (m_Info->CheckCL(err, "cl::Image2D()"))
 					{
 						m_Images[imageIndex] = namedImage;
 						return true;
@@ -432,11 +421,9 @@ bool OpenCLWrapper::WriteImage2D(size_t index, bool shared, ::size_t width, ::si
 		cl_int err;
 		cl::Event e;
 		cl::size_t<3> origin, region;
-
 		origin[0] = 0;
 		origin[1] = 0;
 		origin[2] = 0;
-
 		region[0] = width;
 		region[1] = height;
 		region[2] = 1;
@@ -450,9 +437,8 @@ bool OpenCLWrapper::WriteImage2D(size_t index, bool shared, ::size_t width, ::si
 				err = m_Queue.enqueueWriteImage(imageGL, CL_TRUE, origin, region, row_pitch, 0, data, nullptr, &e);
 				e.wait();
 				m_Queue.finish();
-
 				bool b = EnqueueReleaseGLObjects(imageGL);
-				return m_Info.CheckCL(err, "cl::enqueueWriteImage()") && b;
+				return m_Info->CheckCL(err, "cl::enqueueWriteImage()") && b;
 			}
 		}
 		else if (!shared && index < m_Images.size())
@@ -460,7 +446,7 @@ bool OpenCLWrapper::WriteImage2D(size_t index, bool shared, ::size_t width, ::si
 			err = m_Queue.enqueueWriteImage(m_Images[index].m_Image, CL_TRUE, origin, region, row_pitch, 0, data, nullptr, &e);
 			e.wait();
 			m_Queue.finish();
-			return m_Info.CheckCL(err, "cl::enqueueWriteImage()");
+			return m_Info->CheckCL(err, "cl::enqueueWriteImage()");
 		}
 	}
 
@@ -507,11 +493,9 @@ bool OpenCLWrapper::ReadImage(size_t imageIndex, ::size_t width, ::size_t height
 		cl_int err;
 		cl::Event e;
 		cl::size_t<3> origin, region;
-
 		origin[0] = 0;
 		origin[1] = 0;
 		origin[2] = 0;
-
 		region[0] = width;
 		region[1] = height;
 		region[2] = 1;
@@ -524,13 +508,13 @@ bool OpenCLWrapper::ReadImage(size_t imageIndex, ::size_t width, ::size_t height
 			{
 				err = m_Queue.enqueueReadImage(m_GLImages[imageIndex].m_Image, true, origin, region, row_pitch, 0, data);
 				bool b = EnqueueReleaseGLObjects(m_GLImages[imageIndex].m_Image);
-				return m_Info.CheckCL(err, "cl::enqueueReadImage()") && b;
+				return m_Info->CheckCL(err, "cl::enqueueReadImage()") && b;
 			}
 		}
 		else if (!shared && imageIndex < m_Images.size())
 		{
 			err = m_Queue.enqueueReadImage(m_Images[imageIndex].m_Image, true, origin, region, row_pitch, 0, data);
-			return m_Info.CheckCL(err, "cl::enqueueReadImage()");
+			return m_Info->CheckCL(err, "cl::enqueueReadImage()");
 		}
 	}
 
@@ -588,7 +572,6 @@ size_t OpenCLWrapper::GetImageSize(size_t imageIndex, bool shared)
 		if (shared && imageIndex < m_GLImages.size())
 		{
 			vector<cl::Memory> images;
-
 			images.push_back(m_GLImages[imageIndex].m_Image);
 			IMAGEGL2D image = m_GLImages[imageIndex].m_Image;
 
@@ -620,12 +603,11 @@ size_t OpenCLWrapper::GetImageSize(size_t imageIndex, bool shared)
 bool OpenCLWrapper::CompareImageParams(cl::Image& image, cl_mem_flags flags, const cl::ImageFormat& format, ::size_t width, ::size_t height, ::size_t row_pitch)
 {
 	cl_image_format tempFormat = image.getImageInfo<CL_IMAGE_FORMAT>(nullptr);
-
 	return (/*image.getImageInfo<CL_MEM_FLAGS>()       == flags  &&*/
-			tempFormat.image_channel_data_type       		== format.image_channel_data_type &&
-			tempFormat.image_channel_order           		== format.image_channel_order &&
-			image.getImageInfo<CL_IMAGE_WIDTH>(nullptr)     == width  &&
-			image.getImageInfo<CL_IMAGE_HEIGHT>(nullptr)    == height/* &&
+			   tempFormat.image_channel_data_type       		== format.image_channel_data_type &&
+			   tempFormat.image_channel_order           		== format.image_channel_order &&
+			   image.getImageInfo<CL_IMAGE_WIDTH>(nullptr)     == width  &&
+			   image.getImageInfo<CL_IMAGE_HEIGHT>(nullptr)    == height/* &&
 			image.getImageInfo<CL_IMAGE_ROW_PITCH>() == row_pitch*/);//Pitch will be (width * bytes per pixel) + padding.
 }
 
@@ -657,17 +639,15 @@ bool OpenCLWrapper::CreateImage2D(cl::Image2D& image2D, cl_mem_flags flags, cl::
 	if (m_Init)
 	{
 		cl_int err;
-
 		image2D = cl::Image2D(m_Context,
-					flags,
-					format,
-					width,
-					height,
-					row_pitch,
-					data,
-					&err);
-
-		return m_Info.CheckCL(err, "cl::Image2D()");
+							  flags,
+							  format,
+							  width,
+							  height,
+							  row_pitch,
+							  data,
+							  &err);
+		return m_Info->CheckCL(err, "cl::Image2D()");
 	}
 
 	return false;
@@ -687,15 +667,13 @@ bool OpenCLWrapper::CreateImage2DGL(IMAGEGL2D& image2DGL, cl_mem_flags flags, GL
 	if (m_Init)
 	{
 		cl_int err;
-
 		image2DGL = IMAGEGL2D(m_Context,
-					flags,
-					target,
-					miplevel,
-					texobj,
-					&err);
-
-		return m_Info.CheckCL(err, "cl::ImageGL()");
+							  flags,
+							  target,
+							  miplevel,
+							  texobj,
+							  &err);
+		return m_Info->CheckCL(err, "cl::ImageGL()");
 	}
 
 	return false;
@@ -726,11 +704,10 @@ bool OpenCLWrapper::EnqueueAcquireGLObjects(IMAGEGL2D& image)
 	if (m_Init && m_Shared)
 	{
 		vector<cl::Memory> images;
-
 		images.push_back(image);
 		cl_int err = m_Queue.enqueueAcquireGLObjects(&images);
 		m_Queue.finish();
-		return m_Info.CheckCL(err, "cl::CommandQueue::enqueueAcquireGLObjects()");
+		return m_Info->CheckCL(err, "cl::CommandQueue::enqueueAcquireGLObjects()");
 	}
 
 	return false;
@@ -761,11 +738,10 @@ bool OpenCLWrapper::EnqueueReleaseGLObjects(IMAGEGL2D& image)
 	if (m_Init && m_Shared)
 	{
 		vector<cl::Memory> images;
-
 		images.push_back(image);
 		cl_int err = m_Queue.enqueueReleaseGLObjects(&images);
 		m_Queue.finish();
-		return m_Info.CheckCL(err, "cl::CommandQueue::enqueueReleaseGLObjects()");
+		return m_Info->CheckCL(err, "cl::CommandQueue::enqueueReleaseGLObjects()");
 	}
 
 	return false;
@@ -781,9 +757,8 @@ bool OpenCLWrapper::EnqueueAcquireGLObjects(const VECTOR_CLASS<cl::Memory>* memO
 	if (m_Init && m_Shared)
 	{
 		cl_int err = m_Queue.enqueueAcquireGLObjects(memObjects);
-
 		m_Queue.finish();
-		return m_Info.CheckCL(err, "cl::CommandQueue::enqueueAcquireGLObjects()");
+		return m_Info->CheckCL(err, "cl::CommandQueue::enqueueAcquireGLObjects()");
 	}
 
 	return false;
@@ -799,9 +774,8 @@ bool OpenCLWrapper::EnqueueReleaseGLObjects(const VECTOR_CLASS<cl::Memory>* memO
 	if (m_Init && m_Shared)
 	{
 		cl_int err = m_Queue.enqueueReleaseGLObjects(memObjects);
-
 		m_Queue.finish();
-		return m_Info.CheckCL(err, "cl::CommandQueue::enqueueReleaseGLObjects()");
+		return m_Info->CheckCL(err, "cl::CommandQueue::enqueueReleaseGLObjects()");
 	}
 
 	return false;
@@ -818,14 +792,12 @@ bool OpenCLWrapper::EnqueueReleaseGLObjects(const VECTOR_CLASS<cl::Memory>* memO
 bool OpenCLWrapper::CreateSampler(cl::Sampler& sampler, cl_bool normalizedCoords, cl_addressing_mode addressingMode, cl_filter_mode filterMode)
 {
 	cl_int err;
-
 	sampler = cl::Sampler(m_Context,
-				normalizedCoords,
-				addressingMode,
-				filterMode,
-				&err);
-
-	return m_Info.CheckCL(err, "cl::Sampler()");
+						  normalizedCoords,
+						  addressingMode,
+						  filterMode,
+						  &err);
+	return m_Info->CheckCL(err, "cl::Sampler()");
 }
 
 /// <summary>
@@ -839,7 +811,6 @@ bool OpenCLWrapper::CreateSampler(cl::Sampler& sampler, cl_bool normalizedCoords
 bool OpenCLWrapper::SetBufferArg(size_t kernelIndex, cl_uint argIndex, const string& name)
 {
 	int bufferIndex = OpenCLWrapper::FindBufferIndex(name);
-
 	return bufferIndex != -1 ? SetBufferArg(kernelIndex, argIndex, bufferIndex) : false;
 }
 
@@ -897,12 +868,12 @@ bool OpenCLWrapper::SetImageArg(size_t kernelIndex, cl_uint argIndex, bool share
 		if (shared && imageIndex < m_GLImages.size())
 		{
 			err = m_Programs[kernelIndex].m_Kernel.setArg(argIndex, m_GLImages[imageIndex].m_Image);
-			return m_Info.CheckCL(err, "cl::Kernel::setArg()");
+			return m_Info->CheckCL(err, "cl::Kernel::setArg()");
 		}
 		else if (!shared && imageIndex < m_Images.size())
 		{
 			err = m_Programs[kernelIndex].m_Kernel.setArg(argIndex, m_Images[imageIndex].m_Image);
-			return m_Info.CheckCL(err, "cl::Kernel::setArg()");
+			return m_Info->CheckCL(err, "cl::Kernel::setArg()");
 		}
 	}
 
@@ -935,21 +906,20 @@ int OpenCLWrapper::FindKernelIndex(const string& name)
 /// <param name="blockDepth">Depth of each block</param>
 /// <returns>True if success, else false.</returns>
 bool OpenCLWrapper::RunKernel(size_t kernelIndex, size_t totalGridWidth, size_t totalGridHeight, size_t totalGridDepth,
-	size_t blockWidth, size_t blockHeight, size_t blockDepth)
+							  size_t blockWidth, size_t blockHeight, size_t blockDepth)
 {
 	if (m_Init && kernelIndex < m_Programs.size())
 	{
 		cl::Event e;
 		cl_int err = m_Queue.enqueueNDRangeKernel(m_Programs[kernelIndex].m_Kernel,
-			cl::NullRange,
-			cl::NDRange(totalGridWidth, totalGridHeight, totalGridDepth),
-			cl::NDRange(blockWidth, blockHeight, blockDepth),
-			nullptr,
-			&e);
-
+					 cl::NullRange,
+					 cl::NDRange(totalGridWidth, totalGridHeight, totalGridDepth),
+					 cl::NDRange(blockWidth, blockHeight, blockDepth),
+					 nullptr,
+					 &e);
 		e.wait();
 		m_Queue.finish();
-		return m_Info.CheckCL(err, "cl::CommandQueue::enqueueNDRangeKernel()");
+		return m_Info->CheckCL(err, "cl::CommandQueue::enqueueNDRangeKernel()");
 	}
 
 	return false;
@@ -963,7 +933,7 @@ bool OpenCLWrapper::Shared() const { return m_Shared; }
 const cl::Context& OpenCLWrapper::Context() const { return m_Context; }
 size_t OpenCLWrapper::PlatformIndex() const { return m_PlatformIndex; }
 size_t OpenCLWrapper::DeviceIndex() const { return m_DeviceIndex; }
-const string& OpenCLWrapper::DeviceName() const { return m_Info.DeviceName(m_PlatformIndex, m_DeviceIndex); }
+const string& OpenCLWrapper::DeviceName() const { return m_Info->DeviceName(m_PlatformIndex, m_DeviceIndex); }
 size_t OpenCLWrapper::LocalMemSize() const { return m_LocalMemSize; }
 size_t OpenCLWrapper::GlobalMemSize() const { return m_GlobalMemSize; }
 size_t OpenCLWrapper::MaxAllocSize() const { return m_MaxAllocSize; }
@@ -997,7 +967,6 @@ bool OpenCLWrapper::CreateSPK(const string& name, const string& program, const s
 	if (m_Init)
 	{
 		cl_int err;
-
 		spk.m_Name = name;
 		spk.m_Source = cl::Program::Sources(1, std::make_pair(program.c_str(), program.length() + 1));
 		spk.m_Program = cl::Program(m_Context, spk.m_Source);
@@ -1006,17 +975,18 @@ bool OpenCLWrapper::CreateSPK(const string& name, const string& program, const s
 			err = spk.m_Program.build(m_DeviceVec, "-cl-mad-enable");//Tinker with other options later.
 		else
 			err = spk.m_Program.build(m_DeviceVec, "-cl-mad-enable -cl-no-signed-zeros -cl-single-precision-constant");
-			//err = spk.m_Program.build(m_DeviceVec, "-cl-single-precision-constant");
-			//err = spk.m_Program.build(m_DeviceVec, "-cl-mad-enable -cl-single-precision-constant");
-			//err = spk.m_Program.build(m_DeviceVec, "-cl-mad-enable -cl-no-signed-zeros -cl-fast-relaxed-math -cl-single-precision-constant");//This can cause some rounding.
-			//err = spk.m_Program.build(m_DeviceVec, "-cl-mad-enable -cl-single-precision-constant");
 
-		if (m_Info.CheckCL(err, "cl::Program::build()"))
+		//err = spk.m_Program.build(m_DeviceVec, "-cl-single-precision-constant");
+		//err = spk.m_Program.build(m_DeviceVec, "-cl-mad-enable -cl-single-precision-constant");
+		//err = spk.m_Program.build(m_DeviceVec, "-cl-mad-enable -cl-no-signed-zeros -cl-fast-relaxed-math -cl-single-precision-constant");//This can cause some rounding.
+		//err = spk.m_Program.build(m_DeviceVec, "-cl-mad-enable -cl-single-precision-constant");
+
+		if (m_Info->CheckCL(err, "cl::Program::build()"))
 		{
 			//Building of program is ok, now create kernel with the specified entry point.
 			spk.m_Kernel = cl::Kernel(spk.m_Program, entryPoint.c_str(), &err);
 
-			if (m_Info.CheckCL(err, "cl::Kernel()"))
+			if (m_Info->CheckCL(err, "cl::Kernel()"))
 				return true;//Everything is ok.
 		}
 		else

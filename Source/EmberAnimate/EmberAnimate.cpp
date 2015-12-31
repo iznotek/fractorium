@@ -11,8 +11,7 @@
 template <typename T>
 bool EmberAnimate(EmberOptions& opt)
 {
-	OpenCLInfo& info(OpenCLInfo::Instance());
-
+	auto info = OpenCLInfo::Instance();
 	std::cout.imbue(std::locale(""));
 
 	if (opt.DumpArgs())
@@ -21,7 +20,7 @@ bool EmberAnimate(EmberOptions& opt)
 	if (opt.OpenCLInfo())
 	{
 		cout << "\nOpenCL Info: " << endl;
-		cout << info.DumpInfo();
+		cout << info->DumpInfo();
 		return true;
 	}
 
@@ -69,8 +68,8 @@ bool EmberAnimate(EmberOptions& opt)
 		{
 			for (auto& device : devices)
 			{
-				cout << "Platform: " << info.PlatformName(device.first) << endl;
-				cout << "Device: " << info.DeviceName(device.first, device.second) << endl;
+				cout << "Platform: " << info->PlatformName(device.first) << endl;
+				cout << "Device: " << info->DeviceName(device.first, device.second) << endl;
 			}
 		}
 
@@ -135,9 +134,9 @@ bool EmberAnimate(EmberOptions& opt)
 	}
 
 	if (opt.Format() != "jpg" &&
-		opt.Format() != "png" &&
-		opt.Format() != "ppm" &&
-		opt.Format() != "bmp")
+			opt.Format() != "png" &&
+			opt.Format() != "ppm" &&
+			opt.Format() != "bmp")
 	{
 		cout << "Format must be jpg, png, ppm, or bmp not " << opt.Format() << ". Setting to jpg." << endl;
 	}
@@ -235,10 +234,9 @@ bool EmberAnimate(EmberOptions& opt)
 		embers[i].m_FinalRasW = size_t(T(embers[i].m_FinalRasW) * opt.SizeScale());
 		embers[i].m_FinalRasH = size_t(T(embers[i].m_FinalRasH) * opt.SizeScale());
 		embers[i].m_PixelsPerUnit *= T(opt.SizeScale());
-
 		//Cast to double in case the value exceeds 2^32.
 		double imageMem = double(channels) * double(embers[i].m_FinalRasW)
-			   * double(embers[i].m_FinalRasH) * double(renderers[0]->BytesPerChannel());
+						  * double(embers[i].m_FinalRasH) * double(renderers[0]->BytesPerChannel());
 		double maxMem = pow(2.0, double((sizeof(void*) * 8) - 1));
 
 		if (imageMem > maxMem)//Ensure the max amount of memory for a process isn't exceeded.
@@ -256,11 +254,10 @@ bool EmberAnimate(EmberOptions& opt)
 		}
 
 		if ((embers[i].m_FinalRasW != embers[0].m_FinalRasW) ||
-			(embers[i].m_FinalRasH != embers[0].m_FinalRasH))
+				(embers[i].m_FinalRasH != embers[0].m_FinalRasH))
 		{
 			cout << "Warning: flame " << i << " at time " << embers[i].m_Time << " size mismatch. (" << embers[i].m_FinalRasW << ", " << embers[i].m_FinalRasH <<
-				") should be (" << embers[0].m_FinalRasW << ", " << embers[0].m_FinalRasH << "). Setting to " << embers[0].m_FinalRasW << ", " << embers[0].m_FinalRasH << "." << endl;
-
+				 ") should be (" << embers[0].m_FinalRasW << ", " << embers[0].m_FinalRasH << "). Setting to " << embers[0].m_FinalRasW << ", " << embers[0].m_FinalRasH << "." << endl;
 			embers[i].m_FinalRasW = embers[0].m_FinalRasW;
 			embers[i].m_FinalRasH = embers[0].m_FinalRasH;
 		}
@@ -279,7 +276,7 @@ bool EmberAnimate(EmberOptions& opt)
 
 		if (opt.LastFrame() == UINT_MAX)
 			opt.LastFrame(ClampGte<size_t>(size_t(embers.back().m_Time),//Make sure time - 1 is positive before converting to size_t.
-				opt.FirstFrame() + opt.Dtime()));//Make sure the final value is at least first frame + dtime.
+										   opt.FirstFrame() + opt.Dtime()));//Make sure the final value is at least first frame + dtime.
 	}
 
 	if (!opt.Out().empty())
@@ -306,11 +303,11 @@ bool EmberAnimate(EmberOptions& opt)
 	}
 
 	std::function<void (vector<byte>&, string, EmberImageComments, size_t, size_t, size_t)> saveFunc = [&](vector<byte>& finalImage,
-		string filename,//These are copies because this will be launched in a thread.
-		EmberImageComments comments,
-		size_t w,
-		size_t h,
-		size_t chan)
+			string filename,//These are copies because this will be launched in a thread.
+			EmberImageComments comments,
+			size_t w,
+			size_t h,
+			size_t chan)
 	{
 		bool writeSuccess = false;
 		byte* finalImagep = finalImage.data();
@@ -330,9 +327,7 @@ bool EmberAnimate(EmberOptions& opt)
 		if (!writeSuccess)
 			cout << "Error writing " << filename << endl;
 	};
-	
 	atomfTime.store(opt.FirstFrame());
-
 	std::function<void(size_t)> iterFunc = [&](size_t index)
 	{
 		size_t ftime, finalImageIndex = 0;
@@ -344,7 +339,6 @@ bool EmberAnimate(EmberOptions& opt)
 		Ember<T> centerEmber;
 		vector<byte> finalImages[2];
 		std::thread writeThread;
-
 		os.imbue(std::locale(""));
 
 		while (atomfTime.fetch_add(opt.Dtime()), ((ftime = atomfTime.load()) <= opt.LastFrame()))
@@ -398,7 +392,9 @@ bool EmberAnimate(EmberOptions& opt)
 			{
 				verboseCs.Enter();
 				cout << "\nIters ran/requested: " + os.str() << endl;
+
 				if (!opt.EmberCL()) cout << "Bad values: " << stats.m_Badvals << endl;
+
 				cout << "Render time: " << t.Format(stats.m_RenderMs) << endl;
 				cout << "Pure iter time: " << t.Format(stats.m_IterMs) << endl;
 				cout << "Iters/sec: " << size_t(stats.m_Iters / (stats.m_IterMs / 1000.0)) << endl;
@@ -425,7 +421,6 @@ bool EmberAnimate(EmberOptions& opt)
 		if (writeThread.joinable())//One final check to make sure all writing is done before exiting this thread.
 			writeThread.join();
 	};
-
 	threadVec.reserve(renderers.size());
 
 	for (size_t r = 0; r < renderers.size(); r++)
@@ -441,7 +436,6 @@ bool EmberAnimate(EmberOptions& opt)
 			th.join();
 
 	t.Toc("\nFinished in: ", true);
-
 	return true;
 }
 
@@ -455,7 +449,6 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 	bool b = false;
 	EmberOptions opt;
-
 	//Required for large allocs, else GPU memory usage will be severely limited to small sizes.
 	//This must be done in the application and not in the EmberCL DLL.
 #ifdef WIN32
@@ -466,23 +459,23 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	if (!opt.Populate(argc, argv, OPT_USE_ANIMATE))
 	{
-
 #ifdef DO_DOUBLE
+
 		if (opt.Bits() == 64)
 		{
 			b = EmberAnimate<double>(opt);
 		}
 		else
 #endif
-		if (opt.Bits() == 33)
-		{
-			b = EmberAnimate<float>(opt);
-		}
-		else if (opt.Bits() == 32)
-		{
-			cout << "Bits 32/int histogram no longer supported. Using bits == 33 (float)." << endl;
-			b = EmberAnimate<float>(opt);
-		}
+			if (opt.Bits() == 33)
+			{
+				b = EmberAnimate<float>(opt);
+			}
+			else if (opt.Bits() == 32)
+			{
+				cout << "Bits 32/int histogram no longer supported. Using bits == 33 (float)." << endl;
+				b = EmberAnimate<float>(opt);
+			}
 	}
 
 	return b ? 0 : 1;

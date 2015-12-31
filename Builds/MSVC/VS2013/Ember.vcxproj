@@ -279,6 +279,7 @@
     <ClInclude Include="..\..\..\Source\Ember\Ember.h" />
     <ClInclude Include="..\..\..\Source\Ember\DensityFilter.h" />
     <ClInclude Include="..\..\..\Source\Ember\Interpolate.h" />
+    <ClInclude Include="..\..\..\Source\Ember\VarFuncs.h" />
     <ClInclude Include="..\..\..\Source\Ember\PaletteList.h" />
     <ClInclude Include="..\..\..\Source\Ember\Renderer.h" />
     <ClInclude Include="..\..\..\Source\Ember\RendererBase.h" />

@@ -206,7 +206,7 @@ public:
 
 	//Info.
 	virtual void FillSummary() { }
-	
+
 	//Rendering/progress.
 	virtual bool Render() { return false; }
 	virtual bool CreateRenderer(eRendererType renderType, const vector<pair<size_t, size_t>>& devices, bool shared = true) { return false; }
@@ -232,7 +232,7 @@ protected:
 	void AddProcessAction(eProcessAction action);
 	eProcessAction CondenseAndClearProcessActions();
 	eProcessState ProcessState() { return m_Renderer.get() ? m_Renderer->ProcessState() : NONE; }
-	
+
 	//Non-templated members.
 	bool m_Rendering;
 	bool m_Shared;
@@ -261,7 +261,7 @@ protected:
 	Fractorium* m_Fractorium;
 	QTimer* m_RenderTimer;
 	QTimer* m_RenderRestartTimer;
-	OpenCLInfo& m_Info;
+	shared_ptr<OpenCLInfo> m_Info;
 };
 
 /// <summary>
@@ -434,7 +434,7 @@ public:
 	virtual void XaosChanged(int x, int y, double val) override;
 	virtual void ClearXaos() override;
 	virtual void RandomXaos() override;
-	
+
 	//Palette.
 	virtual int  InitPaletteList(const string& s) override;
 	virtual bool FillPaletteTable(const string& s) override;

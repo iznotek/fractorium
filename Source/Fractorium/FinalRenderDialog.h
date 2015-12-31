@@ -40,7 +40,7 @@ class FractoriumFinalRenderDialog : public QDialog
 	friend Fractorium;
 	friend FinalRenderEmberControllerBase;
 	friend FinalRenderEmberController<float>;
-	
+
 #ifdef DO_DOUBLE
 	friend FinalRenderEmberController<double>;
 #endif
@@ -112,7 +112,7 @@ protected:
 private:
 	bool CreateControllerFromGUI(bool createRenderer);
 	bool SetMemory();
-	
+
 	int m_MemoryCellIndex;
 	int m_ItersCellIndex;
 	int m_PathCellIndex;
@@ -128,7 +128,7 @@ private:
 	QLineEdit* m_SuffixEdit;
 	FractoriumSettings* m_Settings;
 	Fractorium* m_Fractorium;
-	OpenCLInfo& m_Info;
+	shared_ptr<OpenCLInfo> m_Info;
 	vector<OpenCLWrapper> m_Wrappers;
 	unique_ptr<FinalRenderEmberControllerBase> m_Controller;
 	Ui::FinalRenderDialog ui;

@@ -37,6 +37,6 @@ private:
 	size_t m_WarpSize;
 	size_t m_PlatformIndex;
 	size_t m_DeviceIndex;
-	OpenCLInfo& m_Info;
+	shared_ptr<OpenCLInfo> m_Info;
 };
 }

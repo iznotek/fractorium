@@ -52,7 +52,7 @@ private:
 	void GuiToData();
 
 	Ui::OptionsDialog ui;
-	OpenCLInfo& m_Info;
+	shared_ptr<OpenCLInfo> m_Info;
 	SpinBox* m_XmlTemporalSamplesSpin;
 	SpinBox* m_XmlQualitySpin;
 	SpinBox* m_XmlSupersampleSpin;

@@ -9,11 +9,7 @@
 
 namespace EmberCLns
 {
-#if CL_VERSION_1_2
 #define IMAGEGL2D cl::ImageGL
-#else
-#define IMAGEGL2D cl::Image2DGL
-#endif
 
 /// <summary>
 /// Class to contain all of the things needed to store an OpenCL program.
@@ -162,8 +158,7 @@ public:
 		if (m_Init && kernelIndex < m_Programs.size())
 		{
 			cl_int err = m_Programs[kernelIndex].m_Kernel.setArg(argIndex, arg);
-
-			return m_Info.CheckCL(err, "cl::Kernel::setArg()");
+			return m_Info->CheckCL(err, "cl::Kernel::setArg()");
 		}
 
 		return false;
@@ -201,7 +196,7 @@ private:
 	cl::Context m_Context;
 	cl::Device m_Device;
 	cl::CommandQueue m_Queue;
-	OpenCLInfo& m_Info;
+	shared_ptr<OpenCLInfo> m_Info;
 	std::vector<cl::Device> m_DeviceVec;
 	std::vector<Spk> m_Programs;
 	std::vector<NamedBuffer> m_Buffers;

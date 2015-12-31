@@ -11,7 +11,6 @@ void Fractorium::InitParamsUI()
 	double dmax = numeric_limits<double>::max();
 	vector<string> comboVals;
 	QTableWidget* table = ui.ColorTable;
-
 	//Because QTableWidget does not allow for a single title bar/header
 	//at the top of a multi-column table, the workaround hack is to just
 	//make another single column table with no rows, and use the single
@@ -21,14 +20,12 @@ void Fractorium::InitParamsUI()
 	SetFixedTableHeader(ui.GeometryTableHeader->horizontalHeader());
 	SetFixedTableHeader(ui.FilterTableHeader->horizontalHeader());
 	SetFixedTableHeader(ui.IterationTableHeader->horizontalHeader());
-
 	//Color.
 	SetupSpinner<DoubleSpinBox, double>(table, this, row, 1, m_BrightnessSpin,	   spinHeight, 0.05,  100,    1,  SIGNAL(valueChanged(double)), SLOT(OnBrightnessChanged(double)),	   true,  4.0,  4.0,  4.0);
 	SetupSpinner<DoubleSpinBox, double>(table, this, row, 1, m_GammaSpin,		   spinHeight,    1, 9999,  0.5,  SIGNAL(valueChanged(double)), SLOT(OnGammaChanged(double)),          true,  4.0,  4.0,  4.0);
 	SetupSpinner<DoubleSpinBox, double>(table, this, row, 1, m_GammaThresholdSpin, spinHeight,    0,   10, 0.01,  SIGNAL(valueChanged(double)), SLOT(OnGammaThresholdChanged(double)),  true,  0.1,  0.1,  0.0);
 	SetupSpinner<DoubleSpinBox, double>(table, this, row, 1, m_VibrancySpin,	   spinHeight,    0,   30, 0.01,  SIGNAL(valueChanged(double)), SLOT(OnVibrancyChanged(double)),       true,  1.0,  1.0,  0.0);
-	SetupSpinner<DoubleSpinBox, double>(table, this, row, 1, m_HighlightSpin,	   spinHeight, -1.0,  2.0,	0.1,  SIGNAL(valueChanged(double)), SLOT(OnHighlightPowerChanged(double)), true, -1.0, -1.0, -1.0);
-
+	SetupSpinner<DoubleSpinBox, double>(table, this, row, 1, m_HighlightSpin,	   spinHeight, -1.0,   10,  0.1,  SIGNAL(valueChanged(double)), SLOT(OnHighlightPowerChanged(double)), true, -1.0, -1.0, -1.0);
 	m_GammaThresholdSpin->setDecimals(4);
 	m_BackgroundColorButton = new QPushButton("...", table);
 	m_BackgroundColorButton->setMinimumWidth(21);
@@ -37,11 +34,10 @@ void Fractorium::InitParamsUI()
 	table->item(row, 1)->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
 	connect(m_BackgroundColorButton, SIGNAL(clicked(bool)), this, SLOT(OnBackgroundColorButtonClicked(bool)), Qt::QueuedConnection);
 	row++;
-
 	comboVals.push_back("Step");
 	comboVals.push_back("Linear");
 	SetupCombo(table, this, row, 1, m_PaletteModeCombo, comboVals, SIGNAL(currentIndexChanged(int)), SLOT(OnPaletteModeComboCurrentIndexChanged(int)));
-
+	m_PaletteModeCombo->SetCurrentIndexStealth(PALETTE_LINEAR);
 	//Geometry.
 	row = 0;
 	table = ui.GeometryTable;
@@ -57,31 +53,24 @@ void Fractorium::InitParamsUI()
 	SetupSpinner<DoubleSpinBox, double>(table, this, row, 1, m_PitchSpin,       spinHeight,  -180,     180,      1, SIGNAL(valueChanged(double)), SLOT(OnPitchChanged(double)),       true,	  0,  45,	0);
 	SetupSpinner<DoubleSpinBox, double>(table, this, row, 1, m_YawSpin,         spinHeight,  -180,     180,      1, SIGNAL(valueChanged(double)), SLOT(OnYawChanged(double)),         true,	  0,  45,	0);
 	SetupSpinner<DoubleSpinBox, double>(table, this, row, 1, m_DepthBlurSpin,   spinHeight,  -100,     100,   0.01, SIGNAL(valueChanged(double)), SLOT(OnDepthBlurChanged(double)),   true,	  0,   1,	0);
-
 	//Set w/h max values.
 	m_CenterXSpin->setDecimals(3);
 	m_CenterYSpin->setDecimals(3);
 	m_ZPosSpin->setDecimals(3);
 	m_PerspectiveSpin->setDecimals(4);
 	m_DepthBlurSpin->setDecimals(3);
-
 	//Filter.
 	row = 0;
 	table = ui.FilterTable;
 	SetupSpinner<DoubleSpinBox, double>(table, this, row, 1, m_SpatialFilterWidthSpin, spinHeight, 0.1, 10, 0.1, SIGNAL(valueChanged(double)), SLOT(OnSpatialFilterWidthChanged(double)), true, 1.0, 1.0, 1.0);
-
 	comboVals = SpatialFilterCreator<float>::FilterTypes();
 	SetupCombo(table, this, row, 1, m_SpatialFilterTypeCombo, comboVals, SIGNAL(currentIndexChanged(const QString&)), SLOT(OnSpatialFilterTypeComboCurrentIndexChanged(const QString&)));
-
 	SetupSpinner<DoubleSpinBox, double>(table, this, row, 1, m_TemporalFilterWidthSpin, spinHeight, 1, 10, 1, SIGNAL(valueChanged(double)), SLOT(OnTemporalFilterWidthChanged(double)), true, 1);
-
 	comboVals = TemporalFilterCreator<float>::FilterTypes();
 	SetupCombo(table, this, row, 1, m_TemporalFilterTypeCombo, comboVals, SIGNAL(currentIndexChanged(const QString&)), SLOT(OnTemporalFilterTypeComboCurrentIndexChanged(const QString&)));
-
 	SetupSpinner<DoubleSpinBox, double>(table, this, row, 1, m_DEFilterMinRadiusSpin, spinHeight,    0, 25,   1, SIGNAL(valueChanged(double)), SLOT(OnDEFilterMinRadiusWidthChanged(double)), true,   0,   0,   0);
 	SetupSpinner<DoubleSpinBox, double>(table, this, row, 1, m_DEFilterMaxRadiusSpin, spinHeight,    0, 25,   1, SIGNAL(valueChanged(double)), SLOT(OnDEFilterMaxRadiusWidthChanged(double)), true, 0.0, 9.0,   0);
 	SetupSpinner<DoubleSpinBox, double>(table, this, row, 1, m_DECurveSpin,			  spinHeight, 0.15,  5, 0.1, SIGNAL(valueChanged(double)), SLOT(OnDEFilterCurveWidthChanged(double)),     true, 0.4, 0.4, 0.4);
-
 	//Iteration.
 	row = 0;
 	table = ui.IterationTable;
@@ -90,12 +79,10 @@ void Fractorium::InitParamsUI()
 	SetupSpinner<DoubleSpinBox, double>(table, this, row, 1, m_QualitySpin,			spinHeight, 1,      dmax,  50, SIGNAL(valueChanged(double)), SLOT(OnQualityChanged(double)),	  true,    10,	  10, 10);
 	SetupSpinner<SpinBox, int>(         table, this, row, 1, m_SupersampleSpin,		spinHeight, 1,         4,   1, SIGNAL(valueChanged(int)),	 SLOT(OnSupersampleChanged(int)),	  true,     1,	   1,  1);
 	SetupSpinner<SpinBox, int>(         table, this, row, 1, m_TemporalSamplesSpin, spinHeight, 1,      5000,   1, SIGNAL(valueChanged(int)),	 SLOT(OnTemporalSamplesChanged(int)), true,  1000);
-
 	comboVals.clear();
 	comboVals.push_back("Step");
 	comboVals.push_back("Linear");
 	SetupCombo(table, this, row, 1, m_AffineInterpTypeCombo, comboVals, SIGNAL(currentIndexChanged(int)), SLOT(OnAffineInterpTypeComboCurrentIndexChanged(int)));
-
 	comboVals.clear();
 	comboVals.push_back("Linear");
 	comboVals.push_back("Smooth");
@@ -277,10 +264,10 @@ void Fractorium::OnZPosChanged(double d) {  m_Controller->ZPosChanged(d); }
 template <typename T> void FractoriumEmberController<T>::PerspectiveChanged(double d) { Update([&] { m_Ember.m_CamPerspective = d; }); }
 void Fractorium::OnPerspectiveChanged(double d) { m_Controller->PerspectiveChanged(d); }
 
-template <typename T> void FractoriumEmberController<T>::PitchChanged(double d) { Update([&] { m_Ember.m_CamPitch = d * DEG_2_RAD; }); }
+template <typename T> void FractoriumEmberController<T>::PitchChanged(double d) { Update([&] { m_Ember.m_CamPitch = d* DEG_2_RAD; }); }
 void Fractorium::OnPitchChanged(double d) { m_Controller->PitchChanged(d); }
 
-template <typename T> void FractoriumEmberController<T>::YawChanged(double d) { Update([&] { m_Ember.m_CamYaw = d * DEG_2_RAD; }); }
+template <typename T> void FractoriumEmberController<T>::YawChanged(double d) { Update([&] { m_Ember.m_CamYaw = d* DEG_2_RAD; }); }
 void Fractorium::OnYawChanged(double d) { m_Controller->YawChanged(d); }
 
 template <typename T> void FractoriumEmberController<T>::DepthBlurChanged(double d) { Update([&] { m_Ember.m_CamDepthBlur = d; }); }
@@ -408,7 +395,7 @@ void Fractorium::OnFuseChanged(int d) { m_Controller->FuseChanged(d); }
 /// 20-50 is good for OpenCL.
 /// Above 500 seems to offer little additional value for final renders.
 /// Called when the quality spinner is changed.
-/// If rendering is done, and the value is greater than the last value, 
+/// If rendering is done, and the value is greater than the last value,
 /// the rendering process is continued, else it's reset.
 /// </summary>
 /// <param name="d">The quality in terms of iterations per pixel</param>
@@ -545,20 +532,17 @@ void FractoriumEmberController<T>::FillParamTablesAndPalette()
 	m_Fractorium->m_TemporalSamplesSpin->SetValueStealth(m_Ember.m_TemporalSamples);
 	m_Fractorium->m_AffineInterpTypeCombo->SetCurrentIndexStealth(m_Ember.m_AffineInterp);
 	m_Fractorium->m_InterpTypeCombo->SetCurrentIndexStealth(m_Ember.m_Interp);
-
 	//Palette related items:
 	//The temp palette is assigned the palette read when the file was parsed/saved. The user can apply adjustments on the GUI later.
 	//These adjustments will be applied to the temp palette, then assigned back to m_Ember.m_Palette.
 	//Normally, the temp palette is assigned whenever the user clicks on a palette cell. But since this is not
 	//called in response to that event, it is skipped here so must do it manually.
 	m_TempPalette = m_Ember.m_Palette;
-
 	//Palette controls are reset on each ember load. This means that if the palette was adjusted, saved, the selected ember
 	//changed to another, then back, the previously adjusted palette will now be considered the base, and all adjustments set to 0.
 	//To fix this, the caller must preserve the temp palette and the adjustment values and reassign. See Fractorium::CreateControllerFromOptions()
 	//for an example.
 	m_Fractorium->ResetPaletteControls();
-	
 	auto temp = m_Ember.m_Palette.m_Filename;
 
 	if (temp.get())
@@ -578,7 +562,6 @@ template <typename T>
 void FractoriumEmberController<T>::ParamsToEmber(Ember<T>& ember)
 {
 	QColor color = m_Fractorium->ui.ColorTable->item(5, 1)->backgroundColor();
-
 	ember.m_Brightness = m_Fractorium->m_BrightnessSpin->value();//Color.
 	ember.m_Gamma = m_Fractorium->m_GammaSpin->value();
 	ember.m_GammaThresh = m_Fractorium->m_GammaThresholdSpin->value();
@@ -614,7 +597,6 @@ void FractoriumEmberController<T>::ParamsToEmber(Ember<T>& ember)
 	ember.m_TemporalSamples = m_Fractorium->m_TemporalSamplesSpin->value();
 	ember.m_AffineInterp = eAffineInterp(m_Fractorium->m_AffineInterpTypeCombo->currentIndex());
 	ember.m_Interp = eInterp(m_Fractorium->m_InterpTypeCombo->currentIndex());
-
 	ember.SyncSize();
 }
 
@@ -648,5 +630,5 @@ void Fractorium::SetScale(double scale)
 template class FractoriumEmberController<float>;
 
 #ifdef DO_DOUBLE
-	template class FractoriumEmberController<double>;
+template class FractoriumEmberController<double>;
 #endif

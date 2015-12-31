@@ -50,7 +50,7 @@ template <typename T> class FinalRenderEmberController;
 /// upon first use with lazy instantiation and then kept around for the remainder of the program.
 /// Additional dialogs are for the about box, options, and final rendering out to a file.
 /// While all class member variables and functions are declared in this .h file, the implementation
-/// for them is far too lengthy to put in a single .cpp file. So general functionality is placed in 
+/// for them is far too lengthy to put in a single .cpp file. So general functionality is placed in
 /// Fractorium.cpp and the other functional areas are each broken out into their own files.
 /// The order of the functions in each .cpp file should roughly match the order they appear in the .h file.
 /// Future todo list:
@@ -74,13 +74,13 @@ class Fractorium : public QMainWindow
 	friend FractoriumEmberController<float>;
 	friend FinalRenderEmberControllerBase;
 	friend FinalRenderEmberController<float>;
-	
+
 #ifdef DO_DOUBLE
 	friend GLEmberController<double>;
 	friend FractoriumEmberController<double>;
 	friend FinalRenderEmberController<double>;
 #endif
-	
+
 public:
 	Fractorium(QWidget* p = 0);
 	~Fractorium();
@@ -99,7 +99,7 @@ public:
 	bool DrawAllPre();
 	bool DrawAllPost();
 	bool LocalPivot();
-	
+
 public slots:
 	//Dock.
 	void OnDockTopLevelChanged(bool topLevel);
@@ -306,7 +306,7 @@ protected:
 	virtual void dragEnterEvent(QDragEnterEvent* e) override;
 	virtual void dragMoveEvent(QDragMoveEvent* e) override;
 	virtual void dropEvent(QDropEvent* e) override;
-	virtual void showEvent(QShowEvent *e) override;
+	virtual void showEvent(QShowEvent* e) override;
 
 private:
 	void InitMenusUI();
@@ -353,7 +353,7 @@ private:
 
 	//Xaos.
 	void FillXaosTable();
-	
+
 	//Palette.
 	void ResetPaletteControls();
 	void SetPaletteFileComboIndex(const string& filename);
@@ -415,7 +415,7 @@ private:
 	SpinBox* m_TemporalSamplesSpin;
 	StealthComboBox* m_AffineInterpTypeCombo;
 	StealthComboBox* m_InterpTypeCombo;
-	
+
 	//Xforms.
 	DoubleSpinBox* m_XformWeightSpin;
 	SpinnerButtonWidget* m_XformWeightSpinnerButtonWidget;
@@ -444,7 +444,7 @@ private:
 	DoubleSpinBox* m_PostY2Spin;
 	DoubleSpinBox* m_PostO1Spin;
 	DoubleSpinBox* m_PostO2Spin;
-	
+
 	DoubleSpinBox* m_PreSpins[6];
 	DoubleSpinBox* m_PostSpins[6];
 
@@ -499,7 +499,7 @@ private:
 	int m_VarSortMode;
 	int m_PaletteSortMode;
 	int m_PreviousPaletteRow;
-	OpenCLInfo& m_Info;
+	shared_ptr<OpenCLInfo> m_Info;
 	unique_ptr<FractoriumEmberControllerBase> m_Controller;
 	Ui::FractoriumClass ui;
 };

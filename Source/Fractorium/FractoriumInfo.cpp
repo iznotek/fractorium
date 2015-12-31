@@ -8,20 +8,19 @@ void Fractorium::InitInfoUI()
 {
 	auto treeHeader = ui.SummaryTree->header();
 	auto tableHeader = ui.SummaryTable->horizontalHeader();
-
 	treeHeader->setVisible(true);
 	treeHeader->setSectionsClickable(true);
 	treeHeader->setSectionResizeMode(QHeaderView::ResizeToContents);
 	connect(treeHeader, SIGNAL(sectionClicked(int)), this, SLOT(OnSummaryTreeHeaderSectionClicked(int)), Qt::QueuedConnection);
 	connect(tableHeader, SIGNAL(sectionResized(int, int, int)), this, SLOT(OnSummaryTableHeaderResized(int, int, int)), Qt::QueuedConnection);
 	SetFixedTableHeader(ui.SummaryTable->verticalHeader());
-
 	ui.SummaryTable->setItem(0, 0, m_InfoNameItem = new QTableWidgetItem(""));
 	ui.SummaryTable->setItem(1, 0, m_InfoPaletteItem = new QTableWidgetItem(""));
 	ui.SummaryTable->setItem(2, 0, m_Info3dItem = new QTableWidgetItem(""));
 	ui.SummaryTable->setItem(3, 0, m_InfoXaosItem = new QTableWidgetItem(""));
 	ui.SummaryTable->setItem(4, 0, m_InfoXformCountItem = new QTableWidgetItem(""));
 	ui.SummaryTable->setItem(5, 0, m_InfoFinalXformItem = new QTableWidgetItem(""));
+	ui.InfoTabWidget->setCurrentIndex(0);//Make summary tab focused by default.
 }
 
 /// <summary>
@@ -93,7 +92,6 @@ void FractoriumEmberController<T>::FillSummary()
 	m_Fractorium->m_InfoXaosItem->setText(m_Ember.XaosPresent() ? "Yes" : "No");
 	m_Fractorium->m_InfoXformCountItem->setText(QString::number(m_Ember.XformCount()));
 	m_Fractorium->m_InfoFinalXformItem->setText(m_Ember.UseFinalXform() ? "Yes" : "No");
-
 	QPixmap pixmap = QPixmap::fromImage(m_FinalPaletteImage);//Create a QPixmap out of the QImage.
 	QSize size(table->columnWidth(0), table->rowHeight(1) + 1);
 	m_Fractorium->m_InfoPaletteItem->setData(Qt::DecorationRole, pixmap.scaled(size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
@@ -112,19 +110,18 @@ void FractoriumEmberController<T>::FillSummary()
 		if (!m_Ember.IsFinalXform(xform) && index != -1)
 		{
 			item1->setText(0, "Xform " +
-				QString::number(x + 1) +
-				" (" + QLocale::system().toString(xform->m_Weight, pc, p) + ") (" +
-				QLocale::system().toString(double(m_NormalizedWeights[index]), pc, p) + ") " +
-				linked);
+						   QString::number(x + 1) +
+						   " (" + QLocale::system().toString(xform->m_Weight, pc, p) + ") (" +
+						   QLocale::system().toString(double(m_NormalizedWeights[index]), pc, p) + ") " +
+						   linked);
 		}
 		else
 			item1->setText(0, "Final xform");
 
 		item1->setText(1, xform->m_Name.c_str());
-
 		auto affineItem = new QTreeWidgetItem(item1);
 		affineItem->setText(0, "Affine");
-		
+
 		if (xform->m_Affine.IsZero())
 			as += " Empty";
 		else if (xform->m_Affine.IsID())
@@ -139,7 +136,6 @@ void FractoriumEmberController<T>::FillSummary()
 		}
 
 		affineItem->setText(1, as);
-
 		auto colorIndexItem = new QTreeWidgetItem(item1);
 		colorIndexItem->setText(0, "Color index");
 		colorIndexItem->setText(1, QLocale::system().toString(xform->m_ColorX, pc, p));
@@ -147,15 +143,12 @@ void FractoriumEmberController<T>::FillSummary()
 		color.setAlphaF(xform->m_Opacity);
 		colorIndexItem->setBackgroundColor(1, color);
 		colorIndexItem->setTextColor(1, VisibleColor(color));
-
 		auto colorSpeedItem = new QTreeWidgetItem(item1);
 		colorSpeedItem->setText(0, "Color speed");
 		colorSpeedItem->setText(1, QLocale::system().toString(xform->m_ColorSpeed, pc, p));
-
 		auto opacityItem = new QTreeWidgetItem(item1);
 		opacityItem->setText(0, "Opacity");
 		opacityItem->setText(1, QLocale::system().toString(xform->m_Opacity, pc, p));
-
 		auto dcItem = new QTreeWidgetItem(item1);
 		dcItem->setText(0, "Direct color");
 		dcItem->setText(1, QLocale::system().toString(xform->m_DirectColor, pc, p));
@@ -163,7 +156,6 @@ void FractoriumEmberController<T>::FillSummary()
 		while (auto var = xform->GetVariation(i++))
 		{
 			auto vitem = new QTreeWidgetItem(item1);
-
 			vitem->setText(0, QString::fromStdString(var->Name()));
 			vitem->setText(1, QLocale::system().toString(var->m_Weight, pc, vp).rightJustified(vlen, ' '));
 
@@ -176,7 +168,6 @@ void FractoriumEmberController<T>::FillSummary()
 					if (!params[j].IsPrecalc())
 					{
 						auto pitem = new QTreeWidgetItem(vitem);
-
 						pitem->setText(0, params[j].Name().c_str());
 						pitem->setText(1, QLocale::system().toString(params[j].ParamVal(), pc, vp).rightJustified(vlen, ' '));
 					}
@@ -229,19 +220,16 @@ void Fractorium::UpdateHistogramBounds()
 		sprintf_s(m_LRString, 32, "LR: %3.3f, %3.3f",  -r->LowerLeftX(), r->LowerLeftY());
 		sprintf_s(m_LLString, 32, "LL: %3.3f, %3.3f",   r->LowerLeftX(), r->LowerLeftY());
 		sprintf_s(m_WHString, 32, "W x H: %4lu x %4lu", r->SuperRasW(),  r->SuperRasH());
-
 		ui.InfoBoundsLabelUL->setText(QString(m_ULString));
 		ui.InfoBoundsLabelUR->setText(QString(m_URString));
 		ui.InfoBoundsLabelLR->setText(QString(m_LRString));
 		ui.InfoBoundsLabelLL->setText(QString(m_LLString));
 		ui.InfoBoundsLabelWH->setText(QString(m_WHString));
-
 		ui.InfoBoundsTable->item(0, 1)->setText(ToString<qulonglong>(r->GutterWidth()));
 
 		if (r->GetDensityFilter())
 		{
 			uint deWidth = (r->GetDensityFilter()->FilterWidth() * 2) + 1;
-
 			sprintf_s(m_DEString, 16, "%d x %d", deWidth, deWidth);
 			ui.InfoBoundsTable->item(1, 1)->setText(QString(m_DEString));
 		}

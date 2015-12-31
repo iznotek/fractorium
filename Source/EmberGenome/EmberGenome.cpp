@@ -10,28 +10,28 @@
 template <typename T>
 void SetDefaultTestValues(Ember<T>& ember)
 {
-   ember.m_Time = 0.0;
-   ember.m_Interp = EMBER_INTERP_LINEAR;
-   ember.m_PaletteInterp = INTERP_HSV;
-   ember.m_Background[0] = 0;
-   ember.m_Background[1] = 0;
-   ember.m_Background[2] = 0;
-   ember.m_Background[3] = 255;
-   ember.m_CenterX = 0;
-   ember.m_CenterY = 0;
-   ember.m_Rotate = 0;
-   ember.m_PixelsPerUnit = 64;
-   ember.m_FinalRasW = 128;
-   ember.m_FinalRasH = 128;
-   ember.m_Supersample = 1;
-   ember.m_SpatialFilterRadius = T(0.5);
-   ember.m_SpatialFilterType = GAUSSIAN_SPATIAL_FILTER;
-   ember.m_Zoom = 0;
-   ember.m_Quality = 1;
-   ember.m_TemporalSamples = 1;
-   ember.m_MaxRadDE = 0;
-   ember.m_MinRadDE = 0;
-   ember.m_CurveDE = T(0.6);
+	ember.m_Time = 0.0;
+	ember.m_Interp = EMBER_INTERP_LINEAR;
+	ember.m_PaletteInterp = INTERP_HSV;
+	ember.m_Background[0] = 0;
+	ember.m_Background[1] = 0;
+	ember.m_Background[2] = 0;
+	ember.m_Background[3] = 255;
+	ember.m_CenterX = 0;
+	ember.m_CenterY = 0;
+	ember.m_Rotate = 0;
+	ember.m_PixelsPerUnit = 64;
+	ember.m_FinalRasW = 128;
+	ember.m_FinalRasH = 128;
+	ember.m_Supersample = 1;
+	ember.m_SpatialFilterRadius = T(0.5);
+	ember.m_SpatialFilterType = GAUSSIAN_SPATIAL_FILTER;
+	ember.m_Zoom = 0;
+	ember.m_Quality = 1;
+	ember.m_TemporalSamples = 1;
+	ember.m_MaxRadDE = 0;
+	ember.m_MinRadDE = 0;
+	ember.m_CurveDE = T(0.6);
 }
 
 /// <summary>
@@ -43,8 +43,7 @@ void SetDefaultTestValues(Ember<T>& ember)
 template <typename T>
 bool EmberGenome(EmberOptions& opt)
 {
-	OpenCLInfo& info(OpenCLInfo::Instance());
-
+	auto info = OpenCLInfo::Instance();
 	std::cout.imbue(std::locale(""));
 
 	if (opt.DumpArgs())
@@ -53,7 +52,7 @@ bool EmberGenome(EmberOptions& opt)
 	if (opt.OpenCLInfo())
 	{
 		cerr << "\nOpenCL Info: " << endl;
-		cerr << info.DumpInfo();
+		cerr << info->DumpInfo();
 		return true;
 	}
 
@@ -83,7 +82,6 @@ bool EmberGenome(EmberOptions& opt)
 	unique_ptr<Renderer<T, float>> renderer(CreateRenderer<T>(opt.EmberCL() ? OPENCL_RENDERER : CPU_RENDERER, devices, false, 0, emberReport));
 	QTIsaac<ISAAC_SIZE, ISAAC_INT> rand(ISAAC_INT(t.Tic()), ISAAC_INT(t.Tic() * 2), ISAAC_INT(t.Tic() * 3));
 	vector<string> errorReport = emberReport.ErrorReport();
-
 	os.imbue(std::locale(""));
 	os2.imbue(std::locale(""));
 
@@ -112,15 +110,14 @@ bool EmberGenome(EmberOptions& opt)
 		{
 			for (auto& device : devices)
 			{
-				cerr << "Platform: " << info.PlatformName(device.first) << endl;
-				cerr << "Device: " << info.DeviceName(device.first, device.second) << endl;
+				cerr << "Platform: " << info->PlatformName(device.first) << endl;
+				cerr << "Device: " << info->DeviceName(device.first, device.second) << endl;
 			}
 		}
 	}
 
 	//SheepTools will own the created renderer and will take care of cleaning it up.
 	SheepTools<T, float> tools(opt.PalettePath(), CreateRenderer<T>(opt.EmberCL() ? OPENCL_RENDERER : CPU_RENDERER, devices, false, 0, emberReport2));
-
 	tools.SetSpinParams(!opt.UnsmoothEdge(),
 						T(opt.Stagger()),
 						T(opt.OffsetX()),
@@ -217,7 +214,6 @@ bool EmberGenome(EmberOptions& opt)
 	bool doStrip  = opt.Strip()  != "";
 	bool doCross0 = opt.Cross0() != "";
 	bool doCross1 = opt.Cross1() != "";
-
 	count += (doMutate ? 1 : 0);
 	count += (doInter  ? 1 : 0);
 	count += (doRotate ? 1 : 0);
@@ -448,7 +444,6 @@ bool EmberGenome(EmberOptions& opt)
 			tools.Spin(embers[0], pTemplate, result1, frame - 1, blend - spread);
 			tools.Spin(embers[0], pTemplate, result2, frame    , blend         );
 			tools.Spin(embers[0], pTemplate, result3, frame + 1, blend + spread);
-
 			cout << emberToXml.ToString(result1, opt.Extras(), opt.PrintEditDepth(), !opt.NoEdits(), false, opt.HexPalette());
 			cout << emberToXml.ToString(result2, opt.Extras(), opt.PrintEditDepth(), !opt.NoEdits(), false, opt.HexPalette());
 			cout << emberToXml.ToString(result3, opt.Extras(), opt.PrintEditDepth(), !opt.NoEdits(), false, opt.HexPalette());
@@ -464,7 +459,6 @@ bool EmberGenome(EmberOptions& opt)
 			tools.SpinInter(embers.data(), pTemplate, result1, frame - 1, 0, blend - spread);
 			tools.SpinInter(embers.data(), pTemplate, result2, frame    , 0, blend         );
 			tools.SpinInter(embers.data(), pTemplate, result3, frame + 1, 0, blend + spread);
-
 			cout << emberToXml.ToString(result1, opt.Extras(), opt.PrintEditDepth(), !opt.NoEdits(), false, opt.HexPalette());
 			cout << emberToXml.ToString(result2, opt.Extras(), opt.PrintEditDepth(), !opt.NoEdits(), false, opt.HexPalette());
 			cout << emberToXml.ToString(result3, opt.Extras(), opt.PrintEditDepth(), !opt.NoEdits(), false, opt.HexPalette());
@@ -484,17 +478,13 @@ bool EmberGenome(EmberOptions& opt)
 		for (i = 0; i < embers.size(); i++)
 		{
 			T oldX, oldY;
-
 			embers[i].DeleteMotionElements();
-
 			oldX = embers[i].m_CenterX;
 			oldY = embers[i].m_CenterY;
 			embers[i].m_FinalRasH = size_t(T(embers[i].m_FinalRasH) / T(opt.Frames()));
-
 			embers[i].m_CenterY = embers[i].m_CenterY - ((opt.Frames() - 1) * embers[i].m_FinalRasH) /
-				(2 * embers[i].m_PixelsPerUnit * pow(T(2.0), embers[i].m_Zoom));
+								  (2 * embers[i].m_PixelsPerUnit * pow(T(2.0), embers[i].m_Zoom));
 			embers[i].m_CenterY += embers[i].m_FinalRasH * opt.Frame() / (embers[i].m_PixelsPerUnit * pow(T(2.0), embers[i].m_Zoom));
-
 			tools.RotateOldCenterBy(embers[i].m_CenterX, embers[i].m_CenterY, oldX, oldY, embers[i].m_Rotate);
 
 			if (pTemplate)
@@ -602,10 +592,8 @@ bool EmberGenome(EmberOptions& opt)
 				{
 					i0 = rand.Rand() % embers.size();
 					i1 = rand.Rand() % embers2.size();
-
 					selp0 = embers[i0];
 					selp1 = embers2[i1];
-
 					aselp0 = &selp0;
 					aselp1 = &selp1;
 
@@ -711,6 +699,7 @@ bool EmberGenome(EmberOptions& opt)
 					tot += (finalImage[i] + finalImage[i + 1] + finalImage[i + 2]);
 
 					if (0   == finalImage[i] && 0   == finalImage[i + 1] && 0   == finalImage[i + 2]) totb++;
+
 					if (255 == finalImage[i] && 255 == finalImage[i + 1] && 255 == finalImage[i + 2]) totw++;
 				}
 
@@ -723,10 +712,11 @@ bool EmberGenome(EmberOptions& opt)
 
 				orig.Clear();
 				count++;
-			} while ((avgPix < opt.AvgThresh() ||
-				fractionBlack < opt.BlackThresh() ||
-				fractionWhite > opt.WhiteLimit()) &&
-				count < opt.Tries());
+			}
+			while ((avgPix < opt.AvgThresh() ||
+					fractionBlack < opt.BlackThresh() ||
+					fractionWhite > opt.WhiteLimit()) &&
+					count < opt.Tries());
 
 			if (count == opt.Tries())
 				cerr << "Warning: reached maximum attempts, giving up." << endl;
@@ -767,7 +757,6 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 	bool b = false;
 	EmberOptions opt;
-
 	//Required for large allocs, else GPU memory usage will be severely limited to small sizes.
 	//This must be done in the application and not in the EmberCL DLL.
 #ifdef WIN32
@@ -778,23 +767,23 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	if (!opt.Populate(argc, argv, OPT_USE_GENOME))
 	{
-
 #ifdef DO_DOUBLE
+
 		if (opt.Bits() == 64)
 		{
 			b = EmberGenome<double>(opt);
 		}
 		else
 #endif
-		if (opt.Bits() == 33)
-		{
-			b = EmberGenome<float>(opt);
-		}
-		else if (opt.Bits() == 32)
-		{
-			cerr << "Bits 32/int histogram no longer supported. Using bits == 33 (float)." << endl;
-			b = EmberGenome<float>(opt);
-		}
+			if (opt.Bits() == 33)
+			{
+				b = EmberGenome<float>(opt);
+			}
+			else if (opt.Bits() == 32)
+			{
+				cerr << "Bits 32/int histogram no longer supported. Using bits == 33 (float)." << endl;
+				b = EmberGenome<float>(opt);
+			}
 	}
 
 	return b ? 0 : 1;

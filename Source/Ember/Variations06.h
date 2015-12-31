@@ -38,8 +38,8 @@ public:
 		static const v2T offset[4] { { 0, 0 }, { 0, 1 }, { 1, 0 }, { 1, 1 } };
 		int i = 0;
 		T di, dj;
-		T XCh, YCh, XCo, YCo, DXo, DYo, L, L1, L2, R, s, trgL, Vx, Vy;
-		v2T U;
+		T XCh, YCh, XCo, YCo, DXo, DYo, L, L1, L2, R, s, trgL;
+		v2T u, v;
 		v2T P[7];
 		//For speed/convenience.
 		s = m_Cellsize;
@@ -49,10 +49,10 @@ public:
 			return;
 
 		//Get co-ordinates, and convert to hex co-ordinates.
-		U.x = helper.In.x;
-		U.y = helper.In.y;
-		XCh = T(Floor((AXhXo * U.x + AXhYo * U.y) / s));
-		YCh = T(Floor((AYhXo * U.x + AYhYo * U.y) / s));
+		u.x = helper.In.x;
+		u.y = helper.In.y;
+		XCh = T(Floor((AXhXo * u.x + AXhYo * u.y) / s));
+		YCh = T(Floor((AYhXo * u.x + AYhYo * u.y) / s));
 
 		// Get a set of 4 hex center points, based around the one above
 		for (di = XCh; di < XCh + T(1.1); di += 1)
@@ -65,7 +65,7 @@ public:
 			}
 		}
 
-		int q = Closest(&P[0], 4, U);
+		int q = m_VarFuncs->Closest(&P[0], 4, u);
 		//Remake list starting from chosen hex, ensure it is completely surrounded (total 7 points).
 		//First adjust centers according to which one was found to be closest.
 		XCh += offset[q].x;
@@ -90,20 +90,19 @@ public:
 		P[5].y = YCo - (AYoXh + AYoYh) * s;
 		P[6].x = XCo - AXoXh * s;
 		P[6].y = YCo - AYoXh * s;
-		L1 = Voronoi(&P[0], 7, 0, U);
+		L1 = m_VarFuncs->Voronoi(&P[0], 7, 0, u);
 		//Delta vector from center of hex.
-		DXo = U.x - P[0].x;
-		DYo = U.y - P[0].y;
+		DXo = u.x - P[0].x;
+		DYo = u.y - P[0].y;
 		//Apply "interesting bit" to cell's DXo and DYo co-ordinates.
 		//trgL is the defined value of l, independent of any rotation.
 		trgL = std::pow(Zeps(L1), m_Power) * m_Scale;//Original added 1e-100, use Zeps to be more precise.
 		//Rotate.
-		Vx = DXo * m_RotCos + DYo * m_RotSin;
-		Vy = -DXo * m_RotSin + DYo * m_RotCos;
+		v.x = DXo * m_RotCos + DYo * m_RotSin;
+		v.y = -DXo * m_RotSin + DYo * m_RotCos;
 		//Measure voronoi distance again.
-		U.x = Vx + P[0].x;
-		U.y = Vy + P[0].y;
-		L2 = Voronoi(&P[0], 7, 0, U);
+		u = v + P[0];
+		L2 = m_VarFuncs->Voronoi(&P[0], 7, 0, u);
 		//Scale to meet target size . . . adjust according to how close
 		//we are to the edge.
 		//Code here attempts to remove the "rosette" effect caused by
@@ -125,14 +124,12 @@ public:
 				R = ((trgL / L1) * (T(0.8) - L) + (trgL / L2) * (L - T(0.5))) / T(0.3);
 		}
 
-		Vx *= R;
-		Vy *= R;
+		v *= R;
 		//Add cell center co-ordinates back in.
-		Vx += P[0].x;
-		Vy += P[0].y;
+		v += P[0];
 		//Finally add values in.
-		helper.Out.x = m_Weight * Vx;
-		helper.Out.y = m_Weight * Vy;
+		helper.Out.x = m_Weight * v.x;
+		helper.Out.y = m_Weight * v.y;
 		helper.Out.z = (m_VarType == VARTYPE_REG) ? 0 : helper.In.z;
 	}
 
@@ -242,7 +239,7 @@ public:
 
 	virtual vector<string> OpenCLGlobalFuncNames() const override
 	{
-		return vector<string> { "Zeps" };
+		return vector<string> { "Zeps", "Sqr", "Vratio", "Closest", "Vratio" };
 	}
 
 	virtual string OpenCLFuncsString() const override
@@ -257,60 +254,7 @@ public:
 			"constant real_t AYoXh = (real_t)(1.7320508075688772935 / 2.0);\n"
 			"constant real_t AYoYh = (real_t)(1.7320508075688772935 / 2.0);\n"
 			"constant real2 offset[4] = { { 0, 0 }, { 0, 1 }, { 1, 0 }, { 1, 1 } };\n"
-			"\n"
-			"real_t Vratio(real2* p, real2* q, real2* u)\n"
-			"{\n"
-			"	real_t pmQx, pmQy;\n"
-			"\n"
-			"	pmQx = (*p).x - (*q).x;\n"
-			"	pmQy = (*p).y - (*q).y;\n"
-			"\n"
-			"	if (pmQx == 0 && pmQy == 0)\n"
-			"		return 1.0;\n"
-			"\n"
-			"	return 2 * (((*u).x - (*q).x) * pmQx + ((*u).y - (*q).y) * pmQy) / (pmQx * pmQx + pmQy * pmQy);\n"
-			"}\n"
-			"\n"
-			"int Closest(real2* p, int n, real2* u)\n"
-			"{\n"
-			"	real_t d2;\n"
-			"	real_t d2min = TMAX;\n"
-			"	int i, j;\n"
-			"\n"
-			"	for (i = 0; i < n; i++)\n"
-			"	{\n"
-			"		d2 = (p[i].x - (*u).x) * (p[i].x - (*u).x) + (p[i].y - (*u).y) * (p[i].y - (*u).y);\n"
-			"\n"
-			"		if (d2 < d2min)\n"
-			"		{\n"
-			"			d2min = d2;\n"
-			"			j = i;\n"
-			"		}\n"
-			"	}\n"
-			"\n"
-			"	return j;\n"
-			"}\n"
-			"\n"
-			"real_t Voronoi(real2* p, int n, int q, real2* u)\n"
-			"{\n"
-			"	real_t ratio;\n"
-			"	real_t ratiomax = TLOW;\n"
-			"	int i;\n"
-			"\n"
-			"	for (i = 0; i < n; i++)\n"
-			"	{\n"
-			"		if (i != q)\n"
-			"		{\n"
-			"			ratio = Vratio(&p[i], &p[q], u);\n"
-			"\n"
-			"			if (ratio > ratiomax)\n"
-			"				ratiomax = ratio;\n"
-			"		}\n"
-			"	}\n"
-			"\n"
-			"	return ratiomax;\n"
-			"}\n"
-			;
+			"\n";
 	}
 
 	virtual void Precalc() override
@@ -325,72 +269,22 @@ protected:
 		string prefix = Prefix();
 		m_Params.clear();
 		m_Params.push_back(ParamWithName<T>(&m_Cellsize, prefix + "hexes_cellsize", 1));
-		m_Params.push_back(ParamWithName<T>(&m_Power, prefix + "hexes_power", 1));
-		m_Params.push_back(ParamWithName<T>(&m_Rotate, prefix + "hexes_rotate", T(0.166)));
-		m_Params.push_back(ParamWithName<T>(&m_Scale, prefix + "hexes_scale", 1));
+		m_Params.push_back(ParamWithName<T>(&m_Power,	 prefix + "hexes_power", 1));
+		m_Params.push_back(ParamWithName<T>(&m_Rotate,	 prefix + "hexes_rotate", T(0.166)));
+		m_Params.push_back(ParamWithName<T>(&m_Scale,	 prefix + "hexes_scale", 1));
 		m_Params.push_back(ParamWithName<T>(true, &m_RotSin, prefix + "hexes_rotsin"));//Precalc.
 		m_Params.push_back(ParamWithName<T>(true, &m_RotCos, prefix + "hexes_rotcos"));
+		m_VarFuncs = VarFuncs<T>::Instance();
 	}
 
 private:
-	static T Vratio(v2T& p, v2T& q, v2T& u)
-	{
-		T pmQx, pmQy;
-		pmQx = p.x - q.x;
-		pmQy = p.y - q.y;
-
-		if (pmQx == 0 && pmQy == 0)
-			return 1.0;
-
-		return 2 * ((u.x - q.x) * pmQx + (u.y - q.y) * pmQy) / (pmQx * pmQx + pmQy * pmQy);
-	}
-
-	static int Closest(v2T* p, int n, v2T& u)
-	{
-		T d2;
-		T d2min = TMAX;
-		int i, j;
-
-		for (i = 0; i < n; i++)
-		{
-			d2 = (p[i].x - u.x) * (p[i].x - u.x) + (p[i].y - u.y) * (p[i].y - u.y);
-
-			if (d2 < d2min)
-			{
-				d2min = d2;
-				j = i;
-			}
-		}
-
-		return j;
-	}
-
-	static T Voronoi(v2T* p, int n, int q, v2T& u)
-	{
-		T ratio;
-		T ratiomax = TLOW;
-		int i;
-
-		for (i = 0; i < n; i++)
-		{
-			if (i != q)
-			{
-				ratio = Vratio(p[i], p[q], u);
-
-				if (ratio > ratiomax)
-					ratiomax = ratio;
-			}
-		}
-
-		return ratiomax;
-	}
-
 	T m_Cellsize;
 	T m_Power;
 	T m_Rotate;
 	T m_Scale;
 	T m_RotSin;//Precalc.
 	T m_RotCos;
+	std::shared_ptr<VarFuncs<T>> m_VarFuncs;
 };
 
 /// <summary>
@@ -1916,34 +1810,34 @@ protected:
 	{
 		string prefix = Prefix();
 		m_Params.clear();
-		m_Params.push_back(ParamWithName<T>(&m_Top, prefix + "crob_top", -1));
-		m_Params.push_back(ParamWithName<T>(&m_Bottom, prefix + "crob_bottom", 1));
-		m_Params.push_back(ParamWithName<T>(&m_Left, prefix + "crob_left", -1));
-		m_Params.push_back(ParamWithName<T>(&m_Right, prefix + "crob_right", 1));
-		m_Params.push_back(ParamWithName<T>(&m_Blur, prefix + "crob_blur", 1, INTEGER));
-		m_Params.push_back(ParamWithName<T>(&m_RatioBlur, prefix + "crob_ratioBlur", T(0.5), REAL, 0, 1));
+		m_Params.push_back(ParamWithName<T>(&m_Top,		   prefix + "crob_top", -1));
+		m_Params.push_back(ParamWithName<T>(&m_Bottom,	   prefix + "crob_bottom", 1));
+		m_Params.push_back(ParamWithName<T>(&m_Left,	   prefix + "crob_left", -1));
+		m_Params.push_back(ParamWithName<T>(&m_Right,	   prefix + "crob_right", 1));
+		m_Params.push_back(ParamWithName<T>(&m_Blur,	   prefix + "crob_blur", 1, INTEGER));
+		m_Params.push_back(ParamWithName<T>(&m_RatioBlur,  prefix + "crob_ratioBlur", T(0.5), REAL, 0, 1));
 		m_Params.push_back(ParamWithName<T>(&m_DirectBlur, prefix + "crob_directBlur", 2));
-		m_Params.push_back(ParamWithName<T>(true, &m_XInterval, prefix + "crob_xinterval"));
-		m_Params.push_back(ParamWithName<T>(true, &m_YInterval, prefix + "crob_yinterval"));
-		m_Params.push_back(ParamWithName<T>(true, &m_XInt2, prefix + "crob_xint2"));
-		m_Params.push_back(ParamWithName<T>(true, &m_YInt2, prefix + "crob_yint2"));
-		m_Params.push_back(ParamWithName<T>(true, &m_MinInt2, prefix + "crob_minint2"));
-		m_Params.push_back(ParamWithName<T>(true, &m_X0, prefix + "crob_x0"));
-		m_Params.push_back(ParamWithName<T>(true, &m_Y0, prefix + "crob_y0"));
-		m_Params.push_back(ParamWithName<T>(true, &m_X0c, prefix + "crob_x0c"));
-		m_Params.push_back(ParamWithName<T>(true, &m_Y0c, prefix + "crob_y0c"));
-		m_Params.push_back(ParamWithName<T>(true, &m_SetProb, prefix + "crob_set_prob"));
-		m_Params.push_back(ParamWithName<T>(true, &m_SetProbH, prefix + "crob_set_prob_h"));
-		m_Params.push_back(ParamWithName<T>(true, &m_SetProbQ, prefix + "crob_set_prob_q"));
-		m_Params.push_back(ParamWithName<T>(true, &m_SetProbTQ, prefix + "crob_set_prob_tq"));
-		m_Params.push_back(ParamWithName<T>(true, &m_SetCompProb, prefix + "crob_set_comp_prob"));
-		m_Params.push_back(ParamWithName<T>(true, &m_SetCompProbH, prefix + "crob_set_comp_prob_h"));
-		m_Params.push_back(ParamWithName<T>(true, &m_SetCompProbQ, prefix + "crob_set_comp_prob_q"));
+		m_Params.push_back(ParamWithName<T>(true, &m_XInterval,		prefix + "crob_xinterval"));
+		m_Params.push_back(ParamWithName<T>(true, &m_YInterval,		prefix + "crob_yinterval"));
+		m_Params.push_back(ParamWithName<T>(true, &m_XInt2,			prefix + "crob_xint2"));
+		m_Params.push_back(ParamWithName<T>(true, &m_YInt2,			prefix + "crob_yint2"));
+		m_Params.push_back(ParamWithName<T>(true, &m_MinInt2,		prefix + "crob_minint2"));
+		m_Params.push_back(ParamWithName<T>(true, &m_X0,			prefix + "crob_x0"));
+		m_Params.push_back(ParamWithName<T>(true, &m_Y0,			prefix + "crob_y0"));
+		m_Params.push_back(ParamWithName<T>(true, &m_X0c,			prefix + "crob_x0c"));
+		m_Params.push_back(ParamWithName<T>(true, &m_Y0c,			prefix + "crob_y0c"));
+		m_Params.push_back(ParamWithName<T>(true, &m_SetProb,		prefix + "crob_set_prob"));
+		m_Params.push_back(ParamWithName<T>(true, &m_SetProbH,		prefix + "crob_set_prob_h"));
+		m_Params.push_back(ParamWithName<T>(true, &m_SetProbQ,		prefix + "crob_set_prob_q"));
+		m_Params.push_back(ParamWithName<T>(true, &m_SetProbTQ,		prefix + "crob_set_prob_tq"));
+		m_Params.push_back(ParamWithName<T>(true, &m_SetCompProb,	prefix + "crob_set_comp_prob"));
+		m_Params.push_back(ParamWithName<T>(true, &m_SetCompProbH,	prefix + "crob_set_comp_prob_h"));
+		m_Params.push_back(ParamWithName<T>(true, &m_SetCompProbQ,	prefix + "crob_set_comp_prob_q"));
 		m_Params.push_back(ParamWithName<T>(true, &m_SetCompProbTQ, prefix + "crob_set_comp_prob_tq"));
-		m_Params.push_back(ParamWithName<T>(true, &m_TopBorder, prefix + "crob_top_border"));
-		m_Params.push_back(ParamWithName<T>(true, &m_BottomBorder, prefix + "crob_bottom_border"));
-		m_Params.push_back(ParamWithName<T>(true, &m_LeftBorder, prefix + "crob_left_border"));
-		m_Params.push_back(ParamWithName<T>(true, &m_RightBorder, prefix + "crob_right_border"));
+		m_Params.push_back(ParamWithName<T>(true, &m_TopBorder,		prefix + "crob_top_border"));
+		m_Params.push_back(ParamWithName<T>(true, &m_BottomBorder,	prefix + "crob_bottom_border"));
+		m_Params.push_back(ParamWithName<T>(true, &m_LeftBorder,	prefix + "crob_left_border"));
+		m_Params.push_back(ParamWithName<T>(true, &m_RightBorder,	prefix + "crob_right_border"));
 	}
 
 private:
@@ -2210,7 +2104,7 @@ public:
 		   "\t\t{\n"
 		   "\t\t	while (angXY > " << angStrip2 << ")\n"
 		   "\t\t	{\n"
-		   "\t\t		angXY -= " << angStrip2 << "; \n"
+		   "\t\t		angXY -= " << angStrip2 << ";\n"
 		   "\t\t	}\n"
 		   "\t\t\n"
 		   "\t\t	if (" << invStripes << " == 0)\n"
@@ -2282,7 +2176,7 @@ public:
 		   "\t\t\n"
 		   "\t\tif ((x != 0) || (y != 0))\n"
 		   "\t\t{\n"
-		   "\t\t	z = 2 / pow(rad, " << exponentZ << ") - 1; \n"
+		   "\t\t	z = 2 / pow(rad, " << exponentZ << ") - 1;\n"
 		   "\t\t\n"
 		   "\t\t	if (" << exponentZ << " <= 2)\n"
 		   "\t\t		angZ = M_PI - acos((z / (Sqr(x) + Sqr(y) + Sqr(z))));\n"
@@ -2309,7 +2203,7 @@ public:
 		   "\t\t			}\n"
 		   "\t\t			else\n"
 		   "\t\t			{\n"
-		   "\t\t				angTmp = (M_PI - angZ) / " << angHoleComp << " * " << angHoleTemp << " - M_PI_2; \n"
+		   "\t\t				angTmp = (M_PI - angZ) / " << angHoleComp << " * " << angHoleTemp << " - M_PI_2;\n"
 		   "\t\t				angZ -= M_PI_2;\n"
 		   "\t\t				fac = cos(angTmp) / cos(angZ);\n"
 		   "\t\t				x = x * fac;\n"
@@ -2330,7 +2224,7 @@ public:
 		   "\t\t			}\n"
 		   "\t\t			else\n"
 		   "\t\t			{\n"
-		   "\t\t				angTmp = M_PI - angZ / " << angHoleComp << " * " << angHoleTemp << " - M_PI_2; \n"
+		   "\t\t				angTmp = M_PI - angZ / " << angHoleComp << " * " << angHoleTemp << " - M_PI_2;\n"
 		   "\t\t				angZ -= M_PI_2;\n"
 		   "\t\t				fac = cos(angTmp) / cos(angZ);\n"
 		   "\t\t				x = x * fac;\n"
@@ -2354,7 +2248,7 @@ public:
 		   "\t\t		{\n"
 		   "\t\t			if (angZ > " << angHoleTemp << ")\n"
 		   "\t\t			{\n"
-		   "\t\t				angTmp = (M_PI - angZ) / " << angHoleComp << " * (M_PI - 2 * " << angHoleComp << ") + " << angHoleComp << " - M_PI_2; \n"
+		   "\t\t				angTmp = (M_PI - angZ) / " << angHoleComp << " * (M_PI - 2 * " << angHoleComp << ") + " << angHoleComp << " - M_PI_2;\n"
 		   "\t\t			}\n"
 		   "\t\t			else\n"
 		   "\t\t			{\n"
@@ -2903,7 +2797,7 @@ public:
 		   << "\t\treal_t Vx, Vy, radius, theta;\n"
 		   << "\t\treal_t thetaFactor;\n"
 		   << "\t\treal_t s, c, mu;\n"
-		   << "\t\tint synthMode = (int)" << synthMode << "; \n"
+		   << "\t\tint synthMode = (int)" << synthMode << ";\n"
 		   << "\t\tSynthStruct synth;\n"
 		   << "\n"
 		   << "\t\tsynth.SynthA = " << synthA << ";\n"
@@ -3419,40 +3313,40 @@ protected:
 		string prefix = Prefix();
 		m_Params.clear();
 		m_Params.reserve(34);
-		m_Params.push_back(ParamWithName<T>(&m_SynthA, prefix + "synth_a"));
-		m_Params.push_back(ParamWithName<T>(&m_SynthMode, prefix + "synth_mode", 3, INTEGER));
-		m_Params.push_back(ParamWithName<T>(&m_SynthPower, prefix + "synth_power", -2));
-		m_Params.push_back(ParamWithName<T>(&m_SynthMix, prefix + "synth_mix"));
+		m_Params.push_back(ParamWithName<T>(&m_SynthA,		prefix + "synth_a"));
+		m_Params.push_back(ParamWithName<T>(&m_SynthMode,	prefix + "synth_mode", 3, INTEGER));
+		m_Params.push_back(ParamWithName<T>(&m_SynthPower,	prefix + "synth_power", -2));
+		m_Params.push_back(ParamWithName<T>(&m_SynthMix,	prefix + "synth_mix"));
 		m_Params.push_back(ParamWithName<T>(&m_SynthSmooth, prefix + "synth_smooth", 0, INTEGER));
-		m_Params.push_back(ParamWithName<T>(&m_SynthB, prefix + "synth_b"));
-		m_Params.push_back(ParamWithName<T>(&m_SynthBType, prefix + "synth_b_type", 0, INTEGER));
-		m_Params.push_back(ParamWithName<T>(&m_SynthBSkew, prefix + "synth_b_skew"));
-		m_Params.push_back(ParamWithName<T>(&m_SynthBFrq, prefix + "synth_b_frq", 1, REAL));
-		m_Params.push_back(ParamWithName<T>(&m_SynthBPhs, prefix + "synth_b_phs"));
+		m_Params.push_back(ParamWithName<T>(&m_SynthB,		prefix + "synth_b"));
+		m_Params.push_back(ParamWithName<T>(&m_SynthBType,	prefix + "synth_b_type", 0, INTEGER));
+		m_Params.push_back(ParamWithName<T>(&m_SynthBSkew,	prefix + "synth_b_skew"));
+		m_Params.push_back(ParamWithName<T>(&m_SynthBFrq,	prefix + "synth_b_frq", 1, REAL));
+		m_Params.push_back(ParamWithName<T>(&m_SynthBPhs,	prefix + "synth_b_phs"));
 		m_Params.push_back(ParamWithName<T>(&m_SynthBLayer, prefix + "synth_b_layer", 0, INTEGER));
-		m_Params.push_back(ParamWithName<T>(&m_SynthC, prefix + "synth_c"));
-		m_Params.push_back(ParamWithName<T>(&m_SynthCType, prefix + "synth_c_type", 0, INTEGER));
-		m_Params.push_back(ParamWithName<T>(&m_SynthCSkew, prefix + "synth_c_skew"));
-		m_Params.push_back(ParamWithName<T>(&m_SynthCFrq, prefix + "synth_c_frq", 1, REAL));
-		m_Params.push_back(ParamWithName<T>(&m_SynthCPhs, prefix + "synth_c_phs"));
+		m_Params.push_back(ParamWithName<T>(&m_SynthC,		prefix + "synth_c"));
+		m_Params.push_back(ParamWithName<T>(&m_SynthCType,	prefix + "synth_c_type", 0, INTEGER));
+		m_Params.push_back(ParamWithName<T>(&m_SynthCSkew,	prefix + "synth_c_skew"));
+		m_Params.push_back(ParamWithName<T>(&m_SynthCFrq,	prefix + "synth_c_frq", 1, REAL));
+		m_Params.push_back(ParamWithName<T>(&m_SynthCPhs,	prefix + "synth_c_phs"));
 		m_Params.push_back(ParamWithName<T>(&m_SynthCLayer, prefix + "synth_c_layer", 0, INTEGER));
-		m_Params.push_back(ParamWithName<T>(&m_SynthD, prefix + "synth_d"));
-		m_Params.push_back(ParamWithName<T>(&m_SynthDType, prefix + "synth_d_type", 0, INTEGER));
-		m_Params.push_back(ParamWithName<T>(&m_SynthDSkew, prefix + "synth_d_skew"));
-		m_Params.push_back(ParamWithName<T>(&m_SynthDFrq, prefix + "synth_d_frq", 1, REAL));
-		m_Params.push_back(ParamWithName<T>(&m_SynthDPhs, prefix + "synth_d_phs"));
+		m_Params.push_back(ParamWithName<T>(&m_SynthD,		prefix + "synth_d"));
+		m_Params.push_back(ParamWithName<T>(&m_SynthDType,	prefix + "synth_d_type", 0, INTEGER));
+		m_Params.push_back(ParamWithName<T>(&m_SynthDSkew,	prefix + "synth_d_skew"));
+		m_Params.push_back(ParamWithName<T>(&m_SynthDFrq,	prefix + "synth_d_frq", 1, REAL));
+		m_Params.push_back(ParamWithName<T>(&m_SynthDPhs,	prefix + "synth_d_phs"));
 		m_Params.push_back(ParamWithName<T>(&m_SynthDLayer, prefix + "synth_d_layer", 0, INTEGER));
-		m_Params.push_back(ParamWithName<T>(&m_SynthE, prefix + "synth_e"));
-		m_Params.push_back(ParamWithName<T>(&m_SynthEType, prefix + "synth_e_type", 0, INTEGER));
-		m_Params.push_back(ParamWithName<T>(&m_SynthESkew, prefix + "synth_e_skew"));
-		m_Params.push_back(ParamWithName<T>(&m_SynthEFrq, prefix + "synth_e_frq", 1, REAL));
-		m_Params.push_back(ParamWithName<T>(&m_SynthEPhs, prefix + "synth_e_phs"));
+		m_Params.push_back(ParamWithName<T>(&m_SynthE,		prefix + "synth_e"));
+		m_Params.push_back(ParamWithName<T>(&m_SynthEType,	prefix + "synth_e_type", 0, INTEGER));
+		m_Params.push_back(ParamWithName<T>(&m_SynthESkew,	prefix + "synth_e_skew"));
+		m_Params.push_back(ParamWithName<T>(&m_SynthEFrq,	prefix + "synth_e_frq", 1, REAL));
+		m_Params.push_back(ParamWithName<T>(&m_SynthEPhs,	prefix + "synth_e_phs"));
 		m_Params.push_back(ParamWithName<T>(&m_SynthELayer, prefix + "synth_e_layer", 0, INTEGER));
-		m_Params.push_back(ParamWithName<T>(&m_SynthF, prefix + "synth_f"));
-		m_Params.push_back(ParamWithName<T>(&m_SynthFType, prefix + "synth_f_type", 0, INTEGER));
-		m_Params.push_back(ParamWithName<T>(&m_SynthFSkew, prefix + "synth_f_skew"));
-		m_Params.push_back(ParamWithName<T>(&m_SynthFFrq, prefix + "synth_f_frq", 1, REAL));
-		m_Params.push_back(ParamWithName<T>(&m_SynthFPhs, prefix + "synth_f_phs"));
+		m_Params.push_back(ParamWithName<T>(&m_SynthF,		prefix + "synth_f"));
+		m_Params.push_back(ParamWithName<T>(&m_SynthFType,	prefix + "synth_f_type", 0, INTEGER));
+		m_Params.push_back(ParamWithName<T>(&m_SynthFSkew,	prefix + "synth_f_skew"));
+		m_Params.push_back(ParamWithName<T>(&m_SynthFFrq,	prefix + "synth_f_frq", 1, REAL));
+		m_Params.push_back(ParamWithName<T>(&m_SynthFPhs,	prefix + "synth_f_phs"));
 		m_Params.push_back(ParamWithName<T>(&m_SynthFLayer, prefix + "synth_f_layer", 0, INTEGER));
 	}
 
@@ -3736,10 +3630,244 @@ private:
 	T m_SynthFLayer;
 };
 
+#define CACHE_NUM 10
+#define CACHE_WIDTH 21
+#define VORONOI_MAXPOINTS 10
+
+/// <summary>
+/// crackle.
+/// </summary>
+template <typename T>
+class EMBER_API CrackleVariation : public ParametricVariation<T>
+{
+public:
+	CrackleVariation(T weight = 1.0) : ParametricVariation<T>("crackle", VAR_CRACKLE, weight)
+	{
+		Init();
+	}
+
+	PARVARCOPY(CrackleVariation)
+
+	virtual void Func(IteratorHelper<T>& helper, Point<T>& outPoint, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override
+	{
+		int di, dj;
+		int i = 0;
+		T l, r, trgL;
+		v2T u, dO;
+		glm::ivec2 cv;
+		v2T p[VORONOI_MAXPOINTS];
+
+		if (m_CellSize == 0)
+			return;
+
+		T blurr = (rand.Frand01<T>() + rand.Frand01<T>()) / 2 + (rand.Frand01<T>() - T(0.5)) / 4;
+		T theta = M_2PI * rand.Frand01<T>();
+		u.x = blurr * std::sin(theta);
+		u.y = blurr * std::cos(theta);
+		cv.x = int(std::floor(u.x / m_HalfCellSize));
+		cv.y = int(std::floor(u.y / m_HalfCellSize));
+
+		for (di = -1; di < 2; di++)
+		{
+			for (dj = -1; dj < 2; dj++)
+			{
+				CachedPosition(m_C, cv.x + di, cv.y + dj, m_Z, m_HalfCellSize, m_Distort, p[i]);
+				i++;
+			}
+		}
+
+		int q = m_VarFuncs->Closest(p, 9, u);
+		glm::ivec2 offset[9] = { { -1, -1 }, { -1, 0 }, { -1, 1 },
+			{ 0, -1 }, { 0, 0 }, { 0, 1 },
+			{ 1, -1 }, { 1, 0 }, { 1, 1 }
+		};
+		cv += offset[q];
+		i = 0;
+
+		for (di = -1; di < 2; di++)
+		{
+			for (dj = -1; dj < 2; dj++)
+			{
+				CachedPosition(m_C, cv.x + di, cv.y + dj, m_Z, m_HalfCellSize, m_Distort, p[i]);
+				i++;
+			}
+		}
+
+		l = m_VarFuncs->Voronoi(p, 9, 4, u);
+		dO = u - p[4];
+		trgL = std::pow(Zeps<T>(l), m_Power) * m_Scale;
+		r = trgL / Zeps<T>(l);
+		dO *= r;
+		dO += p[4];
+		helper.Out.x = m_Weight * dO.x;
+		helper.Out.y = m_Weight * dO.y;
+		helper.Out.z = (m_VarType == VARTYPE_REG) ? 0 : helper.In.z;
+	}
+
+	virtual vector<string> OpenCLGlobalFuncNames() const override
+	{
+		return vector<string> { "Zeps", "Sqr", "Closest", "Vratio", "Voronoi", "SimplexNoise3D" };
+	}
+
+	virtual vector<string> OpenCLGlobalDataNames() const override
+	{
+		return vector<string> { "NOISE_INDEX", "NOISE_POINTS" };
+	}
+
+	virtual string OpenCLFuncsString() const override
+	{
+		//CPU version uses a cache of points if the abs() values are <= 10. However, this crashes on Nvidia GPUs.
+		//The problem was traced to the usage of the cache array.
+		//No possible solution was found, so it is unused here.
+		//The full calculation is recomputed for every point.
+		return
+			"static void Position(__global real_t* p, __global real3* grad, int x, int y, real_t z, real_t s, real_t d, real2* v)\n"
+			"{\n"
+			"	real3 e, f;\n"
+			"	e.x = x * 2.5;\n"
+			"	e.y = y * 2.5;\n"
+			"	e.z = z * 2.5;\n"
+			"	f.x = y * 2.5 + 30.2;\n"
+			"	f.y = x * 2.5 - 12.1;\n"
+			"	f.z = z * 2.5 + 19.8;\n"
+			"	(*v).x = (x + d * SimplexNoise3D(&e, p, grad)) * s;\n"
+			"	(*v).y = (y + d * SimplexNoise3D(&f, p, grad)) * s;\n"
+			"}\n"
+			"\n";
+	}
+
+	virtual string OpenCLString() const override
+	{
+		ostringstream ss, ss2;
+		intmax_t i = 0, varIndex = IndexInXform();
+		ss2 << "_" << XformIndexInEmber();
+		string index = ss2.str() + "]";
+		string cellSize     = "parVars[" + ToUpper(m_Params[i++].Name()) + index;
+		string power        = "parVars[" + ToUpper(m_Params[i++].Name()) + index;
+		string distort      = "parVars[" + ToUpper(m_Params[i++].Name()) + index;
+		string scale        = "parVars[" + ToUpper(m_Params[i++].Name()) + index;
+		string z            = "parVars[" + ToUpper(m_Params[i++].Name()) + index;
+		string halfCellSize = "parVars[" + ToUpper(m_Params[i++].Name()) + index;
+		ss << "\t{\n"
+		   << "\t\tint di = -1, dj = -1;\n"
+		   << "\t\tint i = 0;\n"
+		   << "\t\treal_t l, r, trgL;\n"
+		   << "\t\treal2 u, dO;\n"
+		   << "\t\tint2 cv;\n"
+		   << "\t\treal2 p[" << VORONOI_MAXPOINTS << "];\n"
+		   << "\n"
+		   << "\t\tif (" << cellSize << " == 0)\n"
+		   << "\t\t	return;\n"
+		   << "\n"
+		   << "\t\treal_t blurr = (MwcNext01(mwc) + MwcNext01(mwc)) / 2 + (MwcNext01(mwc) - 0.5) / 4;\n"
+		   << "\t\treal_t theta = M_2PI * MwcNext01(mwc);\n"
+		   << "\t\tu.x = blurr * sin(theta);\n"
+		   << "\t\tu.y = blurr * cos(theta);\n"
+		   << "\t\tcv.x = (int)floor(u.x / " << halfCellSize << ");\n"
+		   << "\t\tcv.y = (int)floor(u.y / " << halfCellSize << ");\n"
+		   << "\n"
+		   << "\t\tfor (di = -1; di < 2; di++)\n"
+		   << "\t\t{\n"
+		   << "\t\t	for (dj = -1; dj < 2; dj++)\n"
+		   << "\t\t	{\n"
+		   << "\t\t		Position(globalShared + NOISE_INDEX, (__global real3*)(globalShared + NOISE_POINTS), cv.x + di, cv.y + dj, " << z << ", " << halfCellSize << ", " << distort << ", &p[i]);\n"
+		   << "\t\t		i++;\n"
+		   << "\t\t	}\n"
+		   << "\t\t}\n"
+		   << "\n"
+		   << "\t\tint q = Closest(p, 9, &u);\n"
+		   << "\t\tint2 offset[9] = { { -1, -1 }, { -1, 0 }, { -1, 1 }, \n"
+		   << "\t\t{ 0, -1 }, { 0, 0 }, { 0, 1 },\n"
+		   << "\t\t{ 1, -1 }, { 1, 0 }, { 1, 1 } };\n"
+		   << "\t\tcv += offset[q];\n"
+		   << "\t\ti = 0;\n"
+		   << "\n"
+		   << "\t\tfor (di = -1; di < 2; di++)\n"
+		   << "\t\t{\n"
+		   << "\t\t	for (dj = -1; dj < 2; dj++)\n"
+		   << "\t\t	{\n"
+		   << "\t\t		Position(globalShared + NOISE_INDEX, (__global real3*)(globalShared + NOISE_POINTS), cv.x + di, cv.y + dj, " << z << ", " << halfCellSize << ", " << distort << ", &p[i]);\n"
+		   << "\t\t		i++;\n"
+		   << "\t\t	}\n"
+		   << "\t\t}\n"
+		   << "\n"
+		   << "\t\tl = Voronoi(p, 9, 4, &u);\n"
+		   << "\t\tdO = u - p[4];\n"
+		   << "\t\ttrgL = pow(Zeps(l), " << power << ") * " << scale << ";\n"
+		   << "\t\tr = trgL / Zeps(l);\n"
+		   << "\t\tdO *= r;\n"
+		   << "\t\tdO += p[4];\n"
+		   << "\t\tvOut.x = xform->m_VariationWeights[" << varIndex << "] * dO.x;\n"
+		   << "\t\tvOut.y = xform->m_VariationWeights[" << varIndex << "] * dO.y;\n"
+		   << "\t\tvOut.z = " << ((m_VarType == VARTYPE_REG) ? "0" : "vIn.z") << ";\n"
+		   << "\t}\n";
+		return ss.str();
+	}
+
+	virtual void Precalc() override
+	{
+		int x, y;
+		m_HalfCellSize = Zeps<T>(m_CellSize / 2);
+
+		for (x = -CACHE_NUM; x <= CACHE_NUM; x++)
+			for (y = -CACHE_NUM; y <= CACHE_NUM; y++)
+				Position(x, y, m_Z, m_HalfCellSize, m_Distort, m_C[x + CACHE_NUM][y + CACHE_NUM]);
+	}
+
+protected:
+	void Init()
+	{
+		string prefix = Prefix();
+		m_VarFuncs = VarFuncs<T>::Instance();
+		m_Params.clear();
+		m_Params.reserve(8);
+		m_Params.push_back(ParamWithName<T>(&m_CellSize, prefix + "crackle_cellsize", 1));
+		m_Params.push_back(ParamWithName<T>(&m_Power,	 prefix + "crackle_power", T(0.2)));
+		m_Params.push_back(ParamWithName<T>(&m_Distort,  prefix + "crackle_distort"));
+		m_Params.push_back(ParamWithName<T>(&m_Scale,	 prefix + "crackle_scale", 1));
+		m_Params.push_back(ParamWithName<T>(&m_Z,		 prefix + "crackle_z"));
+		m_Params.push_back(ParamWithName<T>(true, &m_HalfCellSize, prefix + "crackle_half_cellsize"));
+	}
+
+private:
+	void Position(int x, int y, T z, T s, T d, v2T& v)
+	{
+		v3T e, f;
+		// Values here are arbitrary, chosen simply to be far enough apart so they do not correlate
+		e.x = x * T(2.5);
+		e.y = y * T(2.5);
+		e.z = z * T(2.5);
+		// Cross-over between x and y is intentional
+		f.x = y * T(2.5) + T(30.2);
+		f.y = x * T(2.5) - T(12.1);
+		f.z = z * T(2.5) + T(19.8);
+		v.x = (x + d * m_VarFuncs->SimplexNoise3D(e)) * s;
+		v.y = (y + d * m_VarFuncs->SimplexNoise3D(f)) * s;
+	}
+
+	void CachedPosition(v2T cache[CACHE_WIDTH][CACHE_WIDTH], int x, int y, T z, T s, T d, v2T& v)
+	{
+		if (std::abs(x) <= CACHE_NUM && std::abs(y) <= CACHE_NUM)
+			v = cache[x + CACHE_NUM][y + CACHE_NUM];
+		else
+			Position(x, y, z, s, d, v);
+	}
+
+	T m_CellSize;
+	T m_Power;
+	T m_Distort;
+	T m_Scale;
+	T m_Z;
+	T m_HalfCellSize;//Precalc
+	v2T m_C[CACHE_WIDTH][CACHE_WIDTH];//Not kept as a precalc because it crashes Nvidia GPUs.
+	std::shared_ptr<VarFuncs<T>> m_VarFuncs;
+};
+
 MAKEPREPOSTPARVAR(Hexes, hexes, HEXES)
 MAKEPREPOSTPARVAR(Nblur, nBlur, NBLUR)
 MAKEPREPOSTPARVAR(Octapol, octapol, OCTAPOL)
 MAKEPREPOSTPARVAR(Crob, crob, CROB)
 MAKEPREPOSTPARVAR(BubbleT3D, bubbleT3D, BUBBLET3D)
 MAKEPREPOSTPARVAR(Synth, synth, SYNTH)
+MAKEPREPOSTPARVAR(Crackle, crackle, CRACKLE)
 }

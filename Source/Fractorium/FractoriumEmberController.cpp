@@ -3,18 +3,14 @@
 #include "Fractorium.h"
 #include "GLEmberController.h"
 
-#define SAVE_EACH 1
-
 /// <summary>
 /// Constructor which initializes the non-templated members contained in this class.
 /// The renderer, other templated members and GUI setup will be done in the templated derived controller class.
 /// </summary>
 /// <param name="fractorium">Pointer to the main window.</param>
 FractoriumEmberControllerBase::FractoriumEmberControllerBase(Fractorium* fractorium)
-	: m_Info(OpenCLInfo::Instance())
 {
 	Timing t;
-
 	m_Rendering = false;
 	m_Shared = true;
 	m_FailedRenders = 0;
@@ -25,12 +21,11 @@ FractoriumEmberControllerBase::FractoriumEmberControllerBase(Fractorium* fractor
 	m_Fractorium = fractorium;
 	m_RenderTimer = nullptr;
 	m_RenderRestartTimer = nullptr;
+	m_Info = OpenCLInfo::Instance();
 	m_Rand = QTIsaac<ISAAC_SIZE, ISAAC_INT>(ISAAC_INT(t.Tic()), ISAAC_INT(t.Tic() * 2), ISAAC_INT(t.Tic() * 3));//Ensure a different rand seed on each instance.
-
 	m_RenderTimer = new QTimer(m_Fractorium);
 	m_RenderTimer->setInterval(0);
 	m_Fractorium->connect(m_RenderTimer, SIGNAL(timeout()), SLOT(IdleTimer()));
-
 	m_RenderRestartTimer = new QTimer(m_Fractorium);
 	m_Fractorium->connect(m_RenderRestartTimer, SIGNAL(timeout()), SLOT(StartRenderTimer()));
 }
@@ -71,42 +66,34 @@ FractoriumEmberController<T>::FractoriumEmberController(Fractorium* fractorium)
 	m_PreviewRun = false;
 	m_PreviewRunning = false;
 	m_SheepTools = unique_ptr<SheepTools<T, float>>(new SheepTools<T, float>(
-													QString(QApplication::applicationDirPath() + "flam3-palettes.xml").toLocal8Bit().data(),
-													new EmberNs::Renderer<T, float>()));
+					   QString(QApplication::applicationDirPath() + "flam3-palettes.xml").toLocal8Bit().data(),
+					   new EmberNs::Renderer<T, float>()));
 	m_GLController = unique_ptr<GLEmberController<T>>(new GLEmberController<T>(fractorium, fractorium->ui.GLDisplay, this));
 	m_PreviewRenderer = unique_ptr<EmberNs::Renderer<T, float>>(new EmberNs::Renderer<T, float>());
 
 	//Initial combo change event to fill the palette table will be called automatically later.
 
-  // Look hard for a palette.
-
-  // TODO
-  // QStandardPaths::AppConfigLocation -- errors out, not a member.
-  // QStandardPaths::DataLocation -- how to parse this? It should include "/usr/share/fractorium" on Linux.
-
-	if ( ! (InitPaletteList(QDir::currentPath().toLocal8Bit().data()) ||
-          InitPaletteList(QDir::homePath().toLocal8Bit().data()) ||
-          InitPaletteList(QCoreApplication::applicationDirPath().toLocal8Bit().data()) ||
-          InitPaletteList(QString("/usr/local/share/fractorium").toLocal8Bit().data()) ||
-          InitPaletteList(QString("/usr/share/fractorium").toLocal8Bit().data())) )
-  {
-    // TODO better error dialog
-    throw "No palettes found, exiting.";
-  }
+	//Look hard for a palette.
+	if (!(InitPaletteList(QDir::currentPath().toLocal8Bit().data()) ||
+			InitPaletteList(QDir::homePath().toLocal8Bit().data()) ||
+			InitPaletteList(QCoreApplication::applicationDirPath().toLocal8Bit().data()) ||
+			InitPaletteList(QString("/usr/local/share/fractorium").toLocal8Bit().data()) ||
+			InitPaletteList(QString("/usr/share/fractorium").toLocal8Bit().data())) )
+	{
+		throw "No palettes found, exiting.";
+	}
 
 	BackgroundChanged(QColor(0, 0, 0));//Default to black.
 	ClearUndo();
-
 	m_PreviewRenderer->Callback(nullptr);
 	m_PreviewRenderer->NumChannels(4);
 	m_PreviewRenderer->EarlyClip(m_Fractorium->m_Settings->EarlyClip());
 	m_PreviewRenderer->YAxisUp(m_Fractorium->m_Settings->YAxisUp());
 	m_PreviewRenderer->SetEmber(m_Ember);//Give it an initial ember, will be updated many times later.
 	//m_PreviewRenderer->ThreadCount(1);//For debugging.
-
 	m_PreviewRenderFunc = [&](uint start, uint end)
 	{
-		while(m_PreviewRun || m_PreviewRunning)
+		while (m_PreviewRun || m_PreviewRunning)
 		{
 		}
 
@@ -120,7 +107,6 @@ FractoriumEmberController<T>::FractoriumEmberController(Fractorium* fractorium)
 			for (size_t i = start; m_PreviewRun && i < end && i < m_EmberFile.Size(); i++)
 			{
 				Ember<T> ember = m_EmberFile.m_Embers[i];
-
 				ember.SyncSize();
 				ember.SetSizeAndAdjustScale(PREVIEW_SIZE, PREVIEW_SIZE, false, SCALE_WIDTH);
 				ember.m_TemporalSamples = 1;
@@ -136,11 +122,10 @@ FractoriumEmberController<T>::FractoriumEmberController(Fractorium* fractorium)
 						//This ensures the events are processed in order as each preview is updated, and that control does not return here
 						//until the update is complete.
 						QMetaObject::invokeMethod(m_Fractorium, "SetLibraryTreeItemData", Qt::BlockingQueuedConnection,
-							Q_ARG(EmberTreeWidgetItemBase*, dynamic_cast<EmberTreeWidgetItemBase*>(treeItem)),
-							Q_ARG(vector<byte>&, m_PreviewFinalImage),
-							Q_ARG(uint, PREVIEW_SIZE),
-							Q_ARG(uint, PREVIEW_SIZE));
-						
+												  Q_ARG(EmberTreeWidgetItemBase*, dynamic_cast<EmberTreeWidgetItemBase*>(treeItem)),
+												  Q_ARG(vector<byte>&, m_PreviewFinalImage),
+												  Q_ARG(uint, PREVIEW_SIZE),
+												  Q_ARG(uint, PREVIEW_SIZE));
 						//treeItem->SetImage(m_PreviewFinalImage, PREVIEW_SIZE, PREVIEW_SIZE);
 					}
 				}
@@ -287,7 +272,6 @@ void FractoriumEmberController<T>::UpdateXform(std::function<void(Xform<T>*)> fu
 					if (Xform<T>* xform = CurrentXform())
 						func(xform);
 		}
-
 		break;
 
 		case eXformUpdate::UPDATE_ALL:
@@ -295,7 +279,6 @@ void FractoriumEmberController<T>::UpdateXform(std::function<void(Xform<T>*)> fu
 			while (Xform<T>* xform = m_Ember.GetTotalXform(i++))
 				func(xform);
 		}
-
 		break;
 
 		case eXformUpdate::UPDATE_ALL_EXCEPT_FINAL:
@@ -304,7 +287,6 @@ void FractoriumEmberController<T>::UpdateXform(std::function<void(Xform<T>*)> fu
 			while (Xform<T>* xform = m_Ember.GetXform(i++))
 				func(xform);
 		}
-
 		break;
 	}
 
@@ -326,10 +308,9 @@ void FractoriumEmberController<T>::SetEmberPrivate(const Ember<U>& ember, bool v
 {
 	if (ember.m_Name != m_Ember.m_Name)
 		m_LastSaveCurrent = "";
-	
+
 	size_t w = m_Ember.m_FinalRasW;//Cache values for use below.
 	size_t h = m_Ember.m_FinalRasH;
-
 	m_Ember = ember;
 
 	if (!verbatim)
@@ -340,20 +321,16 @@ void FractoriumEmberController<T>::SetEmberPrivate(const Ember<U>& ember, bool v
 		m_Ember.m_Supersample = m_Fractorium->m_SupersampleSpin->value();
 	}
 
-#ifdef SAVE_EACH
-	static EmberToXml<T> writer;
+	static EmberToXml<T> writer;//Save parameters of last full render just in case there is a crash.
 	string filename = "last.flame";
-
 	writer.Save(filename.c_str(), m_Ember, 0, true, false, true);
-#endif
-
 	m_GLController->ResetMouseState();
 	FillXforms();//Must do this first because the palette setup in FillParamTablesAndPalette() uses the xforms combo.
 	FillParamTablesAndPalette();
 	FillSummary();
 
 	//If a resize happened, this won't do anything because the new size is not reflected in the scroll area yet.
-	//However, it will have been taken care of in SyncSizes() in that case, so it's ok. 
+	//However, it will have been taken care of in SyncSizes() in that case, so it's ok.
 	//This is for when a new ember with the same size was loaded. If it was larger than the scroll area, and was scrolled, re-center it.
 	if (m_Ember.m_FinalRasW == w && m_Ember.m_FinalRasH == h)
 		m_Fractorium->CenterScrollbars();

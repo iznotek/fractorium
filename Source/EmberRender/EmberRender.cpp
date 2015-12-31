@@ -2,6 +2,8 @@
 #include "EmberRender.h"
 #include "JpegUtils.h"
 
+//template <class OpenCLInfo> weak_ptr<OpenCLInfo> Singleton<OpenCLInfo>::m_Instance = weak_ptr<OpenCLInfo>();
+
 /// <summary>
 /// The core of the EmberRender.exe program.
 /// Template argument expected to be float or double.
@@ -11,8 +13,7 @@
 template <typename T>
 bool EmberRender(EmberOptions& opt)
 {
-	EmberCLns::OpenCLInfo& info(EmberCLns::OpenCLInfo::Instance());
-
+	auto info = EmberCLns::OpenCLInfo::Instance();
 	std::cout.imbue(std::locale(""));
 
 	if (opt.DumpArgs())
@@ -21,7 +22,7 @@ bool EmberRender(EmberOptions& opt)
 	if (opt.OpenCLInfo())
 	{
 		cout << "\nOpenCL Info: " << endl;
-		cout << info.DumpInfo();
+		cout << info->DumpInfo();
 		return true;
 	}
 
@@ -89,8 +90,8 @@ bool EmberRender(EmberOptions& opt)
 		{
 			for (auto& device : devices)
 			{
-				cout << "Platform: " << info.PlatformName(device.first) << endl;
-				cout << "Device: " << info.DeviceName(device.first, device.second) << endl;
+				cout << "Platform: " << info->PlatformName(device.first) << endl;
+				cout << "Device: " << info->DeviceName(device.first, device.second) << endl;
 			}
 		}
 
@@ -108,9 +109,9 @@ bool EmberRender(EmberOptions& opt)
 	}
 
 	if (opt.Format() != "jpg" &&
-		opt.Format() != "png" &&
-		opt.Format() != "ppm" &&
-		opt.Format() != "bmp")
+			opt.Format() != "png" &&
+			opt.Format() != "ppm" &&
+			opt.Format() != "bmp")
 	{
 		cout << "Format must be jpg, png, ppm, or bmp not " << opt.Format() << ". Setting to jpg." << endl;
 	}
@@ -189,7 +190,7 @@ bool EmberRender(EmberOptions& opt)
 
 		//Cast to double in case the value exceeds 2^32.
 		double imageMem = double(renderer->NumChannels()) * double(embers[i].m_FinalRasW)
-			   * double(embers[i].m_FinalRasH) * double(renderer->BytesPerChannel());
+						  * double(embers[i].m_FinalRasH) * double(renderer->BytesPerChannel());
 		double maxMem = pow(2.0, double((sizeof(void*) * 8) - 1));
 
 		if (imageMem > maxMem)//Ensure the max amount of memory for a process is not exceeded.
@@ -217,10 +218,9 @@ bool EmberRender(EmberOptions& opt)
 		}
 
 		strips = VerifyStrips(embers[i].m_FinalRasH, strips,
-			[&](const string& s) { cout << s << endl; },//Greater than height.
-			[&](const string& s) { cout << s << endl; },//Mod height != 0.
-			[&](const string& s) { cout << s << endl; });//Final strips value to be set.
-
+		[&](const string & s) { cout << s << endl; }, //Greater than height.
+		[&](const string & s) { cout << s << endl; }, //Mod height != 0.
+		[&](const string & s) { cout << s << endl; }); //Final strips value to be set.
 		//For testing incremental renderer.
 		//int sb = 1;
 		//bool resume = false, success = false;
@@ -231,9 +231,8 @@ bool EmberRender(EmberOptions& opt)
 		//	resume = true;
 		//}
 		//while (success && renderer->ProcessState() != ACCUM_DONE);
-
 		StripsRender<T>(renderer.get(), embers[i], finalImage, 0, strips, opt.YAxisUp(),
-		[&](size_t strip)//Pre strip.
+						[&](size_t strip)//Pre strip.
 		{
 			if (opt.Verbose() && (strips > 1) && strip > 0)
 				cout << endl;
@@ -267,7 +266,6 @@ bool EmberRender(EmberOptions& opt)
 			else
 			{
 				ostringstream fnstream;
-
 				fnstream << inputPath << opt.Prefix() << setfill('0') << setw(padding) << i << opt.Suffix() << "." << opt.Format();
 				filename = fnstream.str();
 			}
@@ -278,9 +276,10 @@ bool EmberRender(EmberOptions& opt)
 			comments = renderer->ImageComments(stats, opt.PrintEditDepth(), opt.IntPalette(), opt.HexPalette());
 			os.str("");
 			os << comments.m_NumIters << " / " << iterCount << " (" << std::fixed << std::setprecision(2) << ((double(stats.m_Iters) / double(iterCount)) * 100) << "%)";
-
 			VerbosePrint("\nIters ran/requested: " + os.str());
+
 			if (!opt.EmberCL()) VerbosePrint("Bad values: " << stats.m_Badvals);
+
 			VerbosePrint("Render time: " + t.Format(stats.m_RenderMs));
 			VerbosePrint("Pure iter time: " + t.Format(stats.m_IterMs));
 			VerbosePrint("Iters/sec: " << size_t(stats.m_Iters / (stats.m_IterMs / 1000.0)) << endl);
@@ -310,11 +309,11 @@ bool EmberRender(EmberOptions& opt)
 			if (auto rendererCL = dynamic_cast<RendererCL<T, float>*>(renderer.get()))
 			{
 				cout << "Iteration kernel:\n" <<
-				rendererCL->IterKernel() << "\n\n" <<
-				"Density filter kernel:\n" <<
-				rendererCL->DEKernel() << "\n\n" <<
-				"Final accumulation kernel:\n" <<
-				rendererCL->FinalAccumKernel() << endl;
+					 rendererCL->IterKernel() << "\n\n" <<
+					 "Density filter kernel:\n" <<
+					 rendererCL->DEKernel() << "\n\n" <<
+					 "Final accumulation kernel:\n" <<
+					 rendererCL->FinalAccumKernel() << endl;
 			}
 		}
 
@@ -322,7 +321,6 @@ bool EmberRender(EmberOptions& opt)
 	}
 
 	t.Toc("\nFinished in: ", true);
-
 	return true;
 }
 
@@ -336,7 +334,6 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 	bool b = false;
 	EmberOptions opt;
-
 	//Required for large allocs, else GPU memory usage will be severely limited to small sizes.
 	//This must be done in the application and not in the EmberCL DLL.
 #ifdef WIN32
@@ -348,23 +345,23 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	if (!opt.Populate(argc, argv, OPT_USE_RENDER))
 	{
-
 #ifdef DO_DOUBLE
+
 		if (opt.Bits() == 64)
 		{
 			b = EmberRender<double>(opt);
 		}
 		else
 #endif
-		if (opt.Bits() == 33)
-		{
-			b = EmberRender<float>(opt);
-		}
-		else if (opt.Bits() == 32)
-		{
-			cout << "Bits 32/int histogram no longer supported. Using bits == 33 (float)." << endl;
-			b = EmberRender<float>(opt);
-		}
+			if (opt.Bits() == 33)
+			{
+				b = EmberRender<float>(opt);
+			}
+			else if (opt.Bits() == 32)
+			{
+				cout << "Bits 32/int histogram no longer supported. Using bits == 33 (float)." << endl;
+				b = EmberRender<float>(opt);
+			}
 	}
 
 	return b ? 0 : 1;

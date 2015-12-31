@@ -2,6 +2,7 @@
 
 #include "Point.h"
 #include "Isaac.h"
+#include "VarFuncs.h"
 
 /// <summary>
 /// Base variation classes. Individual variations will be grouped into files of roughly 50
@@ -101,6 +102,7 @@ enum eVariationId
 	VAR_COTQ		   ,
 	VAR_CPOW		   ,
 	VAR_CPOW2		   ,
+	VAR_CRACKLE		   ,
 	VAR_CRESCENTS	   ,
 	VAR_CROB		   ,
 	VAR_CROP		   ,
@@ -409,6 +411,7 @@ enum eVariationId
 	VAR_PRE_COTQ,
 	VAR_PRE_CPOW,
 	VAR_PRE_CPOW2,
+	VAR_PRE_CRACKLE,
 	VAR_PRE_CRESCENTS,
 	VAR_PRE_CROB,
 	VAR_PRE_CROP,
@@ -717,6 +720,7 @@ enum eVariationId
 	VAR_POST_COTQ,
 	VAR_POST_CPOW,
 	VAR_POST_CPOW2,
+	VAR_POST_CRACKLE,
 	VAR_POST_CRESCENTS,
 	VAR_POST_CROB,
 	VAR_POST_CROP,
@@ -974,6 +978,7 @@ enum eVariationId
 	VAR_DC_CYLINDER,
 	VAR_DC_GRIDOUT,
 	VAR_DC_LINEAR,
+	VAR_DC_PERLIN,
 	VAR_DC_TRIANGLE,
 	VAR_DC_ZTRANSL,
 
@@ -983,6 +988,7 @@ enum eVariationId
 	VAR_PRE_DC_CYLINDER,
 	VAR_PRE_DC_GRIDOUT,
 	VAR_PRE_DC_LINEAR,
+	VAR_PRE_DC_PERLIN,
 	VAR_PRE_DC_TRIANGLE,
 	VAR_PRE_DC_ZTRANSL,
 
@@ -992,6 +998,7 @@ enum eVariationId
 	VAR_POST_DC_CYLINDER,
 	VAR_POST_DC_GRIDOUT,
 	VAR_POST_DC_LINEAR,
+	VAR_POST_DC_PERLIN,
 	VAR_POST_DC_TRIANGLE,
 	VAR_POST_DC_ZTRANSL,
 
@@ -1049,7 +1056,7 @@ public:
 			  bool needPrecalcAngles = false,
 			  bool needPrecalcAtanXY = false,
 			  bool needPrecalcAtanYX = false)
-			  : m_Name(name)//Omit unnecessary default constructor call.
+		: m_Name(name)//Omit unnecessary default constructor call.
 	{
 		m_Xform = nullptr;
 		m_VariationId = id;
@@ -1133,7 +1140,6 @@ public:
 		m_NeedPrecalcAngles = variation.NeedPrecalcAngles();
 		m_NeedPrecalcAtanXY = variation.NeedPrecalcAtanXY();
 		m_NeedPrecalcAtanYX = variation.NeedPrecalcAtanYX();
-
 		return *this;
 	}
 
@@ -1288,9 +1294,7 @@ public:
 	virtual string ToString() const
 	{
 		ostringstream ss;
-
 		ss << m_Name << "(" << m_Weight << ")";
-
 		return ss.str();
 	}
 
@@ -1345,6 +1349,12 @@ public:
 	/// </summary>
 	/// <returns>The names for global OpenCL functions specific to this variation</returns>
 	virtual vector<string> OpenCLGlobalFuncNames() const { return vector<string>(); }
+
+	/// <summary>
+	/// If the OpenCL string depends on any global static data specific to this variation, and possibly shared among others, return their names.
+	/// </summary>
+	/// <returns>The names for global OpenCL data specific to this variation</returns>
+	virtual vector<string> OpenCLGlobalDataNames() const { return vector<string>(); }
 
 	/// <summary>
 	/// If the OpenCL string depends on any functions specific to this variation, return them.
@@ -1462,6 +1472,7 @@ template <typename T> class ParametricVariation;
 /// Also, some of them can be considered precalculated values, rather than
 /// formal parameters.
 /// Further, some can change state between iterations.
+/// The constructors for each case are deliberately different to prevent errors.
 /// This class encapsulates a single parameter.
 /// Template argument expected to be float or double.
 /// </summary>
@@ -1485,11 +1496,13 @@ public:
 	/// <param name="isPrecalc">Whether the parameter is actually a precalculated value. Always true.</param>
 	/// <param name="param">A pointer to the parameter</param>
 	/// <param name="name">The name of the parameter</param>
+	/// <param name="size">The length of the underlying memory in bytes. Needed for array types. Default: sizeof(T).</param>
 	ParamWithName(bool isPrecalc,
-		T* param,
-		string name)
+				  T* param,
+				  string name,
+				  size_t size = sizeof(T))
 	{
-		Init(param, name, 0, REAL, TLOW, TMAX, true);
+		Init(param, name, 0, REAL, TLOW, TMAX, true, false, size);
 	}
 
 	/// <summary>
@@ -1500,9 +1513,9 @@ public:
 	/// <param name="param">A pointer to the parameter</param>
 	/// <param name="name">The name of the parameter</param>
 	ParamWithName(bool isPrecalc,
-		bool isState,
-		T* param,
-		string name)
+				  bool isState,
+				  T* param,
+				  string name)
 	{
 		Init(param, name, 0, REAL, TLOW, TMAX, true, true);
 	}
@@ -1555,6 +1568,7 @@ public:
 			m_Name = paramWithName.m_Name;
 			m_IsPrecalc = paramWithName.m_IsPrecalc;
 			m_IsState = paramWithName.m_IsState;
+			m_Size = paramWithName.m_Size;
 		}
 
 		return *this;
@@ -1571,7 +1585,8 @@ public:
 	/// <param name="max">The maximum value the parameter can be</param>
 	/// <param name="isPrecalc">Whether the parameter is actually a precalculated value. Default: false.</param>
 	/// <param name="isState">Whether the parameter changes state between iterations. Default: false.</param>
-	void Init(T* param, const string& name, T def = 0, eParamType type = REAL, T min = TLOW, T max = TMAX, bool isPrecalc = false, bool isState = false)
+	/// <param name="size">The length of the underlying memory in bytes. Needed for array types. Default: sizeof(T).</param>
+	void Init(T* param, const string& name, T def = 0, eParamType type = REAL, T min = TLOW, T max = TMAX, bool isPrecalc = false, bool isState = false, size_t size = sizeof(T))
 	{
 		m_Param = param;
 		m_Def = def;
@@ -1581,7 +1596,7 @@ public:
 		m_Name = name;
 		m_IsPrecalc = isPrecalc;
 		m_IsState = isState;
-
+		m_Size = size;
 		Set(m_Def);//Initial value.
 	}
 
@@ -1652,17 +1667,16 @@ public:
 	string ToString() const
 	{
 		ostringstream ss;
-
-		ss << "Param Name: " << m_Name << endl
-		   << "Param Pointer: " << m_Param << endl
-		   << "Param Value: " << *m_Param << endl
-		   << "Param Def: " << m_Def << endl
-		   << "Param Min: " << m_Min << endl
-		   << "Param Max: " << m_Max << endl
-		   << "Param Type: " << m_Type << endl
-		   << "Is Precalc: " << m_IsPrecalc << endl
-		   << "Is State: " << m_IsState << endl;
-
+		ss << "Param Name: " << m_Name << "\n"
+		   << "Param Pointer: " << m_Param << "\n"
+		   << "Param Value: " << *m_Param << "\n"
+		   << "Param Def: " << m_Def << "\n"
+		   << "Param Min: " << m_Min << "\n"
+		   << "Param Max: " << m_Max << "\n"
+		   << "Param Type: " << m_Type << "\n"
+		   << "Is Precalc: " << m_IsPrecalc << "\n"
+		   << "Is State: " << m_IsState << "\n"
+		   << "Size: " << m_Size << "\n";
 		return ss.str();
 	}
 
@@ -1678,6 +1692,7 @@ public:
 	string Name() const { return m_Name; }
 	bool IsPrecalc() const { return m_IsPrecalc; }
 	bool IsState() const { return m_IsState; }
+	size_t Size() const { return m_Size; }
 
 private:
 	T* m_Param;//Pointer to the parameter value.
@@ -1688,6 +1703,7 @@ private:
 	string m_Name;//Name of the parameter.
 	bool m_IsPrecalc;//Whether the parameter is actually a precalculated value.
 	bool m_IsState;//Whether the parameter changes state between iterations. This is also considered precalc.
+	size_t m_Size;//The size of the field in bytes. Default: sizeof(T).
 };
 
 #define VARUSINGS \
@@ -1729,17 +1745,17 @@ public:
 	/// <param name="needPrecalcAtanXY">Whether it uses the precalc atan XY value in its calculations. Default: false.</param>
 	/// <param name="needPrecalcAtanYX">Whether it uses the precalc atan YX value in its calculations. Default: false.</param>
 	ParametricVariation(const char* name, eVariationId id, T weight = 1.0,
-				   bool needPrecalcSumSquares = false,
-				   bool needPrecalcSqrtSumSquares = false,
-				   bool needPrecalcAngles = false,
-				   bool needPrecalcAtanXY = false,
-				   bool needPrecalcAtanYX = false)
-				   : Variation<T>(name, id, weight,
-								   needPrecalcSumSquares,
-								   needPrecalcSqrtSumSquares,
-								   needPrecalcAngles,
-								   needPrecalcAtanXY,
-								   needPrecalcAtanYX)
+						bool needPrecalcSumSquares = false,
+						bool needPrecalcSqrtSumSquares = false,
+						bool needPrecalcAngles = false,
+						bool needPrecalcAtanXY = false,
+						bool needPrecalcAtanYX = false)
+		: Variation<T>(name, id, weight,
+					   needPrecalcSumSquares,
+					   needPrecalcSqrtSumSquares,
+					   needPrecalcAngles,
+					   needPrecalcAtanXY,
+					   needPrecalcAtanYX)
 	{
 		m_Params.reserve(5);
 	}
@@ -1884,7 +1900,9 @@ public:
 	virtual void Random(QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand) override
 	{
 		Variation<T>::Random(rand);
+
 		for (auto& param : m_Params) param.Set(rand.Frand11<T>());
+
 		this->Precalc();
 	}
 
@@ -1894,6 +1912,7 @@ public:
 	void Clear()
 	{
 		for (auto& param : m_Params) *(param.Param()) = 0;
+
 		this->Precalc();
 	}
 
@@ -1905,8 +1924,8 @@ public:
 	vector<string> ParamNames(bool includePrecalcs = false)
 	{
 		vector<string> vec;
-
 		vec.reserve(m_Params.size());
+
 		for (auto& param : m_Params)
 		{
 			if ((includePrecalcs && param.IsPrecalc()) || !param.IsPrecalc())
@@ -1947,8 +1966,8 @@ public:
 	virtual string ToString() const override
 	{
 		ostringstream ss;
-
 		ss << Variation<T>::ToString() << endl;
+
 		for (auto& param : m_Params) ss << param.ToString() << endl;
 
 		return ss.str();
@@ -2084,7 +2103,7 @@ protected:
 	template <typename T> \
 	class EMBER_API Pre##varName##Variation : public varName##Variation<T> \
 	{ \
-	VARUSINGS \
+		VARUSINGS \
 	public: \
 		Pre##varName##Variation(T weight = 1.0) : varName##Variation<T>(weight) \
 		{ \
@@ -2100,7 +2119,7 @@ protected:
 	template <typename T> \
 	class EMBER_API Post##varName##Variation : public varName##Variation<T> \
 	{ \
-	VARUSINGS \
+		VARUSINGS \
 	public:\
 		Post##varName##Variation(T weight = 1.0) : varName##Variation<T>(weight) \
 		{ \
@@ -2203,9 +2222,9 @@ protected:
 	template <typename T> \
 	class EMBER_API Pre##varName##Variation : public varName##Variation <T> \
 	{ \
-	VARUSINGS \
-	PARVARUSINGS \
-	using varName##Variation<T>::Init; \
+		VARUSINGS \
+		PARVARUSINGS \
+		using varName##Variation<T>::Init; \
 	public:\
 		Pre##varName##Variation(T weight = 1.0) : varName##Variation<T>(weight) \
 		{ \
@@ -2222,9 +2241,9 @@ protected:
 	template <typename T> \
 	class EMBER_API Post##varName##Variation : public varName##Variation<T> \
 	{ \
-	VARUSINGS \
-	PARVARUSINGS \
-	using varName##Variation<T>::Init; \
+		VARUSINGS \
+		PARVARUSINGS \
+		using varName##Variation<T>::Init; \
 	public:\
 		Post##varName##Variation(T weight = 1.0) : varName##Variation<T>(weight) \
 		{ \
@@ -2237,4 +2256,4 @@ protected:
 		\
 		PREPOSTPARVARCOPY(Post##varName##Variation, varName##Variation) \
 	};
-}
+	}

@@ -11,17 +11,15 @@
 /// <param name="p">The parent widget</param>
 /// <param name="f">The window flags. Default: 0.</param>
 FractoriumFinalRenderDialog::FractoriumFinalRenderDialog(FractoriumSettings* settings, QWidget* p, Qt::WindowFlags f)
-	: QDialog(p, f),
-	m_Info(OpenCLInfo::Instance())
-{	
+	: QDialog(p, f)
+{
 	ui.setupUi(this);
-
 	int row = 0, spinHeight = 20;
 	uint i;
 	double dmax = numeric_limits<double>::max();
 	QTableWidget* table = ui.FinalRenderParamsTable;
 	QTableWidgetItem* item = nullptr;
-
+	m_Info = OpenCLInfo::Instance();
 	m_Fractorium = qobject_cast<Fractorium*>(p);
 	m_Settings = settings;
 	ui.FinalRenderThreadCountSpin->setRange(1, Timing::ProcessorCount());
@@ -39,7 +37,6 @@ FractoriumFinalRenderDialog::FractoriumFinalRenderDialog(FractoriumSettings* set
 	connect(ui.FinalRenderScaleWidthRadioButton,   SIGNAL(toggled(bool)),			 this, SLOT(OnScaleRadioButtonChanged(bool)),			 Qt::QueuedConnection);
 	connect(ui.FinalRenderScaleHeightRadioButton,  SIGNAL(toggled(bool)),			 this, SLOT(OnScaleRadioButtonChanged(bool)),			 Qt::QueuedConnection);
 	connect(ui.FinalRenderDeviceTable,			   SIGNAL(cellChanged(int, int)),	 this, SLOT(OnDeviceTableCellChanged(int, int)),		 Qt::QueuedConnection);
-
 	SetupSpinner<DoubleSpinBox, double>(ui.FinalRenderSizeTable, this, row, 1, m_WidthScaleSpin,  spinHeight, 0.001, 99.99, 0.1, SIGNAL(valueChanged(double)), SLOT(OnWidthScaleChanged(double)), true, 1.0, 1.0, 1.0);
 	SetupSpinner<DoubleSpinBox, double>(ui.FinalRenderSizeTable, this, row, 1, m_HeightScaleSpin, spinHeight, 0.001, 99.99, 0.1, SIGNAL(valueChanged(double)), SLOT(OnHeightScaleChanged(double)), true, 1.0, 1.0, 1.0);
 	m_WidthScaleSpin->setDecimals(3);
@@ -48,46 +45,37 @@ FractoriumFinalRenderDialog::FractoriumFinalRenderDialog(FractoriumSettings* set
 	m_HeightScaleSpin->setSuffix(" ( )");
 	m_WidthScaleSpin->SmallStep(0.001);
 	m_HeightScaleSpin->SmallStep(0.001);
-
 	row = 0;
 	SetupSpinner<DoubleSpinBox, double>(table, this, row, 1, m_QualitySpin,		    spinHeight,  1, dmax, 50, SIGNAL(valueChanged(double)), SLOT(OnQualityChanged(double)),	     true, 1000, 1000, 1000);
 	SetupSpinner<SpinBox, int>         (table, this, row, 1, m_TemporalSamplesSpin, spinHeight,  1, 5000, 50, SIGNAL(valueChanged(int)),    SLOT(OnTemporalSamplesChanged(int)), true, 1000, 1000, 1000);
 	SetupSpinner<SpinBox, int>         (table, this, row, 1, m_SupersampleSpin,	    spinHeight,	 1,	   4,  1, SIGNAL(valueChanged(int)),    SLOT(OnSupersampleChanged(int)),	 true,    2,	1,	  1);
 	SetupSpinner<SpinBox, int>         (table, this, row, 1, m_StripsSpin,			spinHeight,	 1,	  64,  1, SIGNAL(valueChanged(int)),    SLOT(OnStripsChanged(int)),		     true,    1,	1,	  1);
-
 	m_MemoryCellIndex = row++;//Memory usage.
 	m_ItersCellIndex = row++;//Iters.
 	m_PathCellIndex = row;
-
 	QStringList comboList;
-	
 	comboList.append("jpg");
 	comboList.append("png");
-
 	m_Tbcw = new TwoButtonComboWidget("...", "Open", comboList, 22, 40, 22, table);
 	table->setCellWidget(row, 1, m_Tbcw);
 	table->item(row++, 1)->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
 	connect(m_Tbcw->m_Button1, SIGNAL(clicked(bool)),			 this, SLOT(OnFileButtonClicked(bool)),			Qt::QueuedConnection);
 	connect(m_Tbcw->m_Button2, SIGNAL(clicked(bool)),			 this, SLOT(OnShowFolderButtonClicked(bool)),   Qt::QueuedConnection);
 	connect(m_Tbcw->m_Combo,   SIGNAL(currentIndexChanged(int)), this, SLOT(OnExtIndexChanged(int)), Qt::QueuedConnection);
-
 	m_PrefixEdit = new QLineEdit(table);
 	table->setCellWidget(row++, 1, m_PrefixEdit);
-
 	m_SuffixEdit = new QLineEdit(table);
 	table->setCellWidget(row++, 1, m_SuffixEdit);
 	connect(m_PrefixEdit, SIGNAL(textChanged(const QString&)), this, SLOT(OnPrefixChanged(const QString&)), Qt::QueuedConnection);
 	connect(m_SuffixEdit, SIGNAL(textChanged(const QString&)), this, SLOT(OnSuffixChanged(const QString&)), Qt::QueuedConnection);
-
 	ui.FinalRenderStartButton->disconnect(SIGNAL(clicked(bool)));
 	connect(ui.FinalRenderStartButton, SIGNAL(clicked(bool)), this, SLOT(OnRenderClicked(bool)),		  Qt::QueuedConnection);
 	connect(ui.FinalRenderStopButton,  SIGNAL(clicked(bool)), this, SLOT(OnCancelRenderClicked(bool)), Qt::QueuedConnection);
-
 	table = ui.FinalRenderDeviceTable;
 	table->clearContents();
 	table->setRowCount(0);
 
-	if (m_Info.Ok() && !m_Info.Devices().empty())
+	if (m_Info->Ok() && !m_Info->Devices().empty())
 	{
 		SetupDeviceTable(table, m_Settings->FinalDevices());
 
@@ -124,28 +112,25 @@ FractoriumFinalRenderDialog::FractoriumFinalRenderDialog(FractoriumSettings* set
 		ui.FinalRenderThreadPriorityComboBox->setCurrentIndex(tpc);
 	else
 		ui.FinalRenderThreadPriorityComboBox->setCurrentIndex(Clamp<int>(m_Settings->FinalThreadPriority() / 25, 0, tpc));
-#endif
 
+#endif
 	m_QualitySpin->setValue(m_Settings->FinalQuality());
 	m_TemporalSamplesSpin->setValue(m_Settings->FinalTemporalSamples());
 	m_SupersampleSpin->setValue(m_Settings->FinalSupersample());
 	m_StripsSpin->setValue(m_Settings->FinalStrips());
-
 	Scale(eScaleType(m_Settings->FinalScale()));
 
 	if (m_Settings->FinalExt() == "jpg")
 		m_Tbcw->m_Combo->setCurrentIndex(0);
 	else
 		m_Tbcw->m_Combo->setCurrentIndex(1);
-	
+
 	//Explicitly call these to enable/disable the appropriate controls.
 	OnOpenCLCheckBoxStateChanged(ui.FinalRenderOpenCLCheckBox->isChecked());
 	OnDoAllCheckBoxStateChanged(ui.FinalRenderDoAllCheckBox->isChecked());
 	OnDoSequenceCheckBoxStateChanged(ui.FinalRenderDoSequenceCheckBox->isChecked());
-
 	QSize s = size();
 	int desktopHeight = qApp->desktop()->availableGeometry().height();
-
 	s.setHeight(std::min(s.height(), int(double(desktopHeight * 0.90))));
 	setGeometry(QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter, s, qApp->desktop()->availableGeometry()));
 	ui.FinalRenderThreadHorizontalLayout->setAlignment(Qt::AlignLeft);
@@ -153,7 +138,6 @@ FractoriumFinalRenderDialog::FractoriumFinalRenderDialog(FractoriumSettings* set
 	ui.FinalRenderThreadHorizontalLayout->setAlignment(ui.FinalRenderThreadPriorityLabel, Qt::AlignLeft);
 	ui.FinalRenderThreadHorizontalLayout->setAlignment(ui.FinalRenderThreadPriorityComboBox, Qt::AlignLeft);
 	QWidget* w = SetTabOrder(this, ui.FinalRenderEarlyClipCheckBox, ui.FinalRenderYAxisUpCheckBox);
-
 	//Update these with new controls.
 	w = SetTabOrder(this, w, ui.FinalRenderTransparencyCheckBox);
 	w = SetTabOrder(this, w, ui.FinalRenderOpenCLCheckBox);
@@ -238,7 +222,6 @@ QList<QVariant> FractoriumFinalRenderDialog::Devices() { return DeviceTableToSet
 FinalRenderGuiState FractoriumFinalRenderDialog::State()
 {
 	FinalRenderGuiState state;
-
 	state.m_EarlyClip = EarlyClip();
 	state.m_YAxisUp = YAxisUp();
 	state.m_Transparency = Transparency();
@@ -262,7 +245,6 @@ FinalRenderGuiState FractoriumFinalRenderDialog::State()
 	state.m_TemporalSamples = TemporalSamples();
 	state.m_Supersample = Supersample();
 	state.m_Strips = Strips();
-
 	return state;
 }
 
@@ -346,7 +328,6 @@ void FractoriumFinalRenderDialog::OnTransparencyCheckBoxStateChanged(int state)
 void FractoriumFinalRenderDialog::OnOpenCLCheckBoxStateChanged(int state)
 {
 	bool checked = state == Qt::Checked;
-
 	ui.FinalRenderDeviceTable->setEnabled(checked);
 	ui.FinalRenderThreadCountSpin->setEnabled(!checked);
 	ui.FinalRenderThreadPriorityLabel->setEnabled(!checked);
@@ -387,7 +368,6 @@ void FractoriumFinalRenderDialog::OnDoAllCheckBoxStateChanged(int state)
 void FractoriumFinalRenderDialog::OnDoSequenceCheckBoxStateChanged(int state)
 {
 	bool checked = ui.FinalRenderDoSequenceCheckBox->isChecked();
-
 	m_TemporalSamplesSpin->setEnabled(checked);
 
 	if (checked)
@@ -428,7 +408,7 @@ void FractoriumFinalRenderDialog::OnApplyAllCheckBoxStateChanged(int state)
 void FractoriumFinalRenderDialog::OnWidthScaleChanged(double d)
 {
 	if (ui.FinalRenderKeepAspectCheckBox->isChecked() && m_Controller.get())
-			m_HeightScaleSpin->SetValueStealth(m_WidthScaleSpin->value());
+		m_HeightScaleSpin->SetValueStealth(m_WidthScaleSpin->value());
 
 	if (SetMemory())
 		m_Controller->SyncCurrentToSizeSpinners(false, true);
@@ -443,7 +423,7 @@ void FractoriumFinalRenderDialog::OnWidthScaleChanged(double d)
 void FractoriumFinalRenderDialog::OnHeightScaleChanged(double d)
 {
 	if (ui.FinalRenderKeepAspectCheckBox->isChecked() && m_Controller.get())
-			m_WidthScaleSpin->SetValueStealth(m_HeightScaleSpin->value());
+		m_WidthScaleSpin->SetValueStealth(m_HeightScaleSpin->value());
 
 	if (SetMemory())
 		m_Controller->SyncCurrentToSizeSpinners(false, true);
@@ -578,7 +558,7 @@ void FractoriumFinalRenderDialog::OnFileButtonClicked(bool checked)
 void FractoriumFinalRenderDialog::OnShowFolderButtonClicked(bool checked)
 {
 	QString s = m_Settings->SaveFolder();
-	
+
 	if (Exists(s))
 		QDesktopServices::openUrl(QUrl::fromLocalFile(s));
 	else
@@ -673,13 +653,12 @@ void FractoriumFinalRenderDialog::showEvent(QShowEvent* e)
 		m_Controller->m_ImageCount = 0;
 		SetMemory();
 		m_Controller->ResetProgress();
-
 		QString s = m_Settings->SaveFolder();
 
 		if (Exists(s))
 			Path(m_Controller->ComposePath(m_Controller->Name()));//Update the GUI.
 	}
-	
+
 	ui.FinalRenderTextOutput->clear();
 	QDialog::showEvent(e);
 }
@@ -708,13 +687,12 @@ bool FractoriumFinalRenderDialog::CreateControllerFromGUI(bool createRenderer)
 {
 	bool ok = true;
 	int index = Current() - 1;
-
 #ifdef DO_DOUBLE
 	size_t elementSize = Double() ? sizeof(double) : sizeof(float);
 #else
 	size_t elementSize = sizeof(float);
 #endif
-	
+
 	if (!m_Controller.get() || (m_Controller->SizeOfT() != elementSize))
 	{
 #ifdef DO_DOUBLE
@@ -740,6 +718,7 @@ bool FractoriumFinalRenderDialog::CreateControllerFromGUI(bool createRenderer)
 
 		//Create a float or double controller based on the GUI.
 #ifdef DO_DOUBLE
+
 		if (Double())
 			m_Controller = unique_ptr<FinalRenderEmberControllerBase>(new FinalRenderEmberController<double>(this));
 		else
@@ -778,10 +757,9 @@ bool FractoriumFinalRenderDialog::SetMemory()
 		bool error = false;
 		tuple<size_t, size_t, size_t> p = m_Controller->SyncAndComputeMemory();
 		QString s;
-
 		ui.FinalRenderParamsTable->item(m_MemoryCellIndex, 1)->setText(ToString<qulonglong>(get<1>(p)));
 		ui.FinalRenderParamsTable->item(m_ItersCellIndex, 1)->setText(ToString<qulonglong>(get<2>(p)));
-		
+
 		if (OpenCL() && !m_Wrappers.empty())
 		{
 			auto devices = Devices();
@@ -799,13 +777,13 @@ bool FractoriumFinalRenderDialog::SetMemory()
 					if (histSize > maxAlloc)
 					{
 						temp = "Histogram/Accumulator memory size of " + ToString<qulonglong>(histSize) +
-							" is greater than the max OpenCL allocation size of " + ToString<qulonglong>(maxAlloc);
+							   " is greater than the max OpenCL allocation size of " + ToString<qulonglong>(maxAlloc);
 					}
 
 					if (totalSize > totalAvail)
 					{
 						temp += "\n\nTotal required memory size of " + ToString<qulonglong>(totalSize) +
-							" is greater than the max OpenCL available memory of " + ToString<qulonglong>(totalAvail);
+								" is greater than the max OpenCL available memory of " + ToString<qulonglong>(totalAvail);
 					}
 
 					if (!temp.isEmpty())

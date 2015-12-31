@@ -50,7 +50,7 @@ static inline bool FindIf(c& container, pr pred)
 template<class c, class T>
 static inline bool Contains(c& container, const T& val)
 {
-	return std::find_if(container.begin(), container.end(), [&](const T& t) -> bool { return t == val; }) != container.end();
+	return std::find_if(container.begin(), container.end(), [&](const T & t) -> bool { return t == val; }) != container.end();
 }
 
 /// <summary>
@@ -179,6 +179,67 @@ private:
 };
 
 /// <summary>
+/// A base class for handling singletons that ensures only one instance exists, but
+/// also deletes the instance after there are no more references to it.
+/// This fixes the problem of the normal singleton pattern that uses a static function
+/// variable. That pattern does not delete the instance until after main() exits
+/// which can cause serious problems with certain libraries.
+/// This class will delete before main exits.
+/// Note that it still uses a local static variable because static templated
+/// member variables cannot be exported across module boundaries.
+/// Derived classes should inherit from this using the CRTP, and declare a friend to it.
+/// They also should make their constructors private and destructors public.
+/// Attribution: This class is a combination of
+/// http://btorpey.github.io/blog/2014/02/12/shared-singletons/
+/// and
+/// http://enki-tech.blogspot.com/2012/08/c11-generic-singleton.html
+/// </summary>
+template <class T>
+class Singleton
+{
+public:
+	/// <summary>
+	/// Create and return an instance of T.
+	/// </summary>
+	/// <param name="...args">The args to forward to the constructor of T</param>
+	/// <returns>A shared_ptr<T></returns>
+	template <typename... Args>
+	static shared_ptr<T> Instance(Args... args)
+	{
+		static weak_ptr<T> staticInstance;
+		auto temp = staticInstance.lock();
+
+		if (!temp)
+		{
+			temp.reset(new T(std::forward<Args>(args)...));
+			staticInstance = temp;
+		}
+
+		return temp;
+	}
+};
+
+//Use this if the body of the destructor will be implemented in a cpp file.
+#define SINGLETON_DERIVED_DECL(x) \
+	friend class Singleton<x>; \
+	public: \
+	~x(); \
+	\
+	private: \
+	x(const x& other) = delete; \
+    const x& operator=(const x& other) = delete//Semicolon deliberately omitted to force it on the caller.
+
+//Use this if the body of the destructor is empty and is will be implemented inline in the header file.
+#define SINGLETON_DERIVED_IMPL(x) \
+	friend class Singleton<x>; \
+	public: \
+	~x(){} \
+	\
+	private: \
+	x(const x& other) = delete; \
+    const x& operator=(const x& other) = delete
+
+/// <summary>
 /// Open a file in binary mode and read its entire contents into a vector of bytes. Optionally null terminate.
 /// </summary>
 /// <param name="filename">The full path to the file to read</param>
@@ -197,7 +258,6 @@ static bool ReadFile(const char* filename, string& buf, bool nullTerminate = tru
 		if (f)
 		{
 			struct _stat statBuf;
-
 #if defined(_WIN32) || defined(__APPLE__)
 			int statResult = _fstat(f->_file, &statBuf);//Get data associated with file.
 #else
@@ -582,7 +642,7 @@ static inline T SafeTan(T x)
 
 template <>
 #ifdef _WIN32
-static
+	static
 #endif
 float SafeTan<float>(float x)
 {
@@ -591,7 +651,7 @@ float SafeTan<float>(float x)
 
 template <>
 #ifdef _WIN32
-static
+	static
 #endif
 double SafeTan<double>(double x)
 {
@@ -694,7 +754,6 @@ template <typename T>
 static inline T Fabsmod(T v)
 {
 	T dummy;
-
 	return modf(v, &dummy);
 }
 
@@ -831,7 +890,6 @@ static inline T NormalizeDeg360(T angle)
 static string ToLower(const string& str)
 {
 	string lower;
-
 	lower.resize(str.size());//Allocate the destination space.
 	std::transform(str.begin(), str.end(), lower.begin(), ::tolower);//Convert the source string to lower case storing the result in the destination string.
 	return lower;
@@ -845,7 +903,6 @@ static string ToLower(const string& str)
 static string ToUpper(const string& str)
 {
 	string upper;
-
 	upper.resize(str.size());//Allocate the destination space.
 	std::transform(str.begin(), str.end(), upper.begin(), ::toupper);//Convert the source string to lower case storing the result in the destination string.
 	return upper;
@@ -924,7 +981,6 @@ static inline T Arg(char* name, T def)
 	{
 		T tempVal;
 		istringstream istr(ch);
-
 		istr >> tempVal;
 
 		if (!istr.bad() && !istr.fail())
@@ -947,7 +1003,7 @@ static inline T Arg(char* name, T def)
 /// <returns>The value of the specified environment variable if found, else default</returns>
 template <>
 #ifdef _WIN32
-static
+	static
 #endif
 bool Arg<bool>(char* name, bool def)
 {
@@ -962,7 +1018,7 @@ bool Arg<bool>(char* name, bool def)
 /// <returns>The value of the specified environment variable if found, else default</returns>
 template <>
 #ifdef _WIN32
-static
+	static
 #endif
 string Arg<string>(char* name, string def)
 {

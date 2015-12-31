@@ -10,11 +10,9 @@ void Fractorium::InitToolbarUI()
 	auto clGroup = new QActionGroup(this);
 	clGroup->addAction(ui.ActionCpu);
 	clGroup->addAction(ui.ActionCL);
-	
 	auto spGroup = new QActionGroup(this);
 	spGroup->addAction(ui.ActionSP);
 	spGroup->addAction(ui.ActionDP);
-
 	SyncOptionsToToolbar();
 	connect(ui.ActionCpu,	SIGNAL(triggered(bool)), this, SLOT(OnActionCpu(bool)),	  Qt::QueuedConnection);
 	connect(ui.ActionCL,	SIGNAL(triggered(bool)), this, SLOT(OnActionCL(bool)),	  Qt::QueuedConnection);
@@ -90,7 +88,7 @@ void Fractorium::OnActionStyle(bool checked)
 /// </summary>
 void Fractorium::SyncOptionsToToolbar()
 {
-	static bool openCL = !OpenCLInfo::Instance().Devices().empty();
+	static bool openCL = !m_Info->Devices().empty();
 
 	if (!openCL)
 	{

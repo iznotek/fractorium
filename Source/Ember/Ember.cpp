@@ -15,6 +15,7 @@ template<> CriticalSection QTIsaac<ISAAC_SIZE, ISAAC_INT>::m_CS = CriticalSectio
 #include "Palette.h"
 #include "PaletteList.h"
 #include "Point.h"
+#include "VarFuncs.h"
 #include "Variation.h"
 #include "Variations01.h"
 #include "Variations02.h"
@@ -42,7 +43,6 @@ template<> CriticalSection QTIsaac<ISAAC_SIZE, ISAAC_INT>::m_CS = CriticalSectio
 /// All new templated classes, such as new variations, must be added here.
 /// Additional instances of static class member variables.
 /// </summary>
-
 namespace EmberNs
 {
 bool Timing::m_TimingInit = false;
@@ -71,6 +71,7 @@ uint Timing::m_ProcessorCount;
 	template EMBER_API class MotionParam<T>; \
 	template EMBER_API class EmberMotion<T>; \
 	template EMBER_API class IteratorHelper<T>; \
+	template EMBER_API class VarFuncs<T>; \
 	template EMBER_API class Variation<T>; \
 	template EMBER_API class ParamWithName<T>; \
 	template EMBER_API class ParametricVariation<T>; \
@@ -377,12 +378,14 @@ uint Timing::m_ProcessorCount;
 	EXPORTPREPOSTREGVAR(Crob, T) \
 	EXPORTPREPOSTREGVAR(BubbleT3D, T) \
 	EXPORTPREPOSTREGVAR(Synth, T) \
+	EXPORTPREPOSTREGVAR(Crackle, T) \
 	EXPORTPREPOSTREGVAR(DCBubble, T) \
 	EXPORTPREPOSTREGVAR(DCCarpet, T) \
 	EXPORTPREPOSTREGVAR(DCCube, T) \
 	EXPORTPREPOSTREGVAR(DCCylinder, T) \
 	EXPORTPREPOSTREGVAR(DCGridOut, T) \
 	EXPORTPREPOSTREGVAR(DCLinear, T) \
+	EXPORTPREPOSTREGVAR(DCPerlin, T) \
 	EXPORTPREPOSTREGVAR(DCZTransl, T) \
 	EXPORTPREPOSTREGVAR(DCTriangle, T) \
 	template EMBER_API class VariationList<T>; \
@@ -410,7 +413,6 @@ uint Timing::m_ProcessorCount;
 	template EMBER_API class TemporalFilterCreator<T>; \
 	template EMBER_API class Interpolater<T>; \
 	template EMBER_API class Ember<T>; \
-	/*template EMBER_API class RenderCallback<T>;*/ \
 	template EMBER_API class CarToRas<T>; \
 	template EMBER_API class Curves<T>; \
 	template EMBER_API class XmlToEmber<T>; \

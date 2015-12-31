@@ -13,7 +13,6 @@ namespace EmberCLns
 /// <param name="shared">True if shared with OpenGL, else false.</param>
 /// <returns>True if success, else false.</returns>
 RendererClDevice::RendererClDevice(bool doublePrec, size_t platform, size_t device, bool shared)
-	: m_Info(OpenCLInfo::Instance())
 {
 	m_Init = false;
 	m_Shared = shared;
@@ -22,6 +21,7 @@ RendererClDevice::RendererClDevice(bool doublePrec, size_t platform, size_t devi
 	m_Calls = 0;
 	m_PlatformIndex = platform;
 	m_DeviceIndex = device;
+	m_Info = OpenCLInfo::Instance();
 }
 
 /// <summary>
@@ -40,7 +40,7 @@ bool RendererClDevice::Init()
 
 	if (b && m_Wrapper.Ok() && !m_Init)
 	{
-		m_NVidia = ToLower(m_Info.PlatformName(m_PlatformIndex)).find_first_of("nvidia") != string::npos && m_Wrapper.LocalMemSize() > (32 * 1024);
+		m_NVidia = ToLower(m_Info->PlatformName(m_PlatformIndex)).find_first_of("nvidia") != string::npos && m_Wrapper.LocalMemSize() > (32 * 1024);
 		m_WarpSize = m_NVidia ? 32 : 64;
 		m_Init = true;
 	}

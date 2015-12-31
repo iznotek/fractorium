@@ -12,18 +12,19 @@ unix|macx {
   SHARE_INSTALL_DIR = /usr/share/fractorium
 }
 
+EMBER_ROOT = ./../../../
+SRC_DIR = $$EMBER_ROOT/Source
+SRC_COMMON_DIR = $$EMBER_ROOT/Source/EmberCommon
+ASSETS_DIR = $$EMBER_ROOT/Data
+
 CONFIG(release, debug|release) {
   CONFIG += warn_off
-  DESTDIR = $$(PWD)/../../../Bin/release
+  DESTDIR = $$EMBER_ROOT/Bin/release
 }
 
 CONFIG(debug, debug|release) {
-  DESTDIR = $$(PWD)/../../../Bin/debug
+  DESTDIR = $$EMBER_ROOT/Bin/debug
 }
-
-SRC_DIR = $$(PWD)/../../../Source
-SRC_COMMON_DIR = $$(PWD)/../../../Source/EmberCommon
-ASSETS_DIR = $$(PWD)/../../../Data
 
 macx {
   LIBS += -framework OpenGL
@@ -46,10 +47,6 @@ macx {
   LIBS += -L/usr/lib -lOpenCL
 
   QMAKE_LFLAGS_RELEASE += -s
-}
-
-nvidia {
-  QMAKE_CXXFLAGS += -DNVIDIA
 }
 
 native {

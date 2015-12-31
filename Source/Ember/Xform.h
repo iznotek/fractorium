@@ -72,19 +72,16 @@ public:
 
 	{
 		Init();
-
 		m_Weight = weight;
 		m_ColorX = colorX;
 		m_ColorSpeed = colorSpeed;
 		m_Opacity = opacity;
-
 		m_Affine.A(a);
 		m_Affine.B(b);
 		m_Affine.C(c);
 		m_Affine.D(d);
 		m_Affine.E(e);
 		m_Affine.F(f);
-
 		m_Post.A(pa);
 		m_Post.B(pb);
 		m_Post.C(pc);
@@ -93,7 +90,6 @@ public:
 		m_Post.F(pf);
 		m_HasPost = !m_Post.IsID();
 		m_HasPreOrRegularVars = PreVariationCount() > 0 || VariationCount() > 0;
-
 		CacheColorVals();//Init already called this, but must call again since color was assigned above.
 	}
 
@@ -166,7 +162,6 @@ public:
 		m_MotionFreq = xform.m_MotionFreq;
 		m_MotionFunc = xform.m_MotionFunc;
 		m_MotionOffset = xform.m_MotionOffset;
-
 		ClearAndDeleteVariations();
 
 		//Must manually add them via the AddVariation() function so that
@@ -192,15 +187,14 @@ public:
 		CopyVec<T, U>(m_Xaos, xform.XaosVec());
 		CopyVec(m_Motion, xform.m_Motion);
 		m_Name = xform.m_Name;
-
 		return *this;
 	}
 
 	/// <summary>
 	/// Init default values.
-	/// Non default values are used to signify an uninitialized state. This is useful for 
+	/// Non default values are used to signify an uninitialized state. This is useful for
 	/// doing motion interpolation where we don't want to apply motion to all fields. By setting
-	/// unreasonable values before parsing, then only assigning the ones the motion tags specified, 
+	/// unreasonable values before parsing, then only assigning the ones the motion tags specified,
 	/// it is clear which fields are intended to have motion applied to them.
 	/// </summary>
 	/// <param name="useDefaults">Use reasonable default if true, else use out of bounds values.</param>
@@ -217,21 +211,18 @@ public:
 			m_ColorY = 0;
 			m_DirectColor = 1;
 			m_Opacity = 1;
-
 			m_Affine.A(1);
 			m_Affine.B(0);
 			m_Affine.C(0);
 			m_Affine.D(0);
 			m_Affine.E(1);
 			m_Affine.F(0);
-
 			m_Post.A(1);
 			m_Post.B(0);
 			m_Post.C(0);
 			m_Post.D(0);
 			m_Post.E(1);
 			m_Post.F(0);
-
 			m_Wind[0] = 0;
 			m_Wind[1] = 0;
 			m_MotionFreq = 0;
@@ -246,21 +237,18 @@ public:
 			m_ColorY = EMPTYFIELD;
 			m_DirectColor = EMPTYFIELD;
 			m_Opacity = EMPTYFIELD;
-
 			m_Affine.A(EMPTYFIELD);
 			m_Affine.B(EMPTYFIELD);
 			m_Affine.C(EMPTYFIELD);
 			m_Affine.D(EMPTYFIELD);
 			m_Affine.E(EMPTYFIELD);
 			m_Affine.F(EMPTYFIELD);
-
 			m_Post.A(EMPTYFIELD);
 			m_Post.B(EMPTYFIELD);
 			m_Post.C(EMPTYFIELD);
 			m_Post.D(EMPTYFIELD);
 			m_Post.E(EMPTYFIELD);
 			m_Post.F(EMPTYFIELD);
-
 			m_Wind[0] = EMPTYFIELD;
 			m_Wind[1] = EMPTYFIELD;
 			m_MotionFreq = EMPTYFIELD;
@@ -269,7 +257,6 @@ public:
 
 		m_MotionFunc = MOTION_SIN;
 		m_Motion.clear();
-
 		m_NeedPrecalcSumSquares = false;
 		m_NeedPrecalcSqrtSumSquares = false;
 		m_NeedPrecalcAngles = false;
@@ -340,8 +327,7 @@ public:
 	{
 		size_t count = 0;
 		Variation<T>* var = nullptr;
-
-		const_cast<Xform<T>*>(this)->AllVarsFunc([&] (vector<Variation<T>*>& variations, bool& keepGoing)
+		const_cast<Xform<T>*>(this)->AllVarsFunc([&] (vector<Variation<T>*>& variations, bool & keepGoing)
 		{
 			for (size_t i = 0; i < variations.size(); i++, count++)
 			{
@@ -353,7 +339,6 @@ public:
 				}
 			}
 		});
-
 		return var;
 	}
 
@@ -365,8 +350,7 @@ public:
 	Variation<T>* GetVariationById(eVariationId id) const
 	{
 		Variation<T>* var = nullptr;
-
-		const_cast<Xform<T>*>(this)->AllVarsFunc([&] (vector<Variation<T>*>& variations, bool& keepGoing)
+		const_cast<Xform<T>*>(this)->AllVarsFunc([&] (vector<Variation<T>*>& variations, bool & keepGoing)
 		{
 			for (auto v : variations)
 			{
@@ -378,7 +362,6 @@ public:
 				}
 			}
 		});
-
 		return var;
 	}
 
@@ -390,8 +373,7 @@ public:
 	Variation<T>* GetVariationByName(const string& name) const
 	{
 		Variation<T>* var = nullptr;
-
-		const_cast<Xform<T>*>(this)->AllVarsFunc([&] (vector<Variation<T>*>& variations, bool& keepGoing)
+		const_cast<Xform<T>*>(this)->AllVarsFunc([&] (vector<Variation<T>*>& variations, bool & keepGoing)
 		{
 			for (auto v : variations)
 			{
@@ -403,7 +385,6 @@ public:
 				}
 			}
 		});
-
 		return var;
 	}
 
@@ -416,8 +397,7 @@ public:
 	intmax_t GetVariationIndex(Variation<T>* var) const
 	{
 		intmax_t count = 0, index = -1;
-
-		const_cast<Xform<T>*>(this)->AllVarsFunc([&] (vector<Variation<T>*>& variations, bool& keepGoing)
+		const_cast<Xform<T>*>(this)->AllVarsFunc([&] (vector<Variation<T>*>& variations, bool & keepGoing)
 		{
 			for (size_t i = 0; i < variations.size(); i++, count++)
 			{
@@ -429,7 +409,6 @@ public:
 				}
 			}
 		});
-
 		return index;
 	}
 
@@ -442,8 +421,7 @@ public:
 	bool DeleteVariationById(eVariationId id)
 	{
 		bool found = false;
-
-		AllVarsFunc([&] (vector<Variation<T>*>& variations, bool& keepGoing)
+		AllVarsFunc([&] (vector<Variation<T>*>& variations, bool & keepGoing)
 		{
 			for (size_t i = 0; i < variations.size(); i++)
 			{
@@ -475,7 +453,7 @@ public:
 	/// </summary>
 	void ClearAndDeleteVariations()
 	{
-		AllVarsFunc([&] (vector<Variation<T>*>& variations, bool& keepGoing) { ClearVec<Variation<T>>(variations); });
+		AllVarsFunc([&] (vector<Variation<T>*>& variations, bool & keepGoing) { ClearVec<Variation<T>>(variations); });
 		SetPrecalcFlags();
 	}
 
@@ -511,7 +489,6 @@ public:
 		//Figure out which is right. //TODO.
 		//m_ColorSpeedCache = m_ColorX * (1 - m_ColorSpeed) / 2;//Apo style.
 		//m_OneMinusColorCache = (1 + m_ColorSpeed) / 2;
-
 		m_ColorSpeedCache = m_ColorSpeed * m_ColorX;//Flam3 style.
 		m_OneMinusColorCache = T(1.0) - m_ColorSpeed;
 		m_VizAdjusted = AdjustOpacityPercentage(m_Opacity);
@@ -592,11 +569,12 @@ public:
 	/// </summary>
 	void NormalizeVariationWeights()
 	{
-		AllVarsFunc([&] (vector<Variation<T>*>& variations, bool& keepGoing)
+		AllVarsFunc([&] (vector<Variation<T>*>& variations, bool & keepGoing)
 		{
 			T norm = 0;
 
 			for (auto var : variations) norm += var->m_Weight;
+
 			for (auto var : variations) var->m_Weight /= norm;
 		});
 	}
@@ -613,11 +591,9 @@ public:
 	bool Apply(Point<T>* inPoint, Point<T>* outPoint, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand)
 	{
 		size_t i;
-
 		//This must be local, rather than a member, because this function can be called
 		//from multiple threads. If it were a member, they'd be clobbering each others' values.
 		IteratorHelper<T> iterHelper;
-
 		//Calculate the color coordinate/index in the palette to look up later when accumulating the output point
 		//to the histogram. Calculate this value by interpolating between the index value of the
 		//last iteration with the one specified in this xform. Note that some cached values are used
@@ -653,7 +629,6 @@ public:
 				iterHelper.In.x = iterHelper.m_TransX;//Only need to read once with regular variations, because transX/Y are fixed.
 				iterHelper.In.y = iterHelper.m_TransY;
 				iterHelper.In.z = iterHelper.m_TransZ;
-
 				//Since these get summed, initialize them to zero.
 				outPoint->m_X = outPoint->m_Y = outPoint->m_Z = 0;
 
@@ -682,7 +657,6 @@ public:
 		{
 			//There are no variations, so the affine transformed points can be assigned directly to the output points.
 			T inX = inPoint->m_X;
-
 			outPoint->m_X = (m_Affine.A() * inX) + (m_Affine.B() * inPoint->m_Y) + m_Affine.C();
 			outPoint->m_Y = (m_Affine.D() * inX) + (m_Affine.E() * inPoint->m_Y) + m_Affine.F();
 			outPoint->m_Z = inPoint->m_Z;
@@ -703,13 +677,11 @@ public:
 		if (m_HasPost)
 		{
 			T postX = outPoint->m_X;
-
 			outPoint->m_X = (m_Post.A() * postX) + (m_Post.B() * outPoint->m_Y) + m_Post.C();
 			outPoint->m_Y = (m_Post.D() * postX) + (m_Post.E() * outPoint->m_Y) + m_Post.F();
 		}
 
-		outPoint->m_ColorX = outPoint->m_ColorX + m_DirectColor * (iterHelper.m_Color.x - outPoint->m_ColorX);
-
+		outPoint->m_ColorX = iterHelper.m_Color.x + m_DirectColor * (outPoint->m_ColorX - iterHelper.m_Color.x);
 		//Has the trajectory of x or y gone either to infinity, or too close to zero?
 		return BadVal(outPoint->m_X) || BadVal(outPoint->m_Y)/* || BadVal(outPoint->m_Z)*/;
 	}
@@ -737,7 +709,6 @@ public:
 			T freq = currentMot.m_MotionFreq;
 			eMotion func = currentMot.m_MotionFunc;
 			T offset = currentMot.m_MotionOffset;
-
 			//Clamp these to the appropriate range after all are applied.
 			APPMOT(m_Weight);
 			APPMOT(m_ColorX);
@@ -751,7 +722,6 @@ public:
 			{
 				Variation<T>* motVar = currentMot.GetVariation(j);//Get the variation, which may or may not be present in this xform.
 				ParametricVariation<T>* motParVar = dynamic_cast<ParametricVariation<T>*>(motVar);
-
 				Variation<T>* var = GetVariationById(motVar->VariationId());//See if the variation in the motion xform was present in the xform.
 
 				if (!var)//It wasn't present, so add it and set the weight.
@@ -861,7 +831,7 @@ public:
 				m_NeedPrecalcAtanYX = true;
 		}
 
-		AllVarsFunc([&] (vector<Variation<T>*>& variations, bool& keepGoing)
+		AllVarsFunc([&] (vector<Variation<T>*>& variations, bool & keepGoing)
 		{
 			for (auto var : variations)
 			{
@@ -912,13 +882,13 @@ public:
 
 		if (GetVariationById(VAR_FLATTEN) == nullptr)
 		{
-			AllVarsFunc([&] (vector<Variation<T>*>& variations, bool& keepGoing)
+			AllVarsFunc([&] (vector<Variation<T>*>& variations, bool & keepGoing)
 			{
 				for (auto var : variations)
 				{
 					if (var->m_Weight != 0)//This should never happen, but just to be safe.
 					{
-						if (FindIf(names, [&] (const string& s) -> bool { return !_stricmp(s.c_str(), var->Name().c_str()); }))//If any variation is present, don't flatten.
+						if (FindIf(names, [&] (const string & s) -> bool { return !_stricmp(s.c_str(), var->Name().c_str()); })) //If any variation is present, don't flatten.
 						{
 							shouldFlatten = false;
 							keepGoing = false;
@@ -973,20 +943,21 @@ public:
 
 		switch (varType)
 		{
-		case VARTYPE_REG:
-		case VARTYPE_PRE:
-			s =
-				"\tvIn.x = transX;\n"
-				"\tvIn.y = transY;\n"
-				"\tvIn.z = transZ;\n";
-			break;
-		case VARTYPE_POST:
-		default:
-			s =
-				"\tvIn.x = outPoint->m_X;\n"
-				"\tvIn.y = outPoint->m_Y;\n"
-				"\tvIn.z = outPoint->m_Z;\n";
-			break;
+			case VARTYPE_REG:
+			case VARTYPE_PRE:
+				s =
+					"\tvIn.x = transX;\n"
+					"\tvIn.y = transY;\n"
+					"\tvIn.z = transZ;\n";
+				break;
+
+			case VARTYPE_POST:
+			default:
+				s =
+					"\tvIn.x = outPoint->m_X;\n"
+					"\tvIn.y = outPoint->m_Y;\n"
+					"\tvIn.z = outPoint->m_Z;\n";
+				break;
 		}
 
 		return s;
@@ -1008,6 +979,7 @@ public:
 				helper.m_TransZ = helper.Out.z;
 				break;
 			}
+
 			case ASSIGNTYPE_SUM:
 			default:
 			{
@@ -1035,6 +1007,7 @@ public:
 				outPoint.m_Z = helper.Out.z;
 				break;
 			}
+
 			case ASSIGNTYPE_SUM:
 			default:
 			{
@@ -1061,11 +1034,12 @@ public:
 			case VARTYPE_REG:
 			{
 				s =
-				"\toutPoint->m_X += vOut.x;\n"
-				"\toutPoint->m_Y += vOut.y;\n"
-				"\toutPoint->m_Z += vOut.z;\n";
+					"\toutPoint->m_X += vOut.x;\n"
+					"\toutPoint->m_Y += vOut.y;\n"
+					"\toutPoint->m_Z += vOut.z;\n";
 				break;
 			}
+
 			case VARTYPE_PRE:
 			{
 				switch (assignType)
@@ -1073,24 +1047,26 @@ public:
 					case ASSIGNTYPE_SET:
 					{
 						s =
-						"\ttransX = vOut.x;\n"
-						"\ttransY = vOut.y;\n"
-						"\ttransZ = vOut.z;\n";
+							"\ttransX = vOut.x;\n"
+							"\ttransY = vOut.y;\n"
+							"\ttransZ = vOut.z;\n";
 						break;
 					}
+
 					case ASSIGNTYPE_SUM:
 					default:
 					{
 						s =
-						"\ttransX += vOut.x;\n"
-						"\ttransY += vOut.y;\n"
-						"\ttransZ += vOut.z;\n";
+							"\ttransX += vOut.x;\n"
+							"\ttransY += vOut.y;\n"
+							"\ttransZ += vOut.z;\n";
 						break;
 					}
 				}
 
 				break;
 			}
+
 			case VARTYPE_POST:
 			default:
 			{
@@ -1099,18 +1075,19 @@ public:
 					case ASSIGNTYPE_SET:
 					{
 						s =
-						"\toutPoint->m_X = vOut.x;\n"
-						"\toutPoint->m_Y = vOut.y;\n"
-						"\toutPoint->m_Z = vOut.z;\n";
+							"\toutPoint->m_X = vOut.x;\n"
+							"\toutPoint->m_Y = vOut.y;\n"
+							"\toutPoint->m_Z = vOut.z;\n";
 						break;
 					}
+
 					case ASSIGNTYPE_SUM:
 					default:
 					{
 						s =
-						"\toutPoint->m_X += vOut.x;\n"
-						"\toutPoint->m_Y += vOut.y;\n"
-						"\toutPoint->m_Z += vOut.z;\n";
+							"\toutPoint->m_X += vOut.x;\n"
+							"\toutPoint->m_Y += vOut.y;\n"
+							"\toutPoint->m_Z += vOut.z;\n";
 						break;
 					}
 				}
@@ -1131,7 +1108,6 @@ public:
 	string ToString() const
 	{
 		ostringstream ss;
-
 		ss << "A: " << m_Affine.A() << " "
 		   << "B: " << m_Affine.B() << " "
 		   << "C: " << m_Affine.C() << " "
@@ -1161,8 +1137,7 @@ public:
 		ss << "Motion Frequency: " << m_MotionFreq << endl;
 		ss << "Motion Func: " << m_MotionFunc << endl;
 		ss << "Motion Offset: " << m_MotionOffset << endl;
-
-		const_cast<Xform<T>*>(this)->AllVarsFunc([&] (vector<Variation<T>*>& variations, bool& keepGoing)
+		const_cast<Xform<T>*>(this)->AllVarsFunc([&] (vector<Variation<T>*>& variations, bool & keepGoing)
 		{
 			for (auto var : variations)
 				ss << var->ToString() << endl;
@@ -1252,7 +1227,6 @@ private:
 	void AllVarsFunc(std::function<void (vector<Variation<T>*>&, bool&)> func)
 	{
 		bool keepGoing = true;
-
 		func(m_PreVariations, keepGoing);
 
 		if (keepGoing)

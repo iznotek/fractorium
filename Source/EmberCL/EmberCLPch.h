@@ -16,6 +16,7 @@
 #if defined(_WIN32)
 	#include <windows.h>
 	#include <SDKDDKVer.h>
+	#include "GL/gl.h"
 #elif defined(__APPLE__)
 	#include <OpenGL/gl.h>
 #else
@@ -23,21 +24,7 @@
 #endif
 
 #include <utility>
-
-#ifdef NVIDIA
-	#ifdef CL_VERSION_1_2
-		#undef CL_VERSION_1_2
-	#endif
-
-	#if !defined(WIN32) && !defined(_WIN32)
-		#ifndef CL_VERSION_1_1
-			#define CL_VERSION_1_1
-		#endif
-	#endif
-#endif
-
 #include <CL/cl.hpp>
-
 #include <algorithm>
 #include <atomic>
 #include <cstdio>

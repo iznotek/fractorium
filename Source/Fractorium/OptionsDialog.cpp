@@ -9,36 +9,30 @@
 /// <param name="p">The parent widget. Default: nullptr.</param>
 /// <param name="f">The window flags. Default: 0.</param>
 FractoriumOptionsDialog::FractoriumOptionsDialog(FractoriumSettings* settings, QWidget* p, Qt::WindowFlags f)
-	: QDialog(p, f),
-	m_Info(OpenCLInfo::Instance())
+	: QDialog(p, f)
 {
 	int i, row = 0, spinHeight = 20;
-
 	ui.setupUi(this);
 	m_Settings = settings;
+	m_Info = OpenCLInfo::Instance();
 	QTableWidget* table = ui.OptionsXmlSavingTable;
 	ui.ThreadCountSpin->setRange(1, Timing::ProcessorCount());
 	connect(ui.OpenCLCheckBox, SIGNAL(stateChanged(int)),	  this, SLOT(OnOpenCLCheckBoxStateChanged(int)),  Qt::QueuedConnection);
 	connect(ui.DeviceTable,	   SIGNAL(cellChanged(int, int)), this, SLOT(OnDeviceTableCellChanged(int, int)), Qt::QueuedConnection);
-
 	SetupSpinner<SpinBox, int>(table, this, row, 1, m_XmlTemporalSamplesSpin, spinHeight,  1,	1000, 100, "", "", true, 1000);
 	SetupSpinner<SpinBox, int>(table, this, row, 1, m_XmlQualitySpin,		  spinHeight,  1, 200000,  50, "", "", true, 1000);
 	SetupSpinner<SpinBox, int>(table, this, row, 1, m_XmlSupersampleSpin,	  spinHeight,  1,	   4,   1, "", "", true,    2);
-
 	m_IdEdit = new QLineEdit(ui.OptionsIdentityTable);
 	ui.OptionsIdentityTable->setCellWidget(0, 1, m_IdEdit);
-
 	m_UrlEdit = new QLineEdit(ui.OptionsIdentityTable);
 	ui.OptionsIdentityTable->setCellWidget(1, 1, m_UrlEdit);
-
 	m_NickEdit = new QLineEdit(ui.OptionsIdentityTable);
 	ui.OptionsIdentityTable->setCellWidget(2, 1, m_NickEdit);
-
 	table = ui.DeviceTable;
 	table->clearContents();
 	table->setRowCount(0);
 
-	if (m_Info.Ok() && !m_Info.Devices().empty())
+	if (m_Info->Ok() && !m_Info->Devices().empty())
 	{
 		SetupDeviceTable(table, m_Settings->Devices());
 
@@ -122,7 +116,6 @@ void FractoriumOptionsDialog::OnDeviceTableRadioToggled(bool checked)
 void FractoriumOptionsDialog::OnOpenCLCheckBoxStateChanged(int state)
 {
 	bool checked = state == Qt::Checked;
-
 	ui.DeviceTable->setEnabled(checked);
 	ui.ThreadCountSpin->setEnabled(!checked);
 	ui.CpuSubBatchSpin->setEnabled(!checked);
@@ -186,13 +179,11 @@ void FractoriumOptionsDialog::GuiToData()
 	m_Settings->CpuDEFilter(ui.CpuFilteringDERadioButton->isChecked());
 	m_Settings->OpenCLDEFilter(ui.OpenCLFilteringDERadioButton->isChecked());
 	m_Settings->Devices(DeviceTableToSettings(ui.DeviceTable));
-
 	//Xml saving.
 	m_Settings->XmlTemporalSamples(m_XmlTemporalSamplesSpin->value());
 	m_Settings->XmlQuality(m_XmlQualitySpin->value());
 	m_Settings->XmlSupersample(m_XmlSupersampleSpin->value());
 	m_Settings->SaveAutoUnique(AutoUnique());
-
 	//Identity.
 	m_Settings->Id(m_IdEdit->text());
 	m_Settings->Url(m_UrlEdit->text());
@@ -206,7 +197,6 @@ void FractoriumOptionsDialog::DataToGui()
 {
 	//Interactive rendering.
 	auto devices = m_Settings->Devices();
-
 	ui.EarlyClipCheckBox->setChecked(m_Settings->EarlyClip());
 	ui.YAxisUpCheckBox->setChecked(m_Settings->YAxisUp());
 	ui.TransparencyCheckBox->setChecked(m_Settings->Transparency());
@@ -235,7 +225,6 @@ void FractoriumOptionsDialog::DataToGui()
 	m_XmlQualitySpin->setValue(m_Settings->XmlQuality());
 	m_XmlSupersampleSpin->setValue(m_Settings->XmlSupersample());
 	ui.AutoUniqueCheckBox->setChecked(m_Settings->SaveAutoUnique());
-
 	//Identity.
 	m_IdEdit->setText(m_Settings->Id());
 	m_UrlEdit->setText(m_Settings->Url());

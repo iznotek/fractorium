@@ -166,7 +166,6 @@ static uint CalcStrips(double memRequired, double memAvailable, double useMem)
 		return 1;
 
 	strips = uint(ceil(memRequired / memAvailable));
-
 	return strips;
 }
 
@@ -210,7 +209,6 @@ static T NextLowestEvenDiv(T numerator, T denominator)
 {
 	T result = 1;
 	T numDiv2 = numerator / 2;
-
 	denominator--;
 
 	if (denominator > numDiv2)
@@ -239,9 +237,8 @@ static T NextLowestEvenDiv(T numerator, T denominator)
 static vector<pair<size_t, size_t>> Devices(const vector<size_t>& selectedDevices)
 {
 	vector<pair<size_t, size_t>> vec;
-	OpenCLInfo& info = OpenCLInfo::Instance();
-	auto& devices = info.DeviceIndices();
-
+	auto info = OpenCLInfo::Instance();
+	auto& devices = info->DeviceIndices();
 	vec.reserve(selectedDevices.size());
 
 	for (size_t i = 0; i < selectedDevices.size(); i++)
@@ -400,10 +397,10 @@ static vector<unique_ptr<Renderer<T, float>>> CreateRenderers(eRendererType rend
 /// <returns>True if all rendering was successful, else false.</returns>
 template <typename T>
 static bool StripsRender(RendererBase* renderer, Ember<T>& ember, vector<byte>& finalImage, double time, size_t strips, bool yAxisUp,
-	std::function<void(size_t strip)> perStripStart,
-	std::function<void(size_t strip)> perStripFinish,
-	std::function<void(size_t strip)> perStripError,
-	std::function<void(Ember<T>& finalEmber)> allStripsFinished)
+						 std::function<void(size_t strip)> perStripStart,
+						 std::function<void(size_t strip)> perStripFinish,
+						 std::function<void(size_t strip)> perStripError,
+						 std::function<void(Ember<T>& finalEmber)> allStripsFinished)
 {
 	bool success = false;
 	size_t origHeight, realHeight = ember.m_FinalRasH;
@@ -412,7 +409,6 @@ static bool StripsRender(RendererBase* renderer, Ember<T>& ember, vector<byte>& 
 	T zoomScale = pow(T(2), ember.m_Zoom);
 	T centerBase = centerY - ((strips - 1) * floatStripH) / (2 * ember.m_PixelsPerUnit * zoomScale);
 	vector<QTIsaac<ISAAC_SIZE, ISAAC_INT>> randVec;
-
 	ember.m_Quality *= strips;
 	ember.m_FinalRasH = size_t(ceil(floatStripH));
 
@@ -469,7 +465,6 @@ static bool StripsRender(RendererBase* renderer, Ember<T>& ember, vector<byte>& 
 		allStripsFinished(ember);
 
 	Memset(finalImage);
-
 	return success;
 }
 
@@ -485,9 +480,9 @@ static bool StripsRender(RendererBase* renderer, Ember<T>& ember, vector<byte>& 
 /// <param name="stripError3">Called if for any reason the number of strips used will differ from the value passed in</param>
 /// <returns>The actual number of strips that will be used</returns>
 static size_t VerifyStrips(size_t height, size_t strips,
-	std::function<void(const string& s)> stripError1,
-	std::function<void(const string& s)> stripError2,
-	std::function<void(const string& s)> stripError3)
+						   std::function<void(const string& s)> stripError1,
+						   std::function<void(const string& s)> stripError2,
+						   std::function<void(const string& s)> stripError3)
 {
 	ostringstream os;
 
@@ -502,7 +497,6 @@ static size_t VerifyStrips(size_t height, size_t strips,
 	{
 		os << "A strips value of " << strips << " does not divide evenly into a height of " << height << ".";
 		stripError2(os.str()); os.str("");
-
 		strips = NextHighestEvenDiv(height, strips);
 
 		if (strips == 1)//No higher divisor, check for a lower one.

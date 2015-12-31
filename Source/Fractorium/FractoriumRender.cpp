@@ -69,7 +69,7 @@ void FractoriumEmberControllerBase::Shutdown()
 	StopRenderTimer(true);
 	ClearFinalImages();
 
-	while(m_Fractorium->ui.GLDisplay->Drawing())
+	while (m_Fractorium->ui.GLDisplay->Drawing())
 		QApplication::processEvents();
 }
 
@@ -136,7 +136,7 @@ void FractoriumEmberControllerBase::SaveCurrentRender(const QString& filename, c
 		QFileInfo fileInfo(filename);
 		QString suffix = fileInfo.suffix();
 		FractoriumSettings* settings = m_Fractorium->m_Settings;
-		
+
 		//Ensure dimensions are valid.
 		if (pixels.size() < (width * height * channels * bpc))
 		{
@@ -145,14 +145,13 @@ void FractoriumEmberControllerBase::SaveCurrentRender(const QString& filename, c
 		}
 
 		data = pixels.data();//Png and channels == 4.
-		
+
 		if ((suffix == "jpg" || suffix == "bmp") && channels)
 		{
 			RgbaToRgb(pixels, vecRgb, width, height);
-			
 			data = vecRgb.data();
 		}
-		
+
 		string s = filename.toStdString();
 		string id = settings->Id().toStdString();
 		string url = settings->Url().toStdString();
@@ -207,7 +206,7 @@ eProcessAction FractoriumEmberControllerBase::CondenseAndClearProcessActions()
 	for (auto a : m_ProcessActions)
 		if (a > action)
 			action = a;
-	
+
 	m_ProcessActions.clear();
 	m_Cs.Leave();
 	return action;
@@ -226,7 +225,6 @@ template <typename T>
 int FractoriumEmberController<T>::ProgressFunc(Ember<T>& ember, void* foo, double fraction, int stage, double etaMs)
 {
 	QString status;
-
 	m_Fractorium->m_ProgressBar->setValue(int(fraction));//Only really applies to iter and filter, because final accum only gives progress 0 and 100.
 
 	if (stage == 0)
@@ -297,12 +295,10 @@ template <typename T>
 bool FractoriumEmberController<T>::Render()
 {
 	m_Rendering = true;
-
 	bool success = true;
 	GLWidget* gl = m_Fractorium->ui.GLDisplay;
 	RendererCL<T, float>* rendererCL = nullptr;
 	eProcessAction qualityAction, action;
-
 	//Quality is the only parameter we update inside the timer.
 	//This is to allow the user to rapidly increase the quality spinner
 	//without fully resetting the render. Instead, it will just keep iterating
@@ -411,7 +407,6 @@ bool FractoriumEmberController<T>::Render()
 				QString iters = ToString<qulonglong>(stats.m_Iters);
 				QString scaledQuality = ToString(uint(m_Renderer->ScaledQuality()));
 				string renderTime = m_RenderElapsedTimer.Format(m_RenderElapsedTimer.Toc());
-
 				m_Fractorium->m_ProgressBar->setValue(100);
 
 				//Only certain stats can be reported with OpenCL.
@@ -424,10 +419,9 @@ bool FractoriumEmberController<T>::Render()
 					double percent = double(stats.m_Badvals) / double(stats.m_Iters);
 					QString badVals = ToString<qulonglong>(stats.m_Badvals);
 					QString badPercent = QLocale::system().toString(percent * 100, 'f', 2);
-
 					m_Fractorium->m_RenderStatusLabel->setText("Iters: " + iters + ". Scaled quality: " + scaledQuality + ". Bad values: " + badVals + " (" + badPercent + "%). Total time: " + QString::fromStdString(renderTime) + ".");
 				}
-				
+
 				if (m_LastEditWasUndoRedo && (m_UndoIndex == m_UndoList.size() - 1))//Traversing through undo list, reached the end, so put back in regular edit mode.
 				{
 					m_EditState = REGULAR_EDIT;
@@ -445,7 +439,6 @@ bool FractoriumEmberController<T>::Render()
 				else if (!m_LastEditWasUndoRedo && m_UndoIndex < m_UndoList.size() - 1)//They were anywhere but the end of the undo list, then did a manual edit, so clear the undo list.
 				{
 					Ember<T> ember(m_UndoList[m_UndoIndex]);
-
 					ClearUndo();
 					m_UndoList.push_back(ember);
 					m_UndoList.push_back(m_Ember);
@@ -458,15 +451,15 @@ bool FractoriumEmberController<T>::Render()
 				m_Fractorium->UpdateHistogramBounds();//Mostly of engineering interest.
 				FillSummary();//Only update summary on render completion since it's not the type of thing the user needs real-time updates on.
 			}
-			
+
 			//Update the GL window on start because the output will be forced.
 			//Update it on finish because the rendering process is completely done.
 			if (iterBegin || ProcessState() == ACCUM_DONE)
 			{
 				if (m_FinalImage.size() == m_Renderer->FinalBufferSize())//Make absolutely sure the correct amount of data is passed.
 					gl->update();
-					//gl->repaint();
-				
+
+				//gl->repaint();
 				//m_Fractorium->update();
 				//m_Fractorium->ui.GLParentScrollArea->update();
 				//Uncomment for debugging kernel build and execution errors.
@@ -482,13 +475,12 @@ bool FractoriumEmberController<T>::Render()
 		else//Something went very wrong, show error report.
 		{
 			vector<string> errors = m_Renderer->ErrorReport();
-			
 			success = false;
 			m_FailedRenders++;
 			m_Fractorium->m_RenderStatusLabel->setText("Rendering failed, see info tab. Try changing parameters.");
 			m_Fractorium->ErrorReportToQTextEdit(errors, m_Fractorium->ui.InfoRenderingTextEdit);
 			m_Renderer->ClearErrorReport();
-		
+
 			if (m_FailedRenders >= 3)
 			{
 				m_Rendering = false;
@@ -500,19 +492,18 @@ bool FractoriumEmberController<T>::Render()
 				if (rendererCL)
 				{
 					//string s = "OpenCL Kernels: \r\n" + rendererCL->IterKernel() + "\r\n" + rendererCL->DEKernel() + "\r\n" + rendererCL->FinalAccumKernel();
-
 					rendererCL->ClearFinal();
 					//QMetaObject::invokeMethod(m_Fractorium->ui.InfoRenderingTextEdit, "setText", Qt::QueuedConnection, Q_ARG(const QString&, QString::fromStdString(s)));
 				}
 			}
 		}
 	}
-	
+
 	//Upon finishing, or having nothing to do, rest.
 	if (ProcessState() == ACCUM_DONE)
 		QThread::msleep(1);
-		//QApplication::processEvents();
 
+	//QApplication::processEvents();
 	m_Rendering = false;
 	return success;
 }
@@ -536,7 +527,6 @@ bool FractoriumEmberController<T>::CreateRenderer(eRendererType renderType, cons
 	{
 		EmberReport emberReport;
 		vector<string> errorReport;
-
 		DeleteRenderer();//Delete the renderer and refresh the textures.
 		//Before starting, must take care of allocations.
 		gl->Allocate(true);//Forcing a realloc of the texture is necessary on AMD, but not on nVidia.
@@ -564,7 +554,6 @@ bool FractoriumEmberController<T>::CreateRenderer(eRendererType renderType, cons
 		if (m_RenderType == OPENCL_RENDERER)
 		{
 			auto val = 30 * m_Fractorium->m_Settings->Devices().size();
-
 			m_Fractorium->m_QualitySpin->DoubleClickZero(val);
 			m_Fractorium->m_QualitySpin->DoubleClickNonZero(val);
 
@@ -588,14 +577,14 @@ bool FractoriumEmberController<T>::CreateRenderer(eRendererType renderType, cons
 		m_Renderer->YAxisUp(s->YAxisUp());
 		m_Renderer->ThreadCount(s->ThreadCount());
 		m_Renderer->Transparency(s->Transparency());
-		
+
 		if (m_Renderer->RendererType() == CPU_RENDERER)
 			m_Renderer->InteractiveFilter(s->CpuDEFilter() ? FILTER_DE : FILTER_LOG);
 		else
 			m_Renderer->InteractiveFilter(s->OpenCLDEFilter() ? FILTER_DE : FILTER_LOG);
 
 		if ((m_Renderer->EarlyClip() != m_PreviewRenderer->EarlyClip()) ||
-			(m_Renderer->YAxisUp() != m_PreviewRenderer->YAxisUp()))
+				(m_Renderer->YAxisUp() != m_PreviewRenderer->YAxisUp()))
 		{
 			StopPreviewRender();
 			m_PreviewRenderer->EarlyClip(m_Renderer->EarlyClip());
@@ -635,9 +624,9 @@ void Fractorium::ShutdownAndRecreateFromOptions()
 bool Fractorium::CreateRendererFromOptions()
 {
 	bool ok = true;
-	bool useOpenCL = m_Info.Ok() && m_Settings->OpenCL();
+	bool useOpenCL = m_Info->Ok() && m_Settings->OpenCL();
 	auto v = Devices(m_Settings->Devices());
-	
+
 	//The most important option to process is what kind of renderer is desired, so do it first.
 	if (!m_Controller->CreateRenderer((useOpenCL && !v.empty()) ? OPENCL_RENDERER : CPU_RENDERER, v))
 	{
@@ -660,13 +649,12 @@ bool Fractorium::CreateRendererFromOptions()
 bool Fractorium::CreateControllerFromOptions()
 {
 	bool ok = true;
-
 	size_t elementSize =
 #ifdef DO_DOUBLE
 		m_Settings->Double() ? sizeof(double) :
 #endif
 		sizeof(float);
-	
+
 	if (!m_Controller.get() || (m_Controller->SizeOfT() != elementSize))
 	{
 		double hue = m_PaletteHueSpin->value();
@@ -690,11 +678,9 @@ bool Fractorium::CreateControllerFromOptions()
 		if (m_Controller.get())
 		{
 			m_Controller->CopyTempPalette(tempPalette);//Convert float to double or save double verbatim;
-
 			//Replace below with this once LLVM fixes a crash in their compiler with default lambda parameters.//TODO
 			//m_Controller->CopyEmber(ed);
 			//m_Controller->CopyEmberFile(efd);
-
 #ifdef DO_DOUBLE
 			m_Controller->CopyEmber(ed, [&](Ember<double>& ember) { });
 			m_Controller->CopyEmberFile(efd, [&](Ember<double>& ember) { });
@@ -706,6 +692,7 @@ bool Fractorium::CreateControllerFromOptions()
 		}
 
 #ifdef DO_DOUBLE
+
 		if (m_Settings->Double())
 			m_Controller = unique_ptr<FractoriumEmberControllerBase>(new FractoriumEmberController<double>(this));
 		else
@@ -718,7 +705,6 @@ bool Fractorium::CreateControllerFromOptions()
 			ed.m_Palette = tempPalette;//Restore base temp palette. Adjustments will be then be applied and stored back in in m_Ember.m_Palette below.
 			m_Controller->SetEmber(ed);//Convert float to double or set double verbatim. This will assign m_Ember.m_Palette (which was just tempPalette) to m_TempPalette.
 			m_Controller->SetEmberFile(efd);
-
 			//Setting these and updating the GUI overwrites the work of clearing them done in SetEmber() above.
 			//It's a corner case, but doesn't seem to matter.
 			m_PaletteHueSpin->SetValueStealth(hue);
@@ -728,7 +714,6 @@ bool Fractorium::CreateControllerFromOptions()
 			m_PaletteBlurSpin->SetValueStealth(blur);
 			m_PaletteFrequencySpin->SetValueStealth(freq);
 			m_Controller->PaletteAdjust();//Applies the adjustments to temp and saves in m_Ember.m_Palette, then fills in the palette preview widget.
-
 			//Template specific palette table and variations tree setup in controller constructor, but
 			//must manually setup the library tree here because it's after the embers were assigned.
 			//Passing row re-selects the item that was previously selected.
@@ -775,5 +760,5 @@ bool Fractorium::ControllersOk() { return m_Controller.get() && m_Controller->GL
 template class FractoriumEmberController<float>;
 
 #ifdef DO_DOUBLE
-	template class FractoriumEmberController<double>;
+template class FractoriumEmberController<double>;
 #endif

@@ -71,7 +71,7 @@ static QWidget* SetTabOrder(QWidget* p, QWidget* w1, QWidget* w2)
 /// <param name="s">The string to convert</param>
 /// <param name="ok">Pointer to boolean which stores the success value of the conversion</param>
 /// <returns>The converted value if successful, else 0.</returns>
-static double ToDouble(const QString &s, bool *ok)
+static double ToDouble(const QString& s, bool* ok)
 {
 	return QLocale::system().toDouble(s, ok);
 }
@@ -109,7 +109,7 @@ static QString MakeEnd(const QString& s, T e)
 /// <returns>True if s was not empty and existed, else false.</returns>
 static bool Exists(const QString& s)
 {
-	 return s != "" && QDir(s).exists();
+	return s != "" && QDir(s).exists();
 }
 
 /// <summary>
@@ -121,9 +121,8 @@ static QColor VisibleColor(const QColor& color)
 {
 	int threshold = 105;
 	int delta = (color.red()   * 0.299) + //Magic numbers gotten from a Stack Overflow post.
-		(color.green() * 0.587) +
-		(color.blue()  * 0.114);
-
+				(color.green() * 0.587) +
+				(color.blue()  * 0.114);
 	QColor textColor = (255 - delta < threshold) ? QColor(0, 0, 0) : QColor(255, 255, 255);
 	return textColor;
 }
@@ -196,9 +195,7 @@ static intmax_t IsXformLinked(Ember<T>& ember, Xform<T>* xform)
 static vector<pair<size_t, size_t>> Devices(const QList<QVariant>& selectedDevices)
 {
 	vector<pair<size_t, size_t>> vec;
-	OpenCLInfo& info = OpenCLInfo::Instance();
-	auto& devices = info.DeviceIndices();
-
+	auto& devices = OpenCLInfo::Instance()->DeviceIndices();
 	vec.reserve(selectedDevices.size());
 
 	for (size_t i = 0; i < selectedDevices.size(); i++)
@@ -223,8 +220,7 @@ static vector<pair<size_t, size_t>> Devices(const QList<QVariant>& selectedDevic
 static void SetupDeviceTable(QTableWidget* table, const QList<QVariant>& settingsDevices)
 {
 	bool primary = false;
-	auto& deviceNames = OpenCLInfo::Instance().AllDeviceNames();
-
+	auto& deviceNames = OpenCLInfo::Instance()->AllDeviceNames();
 	table->clearContents();
 	table->setRowCount(deviceNames.size());
 
@@ -233,7 +229,6 @@ static void SetupDeviceTable(QTableWidget* table, const QList<QVariant>& setting
 		auto checkItem = new QTableWidgetItem();
 		auto radio = new QRadioButton();
 		auto deviceItem = new QTableWidgetItem(QString::fromStdString(deviceNames[i]));
-
 		table->setItem(i, 0, checkItem);
 		table->setCellWidget(i, 1, radio);
 		table->setItem(i, 2, deviceItem);
@@ -365,17 +360,17 @@ static void HandleDeviceTableCheckChanged(QTableWidget* table, int row, int col)
 static QString BaseStyle()
 {
 	return "/*---Base Style---\n"
-		"This is needed to deal with the large tabs in the fusion theme which is the default on Linux, and optional on Windows.\n"
-		"It's not needed for other themes."
-		"You should keep this at the top of whatever custom style you make to ensure the tabs aren't unusually large.*/\n"
+		   "This is needed to deal with the large tabs in the fusion theme which is the default on Linux, and optional on Windows.\n"
+		   "It's not needed for other themes."
+		   "You should keep this at the top of whatever custom style you make to ensure the tabs aren't unusually large.*/\n"
 #ifndef WIN32
-		"QTabBar::tab { height: 3ex; }\n\n"
+		   "QTabBar::tab { height: 3ex; }\n\n"
 #else
-		"QTabBar::tab { height: 5ex; }\n\n"
+		   "QTabBar::tab { height: 5ex; }\n\n"
 #endif
-		"/*This is needed to give the labels on the status bar some padding.*/\n"
-		"QStatusBar QLabel { padding-left: 2px; padding-right: 2px; }\n\n"
-		;
+		   "/*This is needed to give the labels on the status bar some padding.*/\n"
+		   "QStatusBar QLabel { padding-left: 2px; padding-right: 2px; }\n\n"
+		   ;
 }
 
 /// <summary>

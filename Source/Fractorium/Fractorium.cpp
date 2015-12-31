@@ -14,20 +14,18 @@
 /// is present here, it's safe to assume it can't be done in the designer.
 /// </summary>
 /// <param name="p">The parent widget of this item</param>
-Fractorium::Fractorium(QWidget* p) 
-	: QMainWindow(p),
-	m_Info(OpenCLInfo::Instance())
+Fractorium::Fractorium(QWidget* p)
+	: QMainWindow(p)
 {
 	int spinHeight = 20, iconSize_ = 9;
 	size_t i = 0;
 	string s;
 	Timing t;
 	ui.setupUi(this);
-	
+	m_Info = OpenCLInfo::Instance();
 	qRegisterMetaType<QVector<int>>("QVector<int>");//For previews.
 	qRegisterMetaType<vector<byte>>("vector<byte>");
 	qRegisterMetaType<EmberTreeWidgetItemBase*>("EmberTreeWidgetItemBase*");
-
 	setDockOptions(DockOption::AllowNestedDocks | DockOption::AllowTabbedDocks);
 	setTabPosition(Qt::AllDockWidgetAreas, QTabWidget::TabPosition::North);
 	setTabShape(QTabWidget::TabShape::Triangular);
@@ -36,7 +34,6 @@ Fractorium::Fractorium(QWidget* p)
 	tabifyDockWidget(ui.XformsDockWidget, ui.XaosDockWidget);
 	tabifyDockWidget(ui.XaosDockWidget, ui.PaletteDockWidget);
 	tabifyDockWidget(ui.PaletteDockWidget, ui.InfoDockWidget);
-
 	m_Docks.reserve(8);
 	m_Docks.push_back(ui.LibraryDockWidget);
 	m_Docks.push_back(ui.FlameDockWidget);
@@ -44,58 +41,48 @@ Fractorium::Fractorium(QWidget* p)
 	m_Docks.push_back(ui.XaosDockWidget);
 	m_Docks.push_back(ui.PaletteDockWidget);
 	m_Docks.push_back(ui.InfoDockWidget);
-
 	m_FontSize = 9;
 	m_VarSortMode = 1;//Sort by weight by default.
 	m_PaletteSortMode = 0;//Sort by palette ascending by default.
 	m_ColorDialog = new QColorDialog(this);
 	m_Settings = new FractoriumSettings(this);
 	m_QssDialog = new QssDialog(this);
-
 	m_FileDialog = nullptr;//Use lazy instantiation upon first use.
 	m_FolderDialog = nullptr;
 	m_FinalRenderDialog = new FractoriumFinalRenderDialog(m_Settings, this);
 	m_OptionsDialog = new FractoriumOptionsDialog(m_Settings, this);
 	m_VarDialog = new FractoriumVariationsDialog(m_Settings, this);
 	m_AboutDialog = new FractoriumAboutDialog(this);
-
 	//Put the about dialog in the screen center.
 	const QRect screen = QApplication::desktop()->screenGeometry();
 	m_AboutDialog->move(screen.center() - m_AboutDialog->rect().center());
-
 	connect(m_ColorDialog, SIGNAL(colorSelected(const QColor&)), this, SLOT(OnColorSelected(const QColor&)), Qt::QueuedConnection);
-	
 	m_XformComboColors[i++] = QColor(0XFF, 0X00, 0X00);
 	m_XformComboColors[i++] = QColor(0XCC, 0XCC, 0X00);
 	m_XformComboColors[i++] = QColor(0X00, 0XCC, 0X00);
 	m_XformComboColors[i++] = QColor(0X00, 0XCC, 0XCC);
 	m_XformComboColors[i++] = QColor(0X40, 0X40, 0XFF);
-
 	m_XformComboColors[i++] = QColor(0XCC, 0X00, 0XCC);
 	m_XformComboColors[i++] = QColor(0XCC, 0X80, 0X00);
 	m_XformComboColors[i++] = QColor(0X80, 0X00, 0X4F);
 	m_XformComboColors[i++] = QColor(0X80, 0X80, 0X22);
 	m_XformComboColors[i++] = QColor(0X60, 0X80, 0X60);
-
 	m_XformComboColors[i++] = QColor(0X50, 0X80, 0X80);
 	m_XformComboColors[i++] = QColor(0X4F, 0X4F, 0X80);
 	m_XformComboColors[i++] = QColor(0X80, 0X50, 0X80);
 	m_XformComboColors[i++] = QColor(0X80, 0X60, 0X22);
 	m_FinalXformComboColor  = QColor(0x7F, 0x7F, 0x7F);
-	
+
 	for (i = 0; i < XFORM_COLOR_COUNT; i++)
 	{
 		QPixmap pixmap(iconSize_, iconSize_);
-
 		pixmap.fill(m_XformComboColors[i]);
 		m_XformComboIcons[i] = QIcon(pixmap);
 	}
 
 	QPixmap pixmap(iconSize_, iconSize_);
-
 	pixmap.fill(m_FinalXformComboColor);
 	m_FinalXformComboIcon = QIcon(pixmap);
-	   
 	InitToolbarUI();
 	InitParamsUI();
 	InitXformsUI();
@@ -108,10 +95,10 @@ Fractorium::Fractorium(QWidget* p)
 	InitLibraryUI();
 	InitInfoUI();
 	InitMenusUI();
-
 	//This will init the controller and fill in the variations and palette tables with template specific instances
 	//of their respective objects.
 #ifdef DO_DOUBLE
+
 	if (m_Settings->Double())
 		m_Controller = unique_ptr<FractoriumEmberControllerBase>(new FractoriumEmberController<double>(this));
 	else
@@ -121,24 +108,21 @@ Fractorium::Fractorium(QWidget* p)
 	m_Controller->SetupVariationTree();
 	m_Controller->FilteredVariations();
 
-	if (m_Info.Ok() && m_Settings->OpenCL() && m_QualitySpin->value() < (30 * m_Settings->Devices().size()))
+	if (m_Info->Ok() && m_Settings->OpenCL() && m_QualitySpin->value() < (30 * m_Settings->Devices().size()))
 		m_QualitySpin->setValue(30 * m_Settings->Devices().size());
 
 	int statusBarHeight = 20 * devicePixelRatio();
 	ui.StatusBar->setMinimumHeight(statusBarHeight);
 	ui.StatusBar->setMaximumHeight(statusBarHeight);
-
 	m_RenderStatusLabel = new QLabel(this);
 	m_RenderStatusLabel->setMinimumWidth(200);
 	m_RenderStatusLabel->setAlignment(Qt::AlignRight);
 	ui.StatusBar->addPermanentWidget(m_RenderStatusLabel);
-
 	m_CoordinateStatusLabel = new QLabel(this);
 	m_CoordinateStatusLabel->setMinimumWidth(300);
 	m_CoordinateStatusLabel->setMaximumWidth(300);
 	m_CoordinateStatusLabel->setAlignment(Qt::AlignLeft);
 	ui.StatusBar->addWidget(m_CoordinateStatusLabel);
-	
 	int progressBarHeight = 15;
 	int progressBarWidth = 300;
 	m_ProgressBar = new QProgressBar(this);
@@ -149,15 +133,13 @@ Fractorium::Fractorium(QWidget* p)
 	m_ProgressBar->setMinimumWidth(progressBarWidth);
 	m_ProgressBar->setMaximumWidth(progressBarWidth);
 	ui.StatusBar->addPermanentWidget(m_ProgressBar);
-
 	//Setup pointer in the GL window to point back to here.
 	ui.GLDisplay->SetMainWindow(this);
 	bool restored = restoreState(m_Settings->value("windowState").toByteArray());
 	showMaximized();//This won't fully set things up and show them until after this constructor exits.
-
 	connect(ui.LibraryDockWidget, SIGNAL(dockLocationChanged(Qt::DockWidgetArea)), this, SLOT(dockLocationChanged(Qt::DockWidgetArea)));
 	connect(ui.LibraryDockWidget, SIGNAL(topLevelChanged(bool)),                   this, SLOT(OnDockTopLevelChanged(bool)));
-	
+
 	//Always ensure the library tab is selected, which will show preview renders.
 	if (!restored)
 	{
@@ -243,7 +225,6 @@ void Fractorium::CenterScrollbars()
 {
 	QScrollBar* w = ui.GLParentScrollArea->horizontalScrollBar();
 	QScrollBar* h = ui.GLParentScrollArea->verticalScrollBar();
-
 	w->setValue(w->maximum() / 2);
 	h->setValue(h->maximum() / 2);
 }
@@ -267,7 +248,6 @@ void FractoriumEmberController<T>::ApplyXmlSavingTemplate(Ember<T>& ember)
 bool Fractorium::HaveFinal()
 {
 	QComboBox* combo = ui.CurrentXformCombo;
-
 	return (combo->count() > 0 && combo->itemText(combo->count() - 1) == "Final");
 }
 
@@ -375,7 +355,7 @@ void Fractorium::resizeEvent(QResizeEvent* e)
 /// but telling it that this window has become the focus window forces
 /// it to refresh this.
 /// <param name="e">The event</param>
-void Fractorium::showEvent(QShowEvent *e)
+void Fractorium::showEvent(QShowEvent* e)
 {
 	//Tell Qt to refresh the native menubar from this widget.
 	emit qGuiApp->focusWindowChanged(windowHandle());
@@ -476,7 +456,9 @@ void Fractorium::dropEvent(QDropEvent* e)
 void Fractorium::SetupCombo(QTableWidget* table, const QObject* receiver, int& row, int col, StealthComboBox*& comboBox, const vector<string>& vals, const char* signal, const char* slot, Qt::ConnectionType connectionType)
 {
 	comboBox = new StealthComboBox(table);
+
 	for (auto& s : vals) comboBox->addItem(s.c_str());
+
 	table->setCellWidget(row, col, comboBox);
 	connect(comboBox, signal, receiver, slot, connectionType);
 	row++;
@@ -507,14 +489,13 @@ QStringList Fractorium::SetupOpenXmlDialog()
 		m_FileDialog = new QFileDialog(this);
 		m_FileDialog->setViewMode(QFileDialog::List);
 	}
-	
+
 	if (!m_FileDialog)
 		return QStringList("");
 
 	QStringList filenames;
 	m_FileDialog->disconnect(SIGNAL(filterSelected(const QString&)));
-	connect(m_FileDialog, &QFileDialog::filterSelected, [=](const QString &filter) { m_Settings->OpenXmlExt(filter); });
-
+	connect(m_FileDialog, &QFileDialog::filterSelected, [ = ](const QString & filter) { m_Settings->OpenXmlExt(filter); });
 	m_FileDialog->setFileMode(QFileDialog::ExistingFiles);
 	m_FileDialog->setAcceptMode(QFileDialog::AcceptOpen);
 	m_FileDialog->setNameFilter("Flam3 (*.flam3);;Flame (*.flame);;Xml (*.xml)");
@@ -547,15 +528,13 @@ QString Fractorium::SetupSaveXmlDialog(const QString& defaultFilename)
 		m_FileDialog = new QFileDialog(this);
 		m_FileDialog->setViewMode(QFileDialog::List);
 	}
-	
+
 	if (!m_FileDialog)
 		return "";
 
 	QString filename;
-
 	m_FileDialog->disconnect(SIGNAL(filterSelected(const QString&)));
-	connect(m_FileDialog, &QFileDialog::filterSelected, [=](const QString &filter) { m_Settings->SaveXmlExt(filter); });
-	
+	connect(m_FileDialog, &QFileDialog::filterSelected, [ = ](const QString & filter) { m_Settings->SaveXmlExt(filter); });
 	//This must come first because it clears various internal states which allow the file text to be properly set.
 	//This is most likely a bug in QFileDialog.
 	m_FileDialog->setAcceptMode(QFileDialog::AcceptSave);
@@ -585,15 +564,13 @@ QString Fractorium::SetupSaveImageDialog(const QString& defaultFilename)
 		m_FileDialog = new QFileDialog(this);
 		m_FileDialog->setViewMode(QFileDialog::List);
 	}
-	
+
 	if (!m_FileDialog)
 		return "";
-	
+
 	QString filename;
-	
 	m_FileDialog->disconnect(SIGNAL(filterSelected(const QString&)));
-	connect(m_FileDialog, &QFileDialog::filterSelected, [=](const QString &filter) { m_Settings->SaveImageExt(filter); });
-	
+	connect(m_FileDialog, &QFileDialog::filterSelected, [ = ](const QString & filter) { m_Settings->SaveImageExt(filter); });
 	//This must come first because it clears various internal states which allow the file text to be properly set.
 	//This is most likely a bug in QFileDialog.
 	m_FileDialog->setAcceptMode(QFileDialog::AcceptSave);
@@ -625,12 +602,11 @@ QString Fractorium::SetupSaveFolderDialog()
 		m_FolderDialog = new QFileDialog(this);
 		m_FolderDialog->setViewMode(QFileDialog::List);
 	}
-	
+
 	if (!m_FolderDialog)
 		return "";
-	
+
 	QString filename;
-	
 	//This must come first because it clears various internal states which allow the file text to be properly set.
 	//This is most likely a bug in QFileDialog.
 	m_FolderDialog->setAcceptMode(QFileDialog::AcceptSave);
@@ -672,14 +648,12 @@ void Fractorium::ShowCritical(const QString& title, const QString& text, bool in
 void Fractorium::SetTabOrders()
 {
 	QWidget* w = SetTabOrder(this, ui.ColorTable, m_BrightnessSpin);//Flame.
-	
 	w = SetTabOrder(this, w, m_GammaSpin);
 	w = SetTabOrder(this, w, m_GammaThresholdSpin);
 	w = SetTabOrder(this, w, m_VibrancySpin);
 	w = SetTabOrder(this, w, m_HighlightSpin);
 	w = SetTabOrder(this, w, m_BackgroundColorButton);
 	w = SetTabOrder(this, w, m_PaletteModeCombo);
-	
 	w = SetTabOrder(this, w, m_CenterXSpin);
 	w = SetTabOrder(this, w, m_CenterYSpin);
 	w = SetTabOrder(this, w, m_ScaleSpin);
@@ -690,20 +664,17 @@ void Fractorium::SetTabOrders()
 	w = SetTabOrder(this, w, m_PitchSpin);
 	w = SetTabOrder(this, w, m_YawSpin);
 	w = SetTabOrder(this, w, m_DepthBlurSpin);
-	
 	w = SetTabOrder(this, w, m_SpatialFilterWidthSpin);
 	w = SetTabOrder(this, w, m_SpatialFilterTypeCombo);
 	w = SetTabOrder(this, w, m_TemporalFilterTypeCombo);
 	w = SetTabOrder(this, w, m_DEFilterMinRadiusSpin);
 	w = SetTabOrder(this, w, m_DEFilterMaxRadiusSpin);
 	w = SetTabOrder(this, w, m_DECurveSpin);
-	
 	w = SetTabOrder(this, w, m_TemporalSamplesSpin);
 	w = SetTabOrder(this, w, m_QualitySpin);
 	w = SetTabOrder(this, w, m_SupersampleSpin);
 	w = SetTabOrder(this, w, m_AffineInterpTypeCombo);
 	w = SetTabOrder(this, w, m_InterpTypeCombo);
-	
 	w = SetTabOrder(this, ui.CurrentXformCombo, ui.AddXformButton);//Xforms.
 	w = SetTabOrder(this, w, ui.DuplicateXformButton);
 	w = SetTabOrder(this, w, ui.ClearXformButton);
@@ -711,13 +682,11 @@ void Fractorium::SetTabOrders()
 	w = SetTabOrder(this, w, ui.AddFinalXformButton);
 	w = SetTabOrder(this, w, m_XformWeightSpin);
 	w = SetTabOrder(this, w, m_XformWeightSpinnerButtonWidget->m_Button);
-
 	w = SetTabOrder(this, m_XformColorIndexSpin, ui.XformColorScroll);//Xforms color.
 	w = SetTabOrder(this, w, m_XformColorSpeedSpin);
 	w = SetTabOrder(this, w, m_XformOpacitySpin);
 	w = SetTabOrder(this, w, m_XformDirectColorSpin);
 	w = SetTabOrder(this, w, ui.SoloXformCheckBox);
-
 	w = SetTabOrder(this, ui.PreAffineGroupBox, m_PreX1Spin);//Xforms affine.
 	w = SetTabOrder(this, w, m_PreX2Spin);
 	w = SetTabOrder(this, w, m_PreY1Spin);
@@ -769,12 +738,9 @@ void Fractorium::SetTabOrders()
 	w = SetTabOrder(this, w, ui.ShowPostAffineAllRadio);
 	w = SetTabOrder(this, w, ui.LocalPivotRadio);
 	w = SetTabOrder(this, w, ui.WorldPivotRadio);
-
 	w = SetTabOrder(this, ui.VariationsFilterLineEdit, ui.VariationsFilterClearButton);//Xforms variation.
 	w = SetTabOrder(this, w, ui.VariationsTree);
-	
 	//Xforms xaos is done dynamically every time.
-
 	w = SetTabOrder(this, m_PaletteHueSpin, m_PaletteContrastSpin);//Palette.
 	w = SetTabOrder(this, w, m_PaletteSaturationSpin);
 	w = SetTabOrder(this, w, m_PaletteBlurSpin);
@@ -783,12 +749,8 @@ void Fractorium::SetTabOrders()
 	w = SetTabOrder(this, w, ui.PaletteFilterLineEdit);
 	w = SetTabOrder(this, w, ui.PaletteFilterClearButton);
 	w = SetTabOrder(this, w, ui.PaletteListTable);
-
-
 	w = SetTabOrder(this, ui.SummaryTable, ui.SummaryTree);//Info summary.
-	
 	w = SetTabOrder(this, ui.InfoBoundsGroupBox, ui.InfoBoundsFrame);//Info bounds.
-	
 	w = SetTabOrder(this, w, ui.InfoBoundsTable);
 	w = SetTabOrder(this, w, ui.InfoFileOpeningGroupBox);
 	w = SetTabOrder(this, w, ui.InfoFileOpeningTextEdit);
@@ -872,7 +834,6 @@ void Fractorium::ToggleTableCol(QTableView* table, int logicalIndex)
 	auto model = table->model();
 	int rows = model->rowCount();
 	bool shift = QGuiApplication::keyboardModifiers().testFlag(Qt::ShiftModifier);
-	
 	auto tableWidget = qobject_cast<QTableWidget*>(table);
 
 	if (tableWidget)

@@ -107,7 +107,6 @@ public:
 		m_Supersample		  = ember.m_Supersample;
 		m_TemporalSamples	  = ember.m_TemporalSamples;
 		m_Symmetry			  = ember.m_Symmetry;
-
 		m_Quality			  = T(ember.m_Quality);
 		m_PixelsPerUnit		  = T(ember.m_PixelsPerUnit);
 		m_Zoom				  = T(ember.m_Zoom);
@@ -130,29 +129,22 @@ public:
 		m_Background		  = ember.m_Background;
 		m_Interp			  = ember.m_Interp;
 		m_AffineInterp		  = ember.m_AffineInterp;
-
 		m_MinRadDE			  = T(ember.m_MinRadDE);
 		m_MaxRadDE			  = T(ember.m_MaxRadDE);
 		m_CurveDE			  = T(ember.m_CurveDE);
-
 		m_SpatialFilterType	  = ember.m_SpatialFilterType;
 		m_SpatialFilterRadius = T(ember.m_SpatialFilterRadius);
-
 		m_TemporalFilterType  = ember.m_TemporalFilterType;
 		m_TemporalFilterExp	  = T(ember.m_TemporalFilterExp);
 		m_TemporalFilterWidth = T(ember.m_TemporalFilterWidth);
-
 		m_PaletteMode		  = ember.m_PaletteMode;
 		m_PaletteInterp		  = ember.m_PaletteInterp;
-
 		m_Name				  = ember.m_Name;
 		m_ParentFilename	  = ember.m_ParentFilename;
-
 		m_Index		  = ember.m_Index;
 		m_ScaleType	  = ember.ScaleType();
 		m_Palette	  = ember.m_Palette;
 		m_Curves	  = ember.m_Curves;
-
 		m_Xforms.clear();
 
 		for (size_t i = 0; i < ember.XformCount(); i++)
@@ -160,13 +152,11 @@ public:
 			if (Xform<U>* p = ember.GetXform(i))
 			{
 				Xform<T> xform = *p;//Will call assignment operator to convert between types T and U.
-
 				AddXform(xform);
 			}
 		}
 
 		Xform<T> finalXform = *ember.FinalXform();//Will call assignment operator to convert between types T and U.
-
 		SetFinalXform(finalXform);
 
 		//Interpolated-against final xforms need animate & color speed set to 0.
@@ -184,7 +174,6 @@ public:
 			m_Edits = xmlCopyDoc(ember.m_Edits, 1);
 
 		CopyVec(m_EmberMotionElements, ember.m_EmberMotionElements);
-
 		return *this;
 	}
 
@@ -227,36 +216,28 @@ public:
 		m_Background.Reset();
 		m_Interp = EMBER_INTERP_LINEAR;
 		m_AffineInterp = AFFINE_INTERP_LOG;
-
 		//DE filter.
 		m_MinRadDE = 0;
 		m_MaxRadDE = 9;
 		m_CurveDE = T(0.4);
-
 		//Spatial filter.
 		m_SpatialFilterType = GAUSSIAN_SPATIAL_FILTER;
 		m_SpatialFilterRadius = T(0.5);
-
 		//Temporal filter.
 		m_TemporalFilterType = BOX_TEMPORAL_FILTER;
 		m_TemporalFilterExp = 0;
 		m_TemporalFilterWidth = 1;
-
 		//Palette.
-		m_PaletteMode = PALETTE_STEP;
+		m_PaletteMode = PALETTE_LINEAR;
 		m_PaletteInterp = INTERP_HSV;
-
 		//Curves.
 		m_Curves.Init();
-
 		m_Name = "No name";
 		m_ParentFilename = "No parent";
-
 		//Internal values.
 		m_Index = 0;
 		m_ScaleType = eScaleType::SCALE_NONE;
 		m_Xforms.reserve(12);
-
 		m_Edits = nullptr;
 	}
 
@@ -280,7 +261,6 @@ public:
 		for (size_t i = 0; i < count; i++)
 		{
 			Xform<T> xform;
-
 			AddXform(xform);
 		}
 	}
@@ -304,7 +284,6 @@ public:
 	Ember<T> Copy(size_t xformPad = 0, bool doFinal = false)
 	{
 		Ember<T> ember(*this);
-
 		ember.PadXforms(xformPad);
 
 		if (doFinal)
@@ -367,7 +346,7 @@ public:
 	bool DeleteTotalXform(size_t i)
 	{
 		if (DeleteXform(i))
-			{ }
+		{ }
 		else if (i == XformCount() && UseFinalXform())
 			m_FinalXform.Clear();
 		else
@@ -485,7 +464,6 @@ public:
 		for (size_t i = 0; i < TotalXformCount(); i++)
 		{
 			Xform<T>* xform = GetTotalXform(i);
-
 			xform->CacheColorVals();
 			xform->SetPrecalcFlags();
 		}
@@ -624,6 +602,7 @@ public:
 			normalizedWeights.resize(m_Xforms.size());
 
 		for (auto& xform : m_Xforms) norm += xform.m_Weight;
+
 		for (auto& weight : normalizedWeights) { weight = (norm == T(0) ? T(0) : m_Xforms[i].m_Weight / norm); i++; }
 	}
 
@@ -636,13 +615,15 @@ public:
 	void GetPresentVariations(vector<Variation<T>*>& variations, bool baseOnly = true) const
 	{
 		size_t i = 0, xformIndex = 0, totalVarCount = m_FinalXform.TotalVariationCount();
-
 		variations.clear();
-		for (auto& xform : m_Xforms) totalVarCount += xform.TotalVariationCount();
 
+		while (auto xform = GetTotalXform(xformIndex++))
+			totalVarCount += xform->TotalVariationCount();
+
+		xformIndex = 0;
 		variations.reserve(totalVarCount);
 
-		while (Xform<T>* xform = GetTotalXform(xformIndex++))
+		while (auto xform = GetTotalXform(xformIndex++))
 		{
 			i = 0;
 			totalVarCount = xform->TotalVariationCount();
@@ -654,7 +635,7 @@ public:
 					string tempVarBaseName = tempVar->BaseName();
 
 					if (!FindIf(variations, [&] (const Variation<T>* var) -> bool { return tempVar->VariationId() == var->VariationId(); }) &&
-						!FindIf(variations, [&] (const Variation<T>* var) -> bool { return tempVarBaseName == var->BaseName(); }))
+							!FindIf(variations, [&] (const Variation<T>* var) -> bool { return tempVarBaseName == var->BaseName(); }))
 						variations.push_back(tempVar);
 				}
 				else
@@ -676,24 +657,29 @@ public:
 	{
 		bool flattened = false;
 
-		for (auto& xform : m_Xforms) flattened |= xform.Flatten(names);
+		for (auto& xform : m_Xforms)
+			flattened |= xform.Flatten(names);
+
+		if (UseFinalXform())
+			flattened |= m_FinalXform.Flatten(names);
 
 		return flattened;
 	}
 
 	/// <summary>
-	/// Flatten all xforms by adding a flatten variation in each if not already present.
+	/// Unflatten all xforms by removing flatten, pre_flatten and post_flatten.
 	/// </summary>
-	/// <returns>True if flatten was removed, false if it wasn't present.</returns>
+	/// <returns>True if any flatten was removed, false if it wasn't present.</returns>
 	bool Unflatten()
 	{
+		size_t xformIndex = 0;
 		bool unflattened = false;
 
-		for (auto& xform : m_Xforms)
+		while (auto xform = GetTotalXform(xformIndex++))
 		{
-			unflattened |= xform.DeleteVariationById(VAR_PRE_FLATTEN);
-			unflattened |= xform.DeleteVariationById(VAR_FLATTEN);
-			unflattened |= xform.DeleteVariationById(VAR_POST_FLATTEN);
+			unflattened |= xform->DeleteVariationById(VAR_PRE_FLATTEN);
+			unflattened |= xform->DeleteVariationById(VAR_FLATTEN);
+			unflattened |= xform->DeleteVariationById(VAR_POST_FLATTEN);
 		}
 
 		return unflattened;
@@ -770,7 +756,6 @@ public:
 		m_TemporalFilterType = embers[0].m_TemporalFilterType;
 		m_PaletteMode = embers[0].m_PaletteMode;
 		m_AffineInterp = embers[0].m_AffineInterp;
-
 		//Interpolate ember parameters, these should be in the same order the members are declared.
 		InterpI<&Ember<T>::m_FinalRasW>(embers, coefs, size);
 		InterpI<&Ember<T>::m_FinalRasH>(embers, coefs, size);
@@ -804,10 +789,8 @@ public:
 		InterpT<&Ember<T>::m_CurveDE>(embers, coefs, size);
 		InterpT<&Ember<T>::m_SpatialFilterRadius>(embers, coefs, size);
 		InterpX<Curves<T>, &Ember<T>::m_Curves>(embers, coefs, size);
-
 		//Normally done in assignment, must manually do here.
 		SetProjFunc();
-
 		//An extra step needed here due to the OOD that was not needed in the original.
 		//A small price to pay for the conveniences it affords us elsewhere.
 		//First clear the xforms, and find out the max number of xforms in all of the embers in the list.
@@ -855,7 +838,6 @@ public:
 			{
 				Variation<T>* var = thisXform->GetVariation(j);
 				ParametricVariation<T>* parVar = dynamic_cast<ParametricVariation<T>*>(var);//Will use below if it's parametric.
-
 				var->m_Weight = 0;
 
 				if (parVar)
@@ -901,7 +883,6 @@ public:
 			InterpXform<&Xform<T>::m_ColorSpeed>(thisXform, i, embers, coefs, size);
 			InterpXform<&Xform<T>::m_Opacity>	(thisXform, i, embers, coefs, size);
 			InterpXform<&Xform<T>::m_Animate>	(thisXform, i, embers, coefs, size);
-
 			ClampGte0Ref(thisXform->m_Weight);
 			ClampRef<T>(thisXform->m_ColorX, 0, 1);
 			ClampRef<T>(thisXform->m_ColorSpeed, -1, 1);
@@ -912,13 +893,10 @@ public:
 				vector<v2T> cxMag(size);
 				vector<v2T> cxAng(size);
 				vector<v2T> cxTrn(size);
-
 				thisXform->m_Affine.m_Mat = m23T(0);
-
 				//Affine part.
 				Interpolater<T>::ConvertLinearToPolar(embers, size, i, 0, cxAng, cxMag, cxTrn);
 				Interpolater<T>::InterpAndConvertBack(coefs, cxAng, cxMag, cxTrn, thisXform->m_Affine);
-
 				//Post part.
 				allID = true;
 
@@ -1032,12 +1010,10 @@ public:
 		T t2 = t * t;
 		T t3 = t2 * t;
 		vector<T> cmc(4);
-
 		cmc[0] = (2 * t2 - t - t3) / 2;
 		cmc[1] = (3 * t3 - 5 * t2 + 2) / 2;
 		cmc[2] = (4 * t2 - 3 * t3 + t) / 2;
 		cmc[3] = (t3 - t2) / 2;
-
 		Interpolate(embers, size, cmc, 0);
 	}
 
@@ -1083,13 +1059,14 @@ public:
 
 		if (sym == 0)
 		{
-			static intmax_t symDistrib[] = {
+			static intmax_t symDistrib[] =
+			{
 				-4, -3,
 				-2, -2, -2,
 				-1, -1, -1,
-				 2,  2,  2,
-				 3,  3,
-				 4,  4,
+				2,  2,  2,
+				3,  3,
+				4,  4,
 			};
 
 			if (rand.Rand() & 1)
@@ -1110,7 +1087,6 @@ public:
 			i = XformCount();//Don't apply sym to final.
 			Xform<T> xform;
 			AddXform(xform);
-
 			m_Xforms[i].m_Weight = 1;
 			m_Xforms[i].m_ColorSpeed = 0;
 			m_Xforms[i].m_Animate = 0;
@@ -1123,7 +1099,6 @@ public:
 			m_Xforms[i].m_Affine.E(1);
 			m_Xforms[i].m_Affine.F(0);
 			m_Xforms[i].AddVariation(new LinearVariation<T>());
-
 			result++;
 			sym = -sym;
 		}
@@ -1135,7 +1110,6 @@ public:
 			i = XformCount();
 			Xform<T> xform;
 			AddXform(xform);
-
 			m_Xforms[i].m_Weight = 1;
 			m_Xforms[i].m_ColorSpeed = 0;
 			m_Xforms[i].m_Animate = 0;
@@ -1147,7 +1121,6 @@ public:
 			m_Xforms[i].m_Affine.C(0);
 			m_Xforms[i].m_Affine.F(0);
 			m_Xforms[i].AddVariation(new LinearVariation<T>());
-
 			result++;
 		}
 
@@ -1164,9 +1137,13 @@ public:
 		size_t val = 0;
 
 		if (m_CamZPos != 0) val |= PROJBITS_ZPOS;
+
 		if (m_CamPerspective != 0) val |= PROJBITS_PERSP;
+
 		if (m_CamPitch != 0) val |= PROJBITS_PITCH;
+
 		if (m_CamYaw != 0) val |= PROJBITS_YAW;
+
 		if (m_CamDepthBlur != 0) val |= PROJBITS_BLUR;
 
 		return val;
@@ -1199,7 +1176,6 @@ public:
 	void ProjectZPerspective(Point<T>& point, QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand)
 	{
 		T zr = Zeps(1 - m_CamPerspective * (point.m_Z - m_CamZPos));
-
 		point.m_X /= zr;
 		point.m_Y /= zr;
 		point.m_Z -= m_CamZPos;
@@ -1215,7 +1191,6 @@ public:
 		T z  = point.m_Z - m_CamZPos;
 		T y  = m_CamMat[1][1] * point.m_Y + m_CamMat[2][1] * z;
 		T zr = Zeps(1 - m_CamPerspective * (m_CamMat[1][2] * point.m_Y + m_CamMat[2][2] * z));
-
 		point.m_X /= zr;
 		point.m_Y  = y / zr;
 		point.m_Z -= m_CamZPos;
@@ -1231,16 +1206,12 @@ public:
 		T y, z, zr;
 		T dsin, dcos;
 		T t = rand.Frand01<T>() * M_2PI;
-
 		z = point.m_Z - m_CamZPos;
 		y = m_CamMat[1][1] * point.m_Y + m_CamMat[2][1] * z;
 		z = m_CamMat[1][2] * point.m_Y + m_CamMat[2][2] * z;
 		zr = Zeps(1 - m_CamPerspective * z);
-
 		sincos(t, &dsin, &dcos);
-
 		T dr = rand.Frand01<T>() * m_BlurCoef * z;
-
 		point.m_X = (point.m_X + dr * dcos) / zr;
 		point.m_Y = (y + dr * dsin) / zr;
 		point.m_Z -= m_CamZPos;
@@ -1258,14 +1229,10 @@ public:
 		T z = point.m_Z - m_CamZPos;
 		T x = m_CamMat[0][0] * point.m_X + m_CamMat[1][0] * point.m_Y;
 		T y = m_CamMat[0][1] * point.m_X + m_CamMat[1][1] * point.m_Y + m_CamMat[2][1] * z;
-
 		z = m_CamMat[0][2] * point.m_X + m_CamMat[1][2] * point.m_Y + m_CamMat[2][2] * z;
-
 		T zr = Zeps(1 - m_CamPerspective * z);
 		T dr = rand.Frand01<T>() * m_BlurCoef * z;
-
 		sincos(t, &dsin, &dcos);
-
 		point.m_X = (x + dr * dcos) / zr;
 		point.m_Y = (y + dr * dsin) / zr;
 		point.m_Z -= m_CamZPos;
@@ -1282,7 +1249,6 @@ public:
 		T x = m_CamMat[0][0] * point.m_X + m_CamMat[1][0] * point.m_Y;
 		T y = m_CamMat[0][1] * point.m_X + m_CamMat[1][1] * point.m_Y + m_CamMat[2][1] * z;
 		T zr = Zeps(1 - m_CamPerspective * (m_CamMat[0][2] * point.m_X + m_CamMat[1][2] * point.m_Y + m_CamMat[2][2] * z));
-
 		point.m_X = x / zr;
 		point.m_Y = y / zr;
 		point.m_Z -= m_CamZPos;
@@ -1306,60 +1272,77 @@ public:
 
 				switch (param.first)
 				{
-				case FLAME_MOTION_ZOOM:
-					APP_FMP(m_Zoom);
-					break;
-				case FLAME_MOTION_ZPOS:
-					APP_FMP(m_CamZPos);
-					break;
-				case FLAME_MOTION_PERSPECTIVE:
-					APP_FMP(m_CamPerspective);
-					break;
-				case FLAME_MOTION_YAW:
-					APP_FMP(m_CamYaw);
-					break;
-				case FLAME_MOTION_PITCH:
-					APP_FMP(m_CamPitch);
-					break;
-				case FLAME_MOTION_DEPTH_BLUR:
-					APP_FMP(m_CamDepthBlur);
-					break;
-				case FLAME_MOTION_CENTER_X:
-					APP_FMP(m_CenterX);
-					break;
-				case FLAME_MOTION_CENTER_Y:
-					APP_FMP(m_CenterY);
-					break;
-				case FLAME_MOTION_ROTATE:
-					APP_FMP(m_Rotate);
-					break;
-				case FLAME_MOTION_BRIGHTNESS:
-					APP_FMP(m_Brightness);
-					break;
-				case FLAME_MOTION_GAMMA:
-					APP_FMP(m_Gamma);
-					break;
-				case FLAME_MOTION_GAMMA_THRESH:
-					APP_FMP(m_GammaThresh);
-					break;
-				case FLAME_MOTION_HIGHLIGHT_POWER:
-					APP_FMP(m_HighlightPower);
-					break;
-				case FLAME_MOTION_BACKGROUND_R:
-					APP_FMP(m_Background.r);
-					break;
-				case FLAME_MOTION_BACKGROUND_G:
-					APP_FMP(m_Background.g);
-					break;
-				case FLAME_MOTION_BACKGROUND_B:
-					APP_FMP(m_Background.b);
-					break;
-				case FLAME_MOTION_VIBRANCY:
-					APP_FMP(m_Vibrancy);
-					break;
-				case FLAME_MOTION_NONE:
-				default:
-					break;
+					case FLAME_MOTION_ZOOM:
+						APP_FMP(m_Zoom);
+						break;
+
+					case FLAME_MOTION_ZPOS:
+						APP_FMP(m_CamZPos);
+						break;
+
+					case FLAME_MOTION_PERSPECTIVE:
+						APP_FMP(m_CamPerspective);
+						break;
+
+					case FLAME_MOTION_YAW:
+						APP_FMP(m_CamYaw);
+						break;
+
+					case FLAME_MOTION_PITCH:
+						APP_FMP(m_CamPitch);
+						break;
+
+					case FLAME_MOTION_DEPTH_BLUR:
+						APP_FMP(m_CamDepthBlur);
+						break;
+
+					case FLAME_MOTION_CENTER_X:
+						APP_FMP(m_CenterX);
+						break;
+
+					case FLAME_MOTION_CENTER_Y:
+						APP_FMP(m_CenterY);
+						break;
+
+					case FLAME_MOTION_ROTATE:
+						APP_FMP(m_Rotate);
+						break;
+
+					case FLAME_MOTION_BRIGHTNESS:
+						APP_FMP(m_Brightness);
+						break;
+
+					case FLAME_MOTION_GAMMA:
+						APP_FMP(m_Gamma);
+						break;
+
+					case FLAME_MOTION_GAMMA_THRESH:
+						APP_FMP(m_GammaThresh);
+						break;
+
+					case FLAME_MOTION_HIGHLIGHT_POWER:
+						APP_FMP(m_HighlightPower);
+						break;
+
+					case FLAME_MOTION_BACKGROUND_R:
+						APP_FMP(m_Background.r);
+						break;
+
+					case FLAME_MOTION_BACKGROUND_G:
+						APP_FMP(m_Background.g);
+						break;
+
+					case FLAME_MOTION_BACKGROUND_B:
+						APP_FMP(m_Background.b);
+						break;
+
+					case FLAME_MOTION_VIBRANCY:
+						APP_FMP(m_Vibrancy);
+						break;
+
+					case FLAME_MOTION_NONE:
+					default:
+						break;
 				}
 			}
 		}
@@ -1475,70 +1458,62 @@ public:
 	{
 		size_t i;
 		ostringstream ss;
-
-		ss << "Final Raster Width: " << m_FinalRasW << endl
-		   << "Final Raster Height: " << m_FinalRasH << endl
-		   << "Original Raster Width: " << m_OrigFinalRasW << endl
-		   << "Original Raster Height: " << m_OrigFinalRasH << endl
-		   << "Supersample: " << m_Supersample << endl
-		   << "Temporal Samples: " << m_TemporalSamples << endl
-		   << "Symmetry: " << m_Symmetry << endl
-
-		   << "Quality: " << m_Quality << endl
-		   << "Pixels Per Unit: " << m_PixelsPerUnit << endl
-		   << "Original Pixels Per Unit: " << m_OrigPixPerUnit << endl
-		   << "Sub Batch Size: " << m_SubBatchSize << endl
-		   << "Fuse Count: " << m_FuseCount << endl
-		   << "Zoom: " << m_Zoom << endl
-		   << "ZPos: " << m_CamZPos << endl
-		   << "Perspective: " << m_CamPerspective << endl
-		   << "Yaw: " << m_CamYaw << endl
-		   << "Pitch: " << m_CamPitch << endl
-		   << "Depth Blur: " << m_CamDepthBlur << endl
-		   << "CenterX: " << m_CenterX << endl
-		   << "CenterY: " << m_CenterY << endl
-		   << "RotCenterY: " << m_RotCenterY << endl
-		   << "Rotate: " << m_Rotate << endl
-		   << "Brightness: " << m_Brightness << endl
-		   << "Gamma: " << m_Gamma << endl
-		   << "Vibrancy: " << m_Vibrancy << endl
-		   << "Gamma Threshold: " << m_GammaThresh << endl
-		   << "Highlight Power: " << m_HighlightPower << endl
-		   << "Time: " << m_Time << endl
-		   << "Background: " << m_Background.r << ", " << m_Background.g << ", " << m_Background.b << ", " << m_Background.a << endl
-
-		   << "Interp: " << m_Interp << endl
-		   << "Affine Interp Type: " << m_AffineInterp << endl
-
-		   << "Minimum DE Radius: " << m_MinRadDE << endl
-		   << "Maximum DE Radius: " << m_MaxRadDE << endl
-		   << "DE Curve: " << m_CurveDE << endl
-
-		   << "Spatial Filter Type: " << m_SpatialFilterType << endl
-		   << "Spatial Filter Radius: " << m_SpatialFilterRadius << endl
-
-		   << "Temporal Filter Type: " << m_TemporalFilterType << endl
-		   << "Temporal Filter Exp: " << m_TemporalFilterExp << endl
-		   << "Temporal Filter Width: " << m_TemporalFilterWidth << endl
-
-		   << "Palette Mode: " << m_PaletteMode << endl
-		   << "Palette Interp: " << m_PaletteInterp << endl
-		   << "Palette Index: " << m_Palette.m_Index << endl
+		ss << "Final Raster Width: " << m_FinalRasW << "\n"
+		   << "Final Raster Height: " << m_FinalRasH << "\n"
+		   << "Original Raster Width: " << m_OrigFinalRasW << "\n"
+		   << "Original Raster Height: " << m_OrigFinalRasH << "\n"
+		   << "Supersample: " << m_Supersample << "\n"
+		   << "Temporal Samples: " << m_TemporalSamples << "\n"
+		   << "Symmetry: " << m_Symmetry << "\n"
+		   << "Quality: " << m_Quality << "\n"
+		   << "Pixels Per Unit: " << m_PixelsPerUnit << "\n"
+		   << "Original Pixels Per Unit: " << m_OrigPixPerUnit << "\n"
+		   << "Sub Batch Size: " << m_SubBatchSize << "\n"
+		   << "Fuse Count: " << m_FuseCount << "\n"
+		   << "Zoom: " << m_Zoom << "\n"
+		   << "ZPos: " << m_CamZPos << "\n"
+		   << "Perspective: " << m_CamPerspective << "\n"
+		   << "Yaw: " << m_CamYaw << "\n"
+		   << "Pitch: " << m_CamPitch << "\n"
+		   << "Depth Blur: " << m_CamDepthBlur << "\n"
+		   << "CenterX: " << m_CenterX << "\n"
+		   << "CenterY: " << m_CenterY << "\n"
+		   << "RotCenterY: " << m_RotCenterY << "\n"
+		   << "Rotate: " << m_Rotate << "\n"
+		   << "Brightness: " << m_Brightness << "\n"
+		   << "Gamma: " << m_Gamma << "\n"
+		   << "Vibrancy: " << m_Vibrancy << "\n"
+		   << "Gamma Threshold: " << m_GammaThresh << "\n"
+		   << "Highlight Power: " << m_HighlightPower << "\n"
+		   << "Time: " << m_Time << "\n"
+		   << "Background: " << m_Background.r << ", " << m_Background.g << ", " << m_Background.b << ", " << m_Background.a << "\n"
+		   << "Interp: " << m_Interp << "\n"
+		   << "Affine Interp Type: " << m_AffineInterp << "\n"
+		   << "Minimum DE Radius: " << m_MinRadDE << "\n"
+		   << "Maximum DE Radius: " << m_MaxRadDE << "\n"
+		   << "DE Curve: " << m_CurveDE << "\n"
+		   << "Spatial Filter Type: " << m_SpatialFilterType << "\n"
+		   << "Spatial Filter Radius: " << m_SpatialFilterRadius << "\n"
+		   << "Temporal Filter Type: " << m_TemporalFilterType << "\n"
+		   << "Temporal Filter Exp: " << m_TemporalFilterExp << "\n"
+		   << "Temporal Filter Width: " << m_TemporalFilterWidth << "\n"
+		   << "Palette Mode: " << m_PaletteMode << "\n"
+		   << "Palette Interp: " << m_PaletteInterp << "\n"
+		   << "Palette Index: " << m_Palette.m_Index << "\n"
 		   //Add palette info here if needed.
-
-		   << "Name: " << m_Name << endl
-		   << "Index: " << m_Index << endl
-		   << "Scale Type: " << m_ScaleType << endl
-		   << "Parent Filename: " << m_ParentFilename << endl
-		   << endl;
+		   << "Name: " << m_Name << "\n"
+		   << "Index: " << m_Index << "\n"
+		   << "Scale Type: " << m_ScaleType << "\n"
+		   << "Parent Filename: " << m_ParentFilename << "\n"
+		   << "\n";
 
 		for (i = 0; i < XformCount(); i++)
 		{
-			ss << "Xform " << i << ":" << endl << m_Xforms[i].ToString() << endl;
+			ss << "Xform " << i << ":\n" << m_Xforms[i].ToString() << "\n";
 		}
 
 		if (UseFinalXform())
-			ss << "Final Xform: " << m_FinalXform.ToString() << endl;
+			ss << "Final Xform: " << m_FinalXform.ToString() << "\n";
 
 		return ss.str();
 	}

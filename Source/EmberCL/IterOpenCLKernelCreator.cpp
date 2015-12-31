@@ -38,15 +38,14 @@ template <typename T> const string& IterOpenCLKernelCreator<T>::IterEntryPoint()
 /// <param name="doAccum">Debugging parameter to include or omit accumulating to the histogram. Default: true.</param>
 /// <returns>The kernel string</returns>
 template <typename T>
-string IterOpenCLKernelCreator<T>::CreateIterKernelString(const Ember<T>& ember, string& parVarDefines, bool lockAccum, bool doAccum)
+string IterOpenCLKernelCreator<T>::CreateIterKernelString(const Ember<T>& ember, const string& parVarDefines, const string& globalSharedDefines, bool lockAccum, bool doAccum)
 {
 	bool doublePrecision = typeid(T) == typeid(double);
 	size_t i, v, varIndex, varCount, totalXformCount = ember.TotalXformCount();
 	ostringstream kernelIterBody, xformFuncs, os;
 	vector<Variation<T>*> variations;
-
 	xformFuncs << VariationStateString(ember);
-	xformFuncs << parVarDefines << endl;
+	xformFuncs << parVarDefines << globalSharedDefines;
 	ember.GetPresentVariations(variations);
 
 	for (auto var : variations)
@@ -56,19 +55,17 @@ string IterOpenCLKernelCreator<T>::CreateIterKernelString(const Ember<T>& ember,
 	for (i = 0; i < totalXformCount; i++)
 	{
 		Xform<T>* xform = ember.GetTotalXform(i);
-		//size_t totalVarCount = xform->TotalVariationCount();
 		bool needPrecalcSumSquares = false;
 		bool needPrecalcSqrtSumSquares = false;
 		bool needPrecalcAngles = false;
 		bool needPrecalcAtanXY = false;
 		bool needPrecalcAtanYX = false;
-
 		v = varIndex = varCount = 0;
 		xformFuncs <<
-			"void Xform" << i << "(__constant XformCL* xform, __constant real_t* parVars, Point* inPoint, Point* outPoint, uint2* mwc, VariationState* varState)\n" <<
-			"{\n"
-			"	real_t transX, transY, transZ;\n"
-			"	real4 vIn, vOut = 0.0;\n";
+				   "void Xform" << i << "(__constant XformCL* xform, __constant real_t* parVars, __global real_t* globalShared, Point* inPoint, Point* outPoint, uint2* mwc, VariationState* varState)\n" <<
+				   "{\n"
+				   "	real_t transX, transY, transZ;\n"
+				   "	real4 vIn, vOut = 0.0;\n";
 
 		//Determine if any variations, regular, pre, or post need precalcs.
 		while (Variation<T>* var = xform->GetVariation(v++))
@@ -103,17 +100,16 @@ string IterOpenCLKernelCreator<T>::CreateIterKernelString(const Ember<T>& ember,
 		if (xform->PreVariationCount() + xform->VariationCount() == 0)
 		{
 			xformFuncs <<
-			"	outPoint->m_X = (xform->m_A * inPoint->m_X) + (xform->m_B * inPoint->m_Y) + xform->m_C;\n" <<
-			"	outPoint->m_Y = (xform->m_D * inPoint->m_X) + (xform->m_E * inPoint->m_Y) + xform->m_F;\n" <<
-			"	outPoint->m_Z = inPoint->m_Z;\n";
+					   "	outPoint->m_X = (xform->m_A * inPoint->m_X) + (xform->m_B * inPoint->m_Y) + xform->m_C;\n" <<
+					   "	outPoint->m_Y = (xform->m_D * inPoint->m_X) + (xform->m_E * inPoint->m_Y) + xform->m_F;\n" <<
+					   "	outPoint->m_Z = inPoint->m_Z;\n";
 		}
 		else
 		{
 			xformFuncs <<
-			"	transX = (xform->m_A * inPoint->m_X) + (xform->m_B * inPoint->m_Y) + xform->m_C;\n" <<
-			"	transY = (xform->m_D * inPoint->m_X) + (xform->m_E * inPoint->m_Y) + xform->m_F;\n" <<
-			"	transZ = inPoint->m_Z;\n";
-
+					   "	transX = (xform->m_A * inPoint->m_X) + (xform->m_B * inPoint->m_Y) + xform->m_C;\n" <<
+					   "	transY = (xform->m_D * inPoint->m_X) + (xform->m_E * inPoint->m_Y) + xform->m_F;\n" <<
+					   "	transZ = inPoint->m_Z;\n";
 			varCount = xform->PreVariationCount();
 
 			if (varCount > 0)
@@ -127,9 +123,9 @@ string IterOpenCLKernelCreator<T>::CreateIterKernelString(const Ember<T>& ember,
 					{
 						xformFuncs << "\n\t//" << var->Name() << ".\n";
 						xformFuncs << var->PrecalcOpenCLString();
-						xformFuncs << xform->ReadOpenCLString(VARTYPE_PRE) << endl;
-						xformFuncs << var->OpenCLString() << endl;
-						xformFuncs << xform->WriteOpenCLString(VARTYPE_PRE, var->AssignType()) << endl;
+						xformFuncs << xform->ReadOpenCLString(VARTYPE_PRE) << "\n";
+						xformFuncs << var->OpenCLString() << "\n";
+						xformFuncs << xform->WriteOpenCLString(VARTYPE_PRE, var->AssignType()) << "\n";
 					}
 				}
 			}
@@ -159,7 +155,6 @@ string IterOpenCLKernelCreator<T>::CreateIterKernelString(const Ember<T>& ember,
 				xformFuncs << "\n\toutPoint->m_Z = 0;\n";
 				xformFuncs << "\n\t//Apply each of the " << xform->VariationCount() << " regular variations in this xform.\n\n";
 				xformFuncs << xform->ReadOpenCLString(VARTYPE_REG);
-
 				varCount += xform->VariationCount();
 
 				//Output the code for each regular variation in this xform.
@@ -168,17 +163,17 @@ string IterOpenCLKernelCreator<T>::CreateIterKernelString(const Ember<T>& ember,
 					if (Variation<T>* var = xform->GetVariation(varIndex))
 					{
 						xformFuncs << "\n\t//" << var->Name() << ".\n"
-							<< var->OpenCLString() << (varIndex == varCount - 1 ? "\n" : "\n\n")
-							<< xform->WriteOpenCLString(VARTYPE_REG, ASSIGNTYPE_SUM);
+								   << var->OpenCLString() << (varIndex == varCount - 1 ? "\n" : "\n\n")
+								   << xform->WriteOpenCLString(VARTYPE_REG, ASSIGNTYPE_SUM);
 					}
 				}
 			}
 			else
 			{
 				xformFuncs <<
-				"	outPoint->m_X = transX;\n"
-				"	outPoint->m_Y = transY;\n"
-				"	outPoint->m_Z = transZ;\n";
+						   "	outPoint->m_X = transX;\n"
+						   "	outPoint->m_Y = transY;\n"
+						   "	outPoint->m_Z = transZ;\n";
 			}
 		}
 
@@ -194,8 +189,8 @@ string IterOpenCLKernelCreator<T>::CreateIterKernelString(const Ember<T>& ember,
 				{
 					xformFuncs << "\n\t//" << var->Name() << ".\n";
 					xformFuncs << var->PrecalcOpenCLString();
-					xformFuncs << xform->ReadOpenCLString(VARTYPE_POST) << endl;
-					xformFuncs << var->OpenCLString() << endl;
+					xformFuncs << xform->ReadOpenCLString(VARTYPE_POST) << "\n";
+					xformFuncs << var->OpenCLString() << "\n";
 					xformFuncs << xform->WriteOpenCLString(VARTYPE_POST, var->AssignType()) << (varIndex == varCount - 1 ? "\n" : "\n\n");
 				}
 			}
@@ -204,341 +199,336 @@ string IterOpenCLKernelCreator<T>::CreateIterKernelString(const Ember<T>& ember,
 		if (xform->HasPost())
 		{
 			xformFuncs <<
-				"\n\t//Apply post affine transform.\n"
-				"\treal_t tempX = outPoint->m_X;\n"
-				"\n"
-				"\toutPoint->m_X = (xform->m_PostA * tempX) + (xform->m_PostB * outPoint->m_Y) + xform->m_PostC;\n" <<
-				"\toutPoint->m_Y = (xform->m_PostD * tempX) + (xform->m_PostE * outPoint->m_Y) + xform->m_PostF;\n";
+					   "\n\t//Apply post affine transform.\n"
+					   "\treal_t tempX = outPoint->m_X;\n"
+					   "\n"
+					   "\toutPoint->m_X = (xform->m_PostA * tempX) + (xform->m_PostB * outPoint->m_Y) + xform->m_PostC;\n" <<
+					   "\toutPoint->m_Y = (xform->m_PostD * tempX) + (xform->m_PostE * outPoint->m_Y) + xform->m_PostF;\n";
 		}
 
-		xformFuncs << "\toutPoint->m_ColorX = outPoint->m_ColorX + xform->m_DirectColor * (tempColor - outPoint->m_ColorX);\n";
+		xformFuncs << "\toutPoint->m_ColorX = tempColor + xform->m_DirectColor * (outPoint->m_ColorX - tempColor);\n";
 		xformFuncs << "}\n"
 				   << "\n";
 	}
 
 	os <<
-		ConstantDefinesString(doublePrecision) <<
-		GlobalFunctionsString(ember) <<
-		RandFunctionString <<
-		PointCLStructString <<
-		XformCLStructString <<
-		EmberCLStructString <<
-		UnionCLStructString <<
-		CarToRasCLStructString <<
-		CarToRasFunctionString;
+	   ConstantDefinesString(doublePrecision) <<
+	   GlobalFunctionsString(ember) <<
+	   RandFunctionString <<
+	   PointCLStructString <<
+	   XformCLStructString <<
+	   EmberCLStructString <<
+	   UnionCLStructString <<
+	   CarToRasCLStructString <<
+	   CarToRasFunctionString;
 
 	if (lockAccum)
 		os << AtomicString();
 
 	os <<
-		xformFuncs.str() <<
-		"__kernel void " << m_IterEntryPoint << "(\n" <<
-		"	uint iterCount,\n"
-		"	uint fuseCount,\n"
-		"	__global uint2* seeds,\n"
-		"	__constant EmberCL* ember,\n"
-		"	__constant XformCL* xforms,\n"
-		"	__constant real_t* parVars,\n"
-		"	__global uchar* xformDistributions,\n"//Using uchar is quicker than uint. Can't be constant because the size can be too large to fit when using xaos.
-		"	__constant CarToRasCL* carToRas,\n"
-		"	__global real4reals_bucket* histogram,\n"
-		"	uint histSize,\n"
-		"	__read_only image2d_t palette,\n"
-		"	__global Point* points\n"
-		//"	uint startRender\n"
-		"\t)\n"
-		"{\n"
-		"	bool fuse, ok;\n"
-		"	uint threadIndex = INDEX_IN_BLOCK_2D;\n"
-		"	uint pointsIndex = INDEX_IN_GRID_2D;\n"
-		"	uint i, itersToDo;\n"
-		"	uint consec = 0;\n"
-		//"	int badvals = 0;\n"
-		"	uint histIndex;\n"
-		"	real_t p00, p01;\n"
-		"	Point firstPoint, secondPoint, tempPoint;\n"
-		"	uint2 mwc = seeds[pointsIndex];\n"
-		"	float4 palColor1;\n"
-		"	int2 iPaletteCoord;\n"
-		"	const sampler_t paletteSampler = CLK_NORMALIZED_COORDS_FALSE |\n"//Coords from 0 to 255.
-		"		CLK_ADDRESS_CLAMP_TO_EDGE |\n"//Clamp to edge
-		"		CLK_FILTER_NEAREST;\n"//Don't interpolate
-		"	uint threadXY = (THREAD_ID_X + THREAD_ID_Y);\n"
-		"	uint threadXDivRows = (THREAD_ID_X / NWARPS);\n"
-		"	uint threadsMinus1 = NTHREADS - 1;\n"
-		"	VariationState varState;\n"
-		;
-
+	   xformFuncs.str() <<
+	   "__kernel void " << m_IterEntryPoint << "(\n" <<
+	   "	uint iterCount,\n"
+	   "	uint fuseCount,\n"
+	   "	__global uint2* seeds,\n"
+	   "	__constant EmberCL* ember,\n"
+	   "	__constant XformCL* xforms,\n"
+	   "	__constant real_t* parVars,\n"
+	   "	__global real_t* globalShared,\n"
+	   "	__global uchar* xformDistributions,\n"//Using uchar is quicker than uint. Can't be constant because the size can be too large to fit when using xaos.
+	   "	__constant CarToRasCL* carToRas,\n"
+	   "	__global real4reals_bucket* histogram,\n"
+	   "	uint histSize,\n"
+	   "	__read_only image2d_t palette,\n"
+	   "	__global Point* points\n"
+	   //"	uint startRender\n"
+	   "\t)\n"
+	   "{\n"
+	   "	bool fuse, ok;\n"
+	   "	uint threadIndex = INDEX_IN_BLOCK_2D;\n"
+	   "	uint pointsIndex = INDEX_IN_GRID_2D;\n"
+	   "	uint i, itersToDo;\n"
+	   "	uint consec = 0;\n"
+	   //"	int badvals = 0;\n"
+	   "	uint histIndex;\n"
+	   "	real_t p00, p01;\n"
+	   "	Point firstPoint, secondPoint, tempPoint;\n"
+	   "	uint2 mwc = seeds[pointsIndex];\n"
+	   "	float4 palColor1;\n"
+	   "	int2 iPaletteCoord;\n"
+	   "	const sampler_t paletteSampler = CLK_NORMALIZED_COORDS_FALSE |\n"//Coords from 0 to 255.
+	   "		CLK_ADDRESS_CLAMP_TO_EDGE |\n"//Clamp to edge
+	   "		CLK_FILTER_NEAREST;\n"//Don't interpolate
+	   "	uint threadXY = (THREAD_ID_X + THREAD_ID_Y);\n"
+	   "	uint threadXDivRows = (THREAD_ID_X / NWARPS);\n"
+	   "	uint threadsMinus1 = NTHREADS - 1;\n"
+	   "	VariationState varState;\n"
+	   ;
 	os <<
-		"\n"
+	   "\n"
 #ifndef STRAIGHT_RAND
-		"	__local Point swap[NTHREADS];\n"
-		"	__local uint xfsel[NWARPS];\n"
+	   "	__local Point swap[NTHREADS];\n"
+	   "	__local uint xfsel[NWARPS];\n"
 #endif
-		"\n"
-		"	iPaletteCoord.y = 0;\n"
-		"\n"
-		"	if (fuseCount > 0)\n"
-		"	{\n"
-		"		fuse = true;\n"
-		"		itersToDo = fuseCount;\n"
-		//Calling MwcNextNeg1Pos1() twice is deliberate. The first call to mwc is not very random since it just does
-		//an xor. So it must be called twice to get it in a good random state.
-		"		firstPoint.m_X = MwcNextNeg1Pos1(&mwc);\n"
-		"		firstPoint.m_X = MwcNextNeg1Pos1(&mwc);\n"
-		"		firstPoint.m_Y = MwcNextNeg1Pos1(&mwc);\n"
-		"		firstPoint.m_Z = 0.0;\n"
-		"		firstPoint.m_ColorX = MwcNext01(&mwc);\n"
-		"		firstPoint.m_LastXfUsed = 0;\n"
-		"	}\n"
-		"	else\n"
-		"	{\n"
-		"		fuse = false;\n"
-		"		itersToDo = iterCount;\n"
-		"		firstPoint = points[pointsIndex];\n"
-		"	}\n"
-		"\n"
-		;
-
+	   "\n"
+	   "	iPaletteCoord.y = 0;\n"
+	   "\n"
+	   "	if (fuseCount > 0)\n"
+	   "	{\n"
+	   "		fuse = true;\n"
+	   "		itersToDo = fuseCount;\n"
+	   //Calling MwcNextNeg1Pos1() twice is deliberate. The first call to mwc is not very random since it just does
+	   //an xor. So it must be called twice to get it in a good random state.
+	   "		firstPoint.m_X = MwcNextNeg1Pos1(&mwc);\n"
+	   "		firstPoint.m_X = MwcNextNeg1Pos1(&mwc);\n"
+	   "		firstPoint.m_Y = MwcNextNeg1Pos1(&mwc);\n"
+	   "		firstPoint.m_Z = 0.0;\n"
+	   "		firstPoint.m_ColorX = MwcNext01(&mwc);\n"
+	   "		firstPoint.m_LastXfUsed = 0;\n"
+	   "	}\n"
+	   "	else\n"
+	   "	{\n"
+	   "		fuse = false;\n"
+	   "		itersToDo = iterCount;\n"
+	   "		firstPoint = points[pointsIndex];\n"
+	   "	}\n"
+	   "\n"
+	   ;
 	auto varStateString = VariationStateInitString(ember);
 
 	if (!varStateString.empty())
 		os << varStateString << "\n\n";
 
-		//This is done once initially here and then again after each swap-sync in the main loop.
-		//This along with the randomness that the point shuffle provides gives sufficient randomness
-		//to produce results identical to those produced on the CPU.
+	//This is done once initially here and then again after each swap-sync in the main loop.
+	//This along with the randomness that the point shuffle provides gives sufficient randomness
+	//to produce results identical to those produced on the CPU.
 	os <<
 #ifndef STRAIGHT_RAND
-		"	if (THREAD_ID_Y == 0 && THREAD_ID_X < NWARPS)\n"
-		"		xfsel[THREAD_ID_X] = MwcNext(&mwc) & " << CHOOSE_XFORM_GRAIN_M1 << ";\n"//It's faster to do the & here ahead of time than every time an xform is looked up to use inside the loop.
-		"\n"
+	   "	if (THREAD_ID_Y == 0 && THREAD_ID_X < NWARPS)\n"
+	   "		xfsel[THREAD_ID_X] = MwcNext(&mwc) & " << CHOOSE_XFORM_GRAIN_M1 << ";\n"//It's faster to do the & here ahead of time than every time an xform is looked up to use inside the loop.
+	   "\n"
 #endif
-		"	barrier(CLK_LOCAL_MEM_FENCE);\n"
-		"\n"
-		"	for (i = 0; i < itersToDo; i++)\n"
-		"	{\n";
+	   "	barrier(CLK_LOCAL_MEM_FENCE);\n"
+	   "\n"
+	   "	for (i = 0; i < itersToDo; i++)\n"
+	   "	{\n";
+	os <<
+	   "		consec = 0;\n"
+	   "\n"
+	   "		do\n"
+	   "		{\n";
 
+	//If xaos is present, the a hybrid of the cuburn method is used.
+	//This makes each thread in a row pick the same offset into a distribution, using xfsel.
+	//However, the distribution the offset is in, is determined by firstPoint.m_LastXfUsed.
+	if (ember.XaosPresent())
+	{
 		os <<
-		"		consec = 0;\n"
-		"\n"
-		"		do\n"
-		"		{\n";
+#ifdef STRAIGHT_RAND
+		   "			secondPoint.m_LastXfUsed = xformDistributions[MwcNext(&mwc) & " << CHOOSE_XFORM_GRAIN_M1 << " + (" << CHOOSE_XFORM_GRAIN << " * (firstPoint.m_LastXfUsed + 1u))];\n\n";
+#else
+		   "			secondPoint.m_LastXfUsed = xformDistributions[xfsel[THREAD_ID_Y] + (" << CHOOSE_XFORM_GRAIN << " * (firstPoint.m_LastXfUsed + 1u))];\n\n";//Partial cuburn hybrid.
+#endif
+	}
+	else
+	{
+		os <<
+#ifdef STRAIGHT_RAND
+		   "			secondPoint.m_LastXfUsed = xformDistributions[MwcNext(&mwc) & " << CHOOSE_XFORM_GRAIN_M1 << "];\n\n";//For testing, using straight rand flam4/fractron style instead of cuburn.
+#else
+		   "			secondPoint.m_LastXfUsed = xformDistributions[xfsel[THREAD_ID_Y]];\n\n";
+#endif
+	}
 
-		//If xaos is present, the a hybrid of the cuburn method is used.
-		//This makes each thread in a row pick the same offset into a distribution, using xfsel.
-		//However, the distribution the offset is in, is determined by firstPoint.m_LastXfUsed.
-		if (ember.XaosPresent())
+	for (i = 0; i < ember.XformCount(); i++)
+	{
+		if (i == 0)
 		{
 			os <<
-#ifdef STRAIGHT_RAND
-		"			secondPoint.m_LastXfUsed = xformDistributions[MwcNext(&mwc) & " << CHOOSE_XFORM_GRAIN_M1 << " + (" << CHOOSE_XFORM_GRAIN << " * (firstPoint.m_LastXfUsed + 1u))];\n\n";
+			   "			switch (secondPoint.m_LastXfUsed)\n"
+			   "			{\n";
+		}
+
+		os <<
+		   "				case " << i << ":\n"
+		   "				{\n" <<
+		   "					Xform" << i << "(&(xforms[" << i << "]), parVars, globalShared, &firstPoint, &secondPoint, &mwc, &varState);\n" <<
+		   "					break;\n"
+		   "				}\n";
+
+		if (i == ember.XformCount() - 1)
+		{
+			os <<
+			   "			}\n";
+		}
+	}
+
+	os <<
+	   "\n"
+	   "			ok = !BadVal(secondPoint.m_X) && !BadVal(secondPoint.m_Y);\n"
+	   //"			ok = !BadVal(secondPoint.m_X) && !BadVal(secondPoint.m_Y) && !BadVal(secondPoint.m_Z);\n"
+	   "\n"
+	   "			if (!ok)\n"
+	   "			{\n"
+	   "				firstPoint.m_X = MwcNextNeg1Pos1(&mwc);\n"
+	   "				firstPoint.m_Y = MwcNextNeg1Pos1(&mwc);\n"
+	   "				firstPoint.m_Z = 0.0;\n"
+	   "				firstPoint.m_ColorX = secondPoint.m_ColorX;\n"
+	   "				consec++;\n"
+	   //"				badvals++;\n"
+	   "			}\n"
+	   "		}\n"
+	   "		while (!ok && consec < 5);\n"
+	   "\n"
+	   "		if (!ok)\n"
+	   "		{\n"
+	   "			secondPoint.m_X = MwcNextNeg1Pos1(&mwc);\n"
+	   "			secondPoint.m_Y = MwcNextNeg1Pos1(&mwc);\n"
+	   "			secondPoint.m_Z = 0.0;\n"
+	   "		}\n"
+#ifndef STRAIGHT_RAND
+	   "\n"//Rotate points between threads. This is how randomization is achieved.
+	   "		uint swr = threadXY + ((i & 1u) * threadXDivRows);\n"
+	   "		uint sw = (swr * THREADS_PER_WARP + THREAD_ID_X) & threadsMinus1;\n"
+	   "\n"
+	   //Write to another thread's location.
+	   "		swap[sw] = secondPoint;\n"
+	   "\n"
+	   //Populate randomized xform index buffer with new random values.
+	   "		if (THREAD_ID_Y == 0 && THREAD_ID_X < NWARPS)\n"
+	   "			xfsel[THREAD_ID_X] = MwcNext(&mwc) & " << CHOOSE_XFORM_GRAIN_M1 << ";\n"
+	   "\n"
+	   "		barrier(CLK_LOCAL_MEM_FENCE);\n"
+	   //Another thread will have written to this thread's location, so read the new value and use it for accumulation below.
+	   "		firstPoint = swap[threadIndex];\n"
 #else
-		"			secondPoint.m_LastXfUsed = xformDistributions[xfsel[THREAD_ID_Y] + (" << CHOOSE_XFORM_GRAIN << " * (firstPoint.m_LastXfUsed + 1u))];\n\n";//Partial cuburn hybrid.
+	   "		firstPoint = secondPoint;\n"//For testing, using straight rand flam4/fractron style instead of cuburn.
 #endif
+	   "\n"
+	   "		if (fuse)\n"
+	   "		{\n"
+	   "			if (i >= fuseCount - 1)\n"
+	   "			{\n"
+	   "				i = 0;\n"
+	   "				fuse = false;\n"
+	   "				itersToDo = iterCount;\n"
+	   "				barrier(CLK_LOCAL_MEM_FENCE);\n"//Sort of seems necessary, sort of doesn't. Makes no speed difference.
+	   "			}\n"
+	   "\n"
+	   "			continue;\n"
+	   "		}\n"
+	   "\n";
+
+	if (ember.UseFinalXform())
+	{
+		size_t finalIndex = ember.TotalXformCount() - 1;
+		//CPU takes an extra step here to preserve the opacity of the randomly selected xform, rather than the final xform's opacity.
+		//The same thing takes place here automatically because secondPoint.m_LastXfUsed is used below to retrieve the opacity when accumulating.
+		os <<
+		   "		if ((xforms[" << finalIndex << "].m_Opacity == 1) || (MwcNext01(&mwc) < xforms[" << finalIndex << "].m_Opacity))\n"
+		   "		{\n"
+		   "			tempPoint.m_LastXfUsed = secondPoint.m_LastXfUsed;\n"
+		   "			Xform" << finalIndex << "(&(xforms[" << finalIndex << "]), parVars, globalShared, &secondPoint, &tempPoint, &mwc, &varState);\n"
+		   "			secondPoint = tempPoint;\n"
+		   "		}\n"
+		   "\n";
+	}
+
+	os << CreateProjectionString(ember);
+
+	if (doAccum)
+	{
+		os <<
+		   "		p00 = secondPoint.m_X - ember->m_CenterX;\n"
+		   "		p01 = secondPoint.m_Y - ember->m_CenterY;\n"
+		   "		tempPoint.m_X = (p00 * ember->m_RotA) + (p01 * ember->m_RotB) + ember->m_CenterX;\n"
+		   "		tempPoint.m_Y = (p00 * ember->m_RotD) + (p01 * ember->m_RotE) + ember->m_CenterY;\n"
+		   "\n"
+		   //Add this point to the appropriate location in the histogram.
+		   "		if (CarToRasInBounds(carToRas, &tempPoint))\n"
+		   "		{\n"
+		   "			CarToRasConvertPointToSingle(carToRas, &tempPoint, &histIndex);\n"
+		   "\n"
+		   "			if (histIndex < histSize)\n"//Provides an extra level of safety and makes no speed difference.
+		   "			{\n";
+
+		//Basic texture index interoplation does not produce identical results
+		//to the CPU. So the code here must explicitly do the same thing and not
+		//rely on the GPU texture coordinate lookup.
+		if (ember.m_PaletteMode == PALETTE_LINEAR)
+		{
+			os <<
+			   "				real_t colorIndexFrac;\n"
+			   "				real_t colorIndex = secondPoint.m_ColorX * COLORMAP_LENGTH;\n"
+			   "				int intColorIndex = (int)colorIndex;\n"
+			   "				float4 palColor2;\n"
+			   "\n"
+			   "				if (intColorIndex < 0)\n"
+			   "				{\n"
+			   "					intColorIndex = 0;\n"
+			   "					colorIndexFrac = 0;\n"
+			   "				}\n"
+			   "				else if (intColorIndex >= COLORMAP_LENGTH_MINUS_1)\n"
+			   "				{\n"
+			   "					intColorIndex = COLORMAP_LENGTH_MINUS_1 - 1;\n"
+			   "					colorIndexFrac = 1.0;\n"
+			   "				}\n"
+			   "				else\n"
+			   "				{\n"
+			   "					colorIndexFrac = colorIndex - (real_t)intColorIndex;\n"//Interpolate between intColorIndex and intColorIndex + 1.
+			   "				}\n"
+			   "\n"
+			   "				iPaletteCoord.x = intColorIndex;\n"//Palette operations are strictly float because OpenCL does not support dp64 textures.
+			   "				palColor1 = read_imagef(palette, paletteSampler, iPaletteCoord);\n"
+			   "				iPaletteCoord.x += 1;\n"
+			   "				palColor2 = read_imagef(palette, paletteSampler, iPaletteCoord);\n"
+			   "				palColor1 = (palColor1 * (1.0f - (float)colorIndexFrac)) + (palColor2 * (float)colorIndexFrac);\n";//The 1.0f here *must* have the 'f' suffix at the end to compile.
+		}
+		else if (ember.m_PaletteMode == PALETTE_STEP)
+		{
+			os <<
+			   "				iPaletteCoord.x = (int)(secondPoint.m_ColorX * COLORMAP_LENGTH);\n"
+			   "				palColor1 = read_imagef(palette, paletteSampler, iPaletteCoord);\n";
+		}
+
+		if (lockAccum)
+		{
+			os <<
+			   "				AtomicAdd(&(histogram[histIndex].m_Reals[0]), palColor1.x * (real_bucket_t)xforms[secondPoint.m_LastXfUsed].m_VizAdjusted);\n"//Always apply opacity, even though it's usually 1.
+			   "				AtomicAdd(&(histogram[histIndex].m_Reals[1]), palColor1.y * (real_bucket_t)xforms[secondPoint.m_LastXfUsed].m_VizAdjusted);\n"
+			   "				AtomicAdd(&(histogram[histIndex].m_Reals[2]), palColor1.z * (real_bucket_t)xforms[secondPoint.m_LastXfUsed].m_VizAdjusted);\n"
+			   "				AtomicAdd(&(histogram[histIndex].m_Reals[3]), palColor1.w * (real_bucket_t)xforms[secondPoint.m_LastXfUsed].m_VizAdjusted);\n";
 		}
 		else
 		{
 			os <<
-#ifdef STRAIGHT_RAND
-		"			secondPoint.m_LastXfUsed = xformDistributions[MwcNext(&mwc) & " << CHOOSE_XFORM_GRAIN_M1 << "];\n\n";//For testing, using straight rand flam4/fractron style instead of cuburn.
-#else
-		"			secondPoint.m_LastXfUsed = xformDistributions[xfsel[THREAD_ID_Y]];\n\n";
-#endif
-		}
-
-		for (i = 0; i < ember.XformCount(); i++)
-		{
-			if (i == 0)
-			{
-			os <<
-		"			switch (secondPoint.m_LastXfUsed)\n"
-		"			{\n";
-			}
-
-			os <<
-		"				case " << i << ":\n"
-		"				{\n" <<
-		"					Xform" << i << "(&(xforms[" << i << "]), parVars, &firstPoint, &secondPoint, &mwc, &varState);\n" <<
-		"					break;\n"
-		"				}\n";
-
-			if (i == ember.XformCount() - 1)
-			{
-			os <<
-		"			}\n";
-			}
+			   "				histogram[histIndex].m_Real4 += (palColor1 * (real_bucket_t)xforms[secondPoint.m_LastXfUsed].m_VizAdjusted);\n";//real_bucket_t should always be float.
 		}
 
 		os <<
-		"\n"
-		"			ok = !BadVal(secondPoint.m_X) && !BadVal(secondPoint.m_Y);\n"
-		//"			ok = !BadVal(secondPoint.m_X) && !BadVal(secondPoint.m_Y) && !BadVal(secondPoint.m_Z);\n"
-		"\n"
-		"			if (!ok)\n"
-		"			{\n"
-		"				firstPoint.m_X = MwcNextNeg1Pos1(&mwc);\n"
-		"				firstPoint.m_Y = MwcNextNeg1Pos1(&mwc);\n"
-		"				firstPoint.m_Z = 0.0;\n"
-		"				firstPoint.m_ColorX = secondPoint.m_ColorX;\n"
-		"				consec++;\n"
-		//"				badvals++;\n"
-		"			}\n"
-		"		}\n"
-		"		while (!ok && consec < 5);\n"
-		"\n"
-		"		if (!ok)\n"
-		"		{\n"
-		"			secondPoint.m_X = MwcNextNeg1Pos1(&mwc);\n"
-		"			secondPoint.m_Y = MwcNextNeg1Pos1(&mwc);\n"
-		"			secondPoint.m_Z = 0.0;\n"
-		"		}\n"
-#ifndef STRAIGHT_RAND
-		"\n"//Rotate points between threads. This is how randomization is achieved.
-		"		uint swr = threadXY + ((i & 1u) * threadXDivRows);\n"
-		"		uint sw = (swr * THREADS_PER_WARP + THREAD_ID_X) & threadsMinus1;\n"
-		"\n"
-
-		//Write to another thread's location.
-		"		swap[sw] = secondPoint;\n"
-		"\n"
-		//Populate randomized xform index buffer with new random values.
-		"		if (THREAD_ID_Y == 0 && THREAD_ID_X < NWARPS)\n"
-		"			xfsel[THREAD_ID_X] = MwcNext(&mwc) & " << CHOOSE_XFORM_GRAIN_M1 << ";\n"
-		"\n"
-		"		barrier(CLK_LOCAL_MEM_FENCE);\n"
-		//Another thread will have written to this thread's location, so read the new value and use it for accumulation below.
-		"		firstPoint = swap[threadIndex];\n"
-#else
-		"		firstPoint = secondPoint;\n"//For testing, using straight rand flam4/fractron style instead of cuburn.
-#endif
-		"\n"
-		"		if (fuse)\n"
-		"		{\n"
-		"			if (i >= fuseCount - 1)\n"
-		"			{\n"
-		"				i = 0;\n"
-		"				fuse = false;\n"
-		"				itersToDo = iterCount;\n"
-		"				barrier(CLK_LOCAL_MEM_FENCE);\n"//Sort of seems necessary, sort of doesn't. Makes no speed difference.
-		"			}\n"
-		"\n"
-		"			continue;\n"
-		"		}\n"
-		"\n";
-
-		if (ember.UseFinalXform())
-		{
-			size_t finalIndex = ember.TotalXformCount() - 1;
-
-			//CPU takes an extra step here to preserve the opacity of the randomly selected xform, rather than the final xform's opacity.
-			//The same thing takes place here automatically because secondPoint.m_LastXfUsed is used below to retrieve the opacity when accumulating.
-		os <<
-			"		if ((xforms[" << finalIndex << "].m_Opacity == 1) || (MwcNext01(&mwc) < xforms[" << finalIndex << "].m_Opacity))\n"
-			"		{\n"
-			"			tempPoint.m_LastXfUsed = secondPoint.m_LastXfUsed;\n"
-			"			Xform" << finalIndex << "(&(xforms[" << finalIndex << "]), parVars, &secondPoint, &tempPoint, &mwc, &varState);\n"
-			"			secondPoint = tempPoint;\n"
-			"		}\n"
-			"\n";
-		}
-
-		os << CreateProjectionString(ember);
-
-		if (doAccum)
-		{
-			os <<
-		"		p00 = secondPoint.m_X - ember->m_CenterX;\n"
-		"		p01 = secondPoint.m_Y - ember->m_CenterY;\n"
-		"		tempPoint.m_X = (p00 * ember->m_RotA) + (p01 * ember->m_RotB) + ember->m_CenterX;\n"
-		"		tempPoint.m_Y = (p00 * ember->m_RotD) + (p01 * ember->m_RotE) + ember->m_CenterY;\n"
-		"\n"
-		//Add this point to the appropriate location in the histogram.
-		"		if (CarToRasInBounds(carToRas, &tempPoint))\n"
-		"		{\n"
-		"			CarToRasConvertPointToSingle(carToRas, &tempPoint, &histIndex);\n"
-		"\n"
-		"			if (histIndex < histSize)\n"//Provides an extra level of safety and makes no speed difference.
-		"			{\n";
-
-			//Basic texture index interoplation does not produce identical results
-			//to the CPU. So the code here must explicitly do the same thing and not
-			//rely on the GPU texture coordinate lookup.
-			if (ember.m_PaletteMode == PALETTE_LINEAR)
-			{
-			os <<
-		"				real_t colorIndexFrac;\n"
-		"				real_t colorIndex = secondPoint.m_ColorX * COLORMAP_LENGTH;\n"
-		"				int intColorIndex = (int)colorIndex;\n"
-		"				float4 palColor2;\n"
-		"\n"
-		"				if (intColorIndex < 0)\n"
-		"				{\n"
-		"					intColorIndex = 0;\n"
-		"					colorIndexFrac = 0;\n"
-		"				}\n"
-		"				else if (intColorIndex >= COLORMAP_LENGTH_MINUS_1)\n"
-		"				{\n"
-		"					intColorIndex = COLORMAP_LENGTH_MINUS_1 - 1;\n"
-		"					colorIndexFrac = 1.0;\n"
-		"				}\n"
-		"				else\n"
-		"				{\n"
-		"					colorIndexFrac = colorIndex - (real_t)intColorIndex;\n"//Interpolate between intColorIndex and intColorIndex + 1.
-		"				}\n"
-		"\n"
-		"				iPaletteCoord.x = intColorIndex;\n"//Palette operations are strictly float because OpenCL does not support dp64 textures.
-		"				palColor1 = read_imagef(palette, paletteSampler, iPaletteCoord);\n"
-		"				iPaletteCoord.x += 1;\n"
-		"				palColor2 = read_imagef(palette, paletteSampler, iPaletteCoord);\n"
-		"				palColor1 = (palColor1 * (1.0f - (float)colorIndexFrac)) + (palColor2 * (float)colorIndexFrac);\n";//The 1.0f here *must* have the 'f' suffix at the end to compile.
-			}
-			else if (ember.m_PaletteMode == PALETTE_STEP)
-			{
-				os <<
-		"				iPaletteCoord.x = (int)(secondPoint.m_ColorX * COLORMAP_LENGTH);\n"
-		"				palColor1 = read_imagef(palette, paletteSampler, iPaletteCoord);\n";
-			}
-
-			if (lockAccum)
-			{
-				os <<
-		"				AtomicAdd(&(histogram[histIndex].m_Reals[0]), palColor1.x * (real_bucket_t)xforms[secondPoint.m_LastXfUsed].m_VizAdjusted);\n"//Always apply opacity, even though it's usually 1.
-		"				AtomicAdd(&(histogram[histIndex].m_Reals[1]), palColor1.y * (real_bucket_t)xforms[secondPoint.m_LastXfUsed].m_VizAdjusted);\n"
-		"				AtomicAdd(&(histogram[histIndex].m_Reals[2]), palColor1.z * (real_bucket_t)xforms[secondPoint.m_LastXfUsed].m_VizAdjusted);\n"
-		"				AtomicAdd(&(histogram[histIndex].m_Reals[3]), palColor1.w * (real_bucket_t)xforms[secondPoint.m_LastXfUsed].m_VizAdjusted);\n";
-			}
-			else
-			{
-				os <<
-		"				histogram[histIndex].m_Real4 += (palColor1 * (real_bucket_t)xforms[secondPoint.m_LastXfUsed].m_VizAdjusted);\n";//real_bucket_t should always be float.
-			}
-
-			os <<
-		"			}\n"//histIndex < histSize.
-		"		}\n"//CarToRasInBounds.
-		"\n"
-		"		barrier(CLK_GLOBAL_MEM_FENCE);\n";//Barrier every time, whether or not the point was in bounds, else artifacts will occur when doing strips.
-		}
+		   "			}\n"//histIndex < histSize.
+		   "		}\n"//CarToRasInBounds.
+		   "\n"
+		   "		barrier(CLK_GLOBAL_MEM_FENCE);\n";//Barrier every time, whether or not the point was in bounds, else artifacts will occur when doing strips.
+	}
 
 	os <<
-		"	}\n"//Main for loop.
-		"\n"
-		//At this point, iterating for this round is done, so write the final points back out
-		//to the global points buffer to be used as inputs for the next round. This preserves point trajectory
-		//between kernel calls.
+	   "	}\n"//Main for loop.
+	   "\n"
+	   //At this point, iterating for this round is done, so write the final points back out
+	   //to the global points buffer to be used as inputs for the next round. This preserves point trajectory
+	   //between kernel calls.
 #ifdef TEST_CL_BUFFERS//Use this to populate with test values and read back in EmberTester.
-		"	points[pointsIndex].m_X = MwcNextNeg1Pos1(&mwc);\n"
-		"	points[pointsIndex].m_Y = MwcNextNeg1Pos1(&mwc);\n"
-		"	points[pointsIndex].m_Z = MwcNextNeg1Pos1(&mwc);\n"
-		"	points[pointsIndex].m_ColorX = MwcNextNeg1Pos1(&mwc);\n"
+	   "	points[pointsIndex].m_X = MwcNextNeg1Pos1(&mwc);\n"
+	   "	points[pointsIndex].m_Y = MwcNextNeg1Pos1(&mwc);\n"
+	   "	points[pointsIndex].m_Z = MwcNextNeg1Pos1(&mwc);\n"
+	   "	points[pointsIndex].m_ColorX = MwcNextNeg1Pos1(&mwc);\n"
 #else
-		"	points[pointsIndex] = firstPoint;\n"
-		"	seeds[pointsIndex] = mwc;\n"
+	   "	points[pointsIndex] = firstPoint;\n"
+	   "	seeds[pointsIndex] = mwc;\n"
 #endif
-		"	barrier(CLK_GLOBAL_MEM_FENCE);\n"
-		"}\n";
-
+	   "	barrier(CLK_GLOBAL_MEM_FENCE);\n"
+	   "}\n";
 	return os.str();
 }
 
@@ -584,7 +574,7 @@ string IterOpenCLKernelCreator<T>::GlobalFunctionsString(const Ember<T>& ember)
 			funcNames.push_back(zeps);
 
 	for (auto& funcName : funcNames)
-		if(auto text = m_FunctionMapper.GetGlobalFunc(funcName))
+		if (auto text = m_FunctionMapper.GetGlobalFunc(funcName))
 			os << *text << endl;
 
 	return os.str();
@@ -655,10 +645,82 @@ void IterOpenCLKernelCreator<T>::ParVarIndexDefines(const Ember<T>& ember, pair<
 							if (doString)
 								os << "#define " << ToUpper(parVar->Params()[k].Name()) << "_" << i << " " << size << endl;//Uniquely identify this param in this variation in this xform.
 
-							if (doVals)
-								params.second.push_back(parVar->Params()[k].ParamVal());
+							auto elements = parVar->Params()[k].Size() / sizeof(T);
 
-							size++;
+							if (doVals)
+							{
+								for (auto l = 0; l < elements; l++)
+									params.second.push_back(*(parVar->Params()[k].Param() + l));
+
+								//params.second.push_back(parVar->Params()[k].ParamVal());
+							}
+
+							//size++;
+							size += elements;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	if (doString)
+	{
+		os << "\n";
+		params.first = os.str();
+	}
+}
+
+/// <summary>
+/// Create an OpenCL string of #defines and a corresponding host side vector for globally shared data.
+/// Certain variations, such as crackle and dc_perlin use static, read-only buffers of data.
+/// These need to be created separate from the buffer of parametric variation values.
+/// </summary>
+/// <param name="ember">The ember to create the values from</param>
+/// <param name="params">The string,vector pair to store the values in</param>
+/// <param name="doVals">True if the vector should be populated, else false. Default: true.</param>
+/// <param name="doString">True if the string should be populated, else false. Default: true.</param>
+template <typename T>
+void IterOpenCLKernelCreator<T>::SharedDataIndexDefines(const Ember<T>& ember, pair<string, vector<T>>& params, bool doVals = true, bool doString = true)
+{
+	size_t i, j, offset = 0, xformCount = ember.TotalXformCount();
+	string s;
+	vector<string> dataNames;//Can't use a set here because they sort and we must preserve the insertion order due to nested function calls.
+	ostringstream os;
+	auto varFuncs = VarFuncs<T>::Instance();
+
+	if (doVals)
+		params.second.clear();
+
+	for (i = 0; i < xformCount; i++)
+	{
+		if (auto xform = ember.GetTotalXform(i))
+		{
+			size_t varCount = xform->TotalVariationCount();
+
+			for (j = 0; j < varCount; j++)
+			{
+				if (auto var = xform->GetVariation(j))
+				{
+					auto names = var->OpenCLGlobalDataNames();
+
+					for (auto& name : names)
+					{
+						if (!Contains(dataNames, name))
+						{
+							s = ToUpper(name);
+
+							if (auto dataInfo = varFuncs->GetSharedData(s))///Will contain a name, pointer to data, and size of the data in units of sizeof(T).
+							{
+								if (doString)
+									os << "#define " << ToUpper(name) << " " << offset << endl;
+
+								if (doVals)
+									params.second.insert(params.second.end(), dataInfo->first, dataInfo->first + dataInfo->second);
+
+								dataNames.push_back(name);
+								offset += dataInfo->second;
+							}
 						}
 					}
 				}
@@ -684,7 +746,6 @@ template <typename T>
 string IterOpenCLKernelCreator<T>::VariationStateString(const Ember<T>& ember)
 {
 	ostringstream os;
-
 	os << "typedef struct __attribute__ " ALIGN_CL " _VariationState\n{";
 
 	for (size_t i = 0; i < ember.TotalXformCount(); i++)
@@ -702,7 +763,6 @@ string IterOpenCLKernelCreator<T>::VariationStateString(const Ember<T>& ember)
 	}
 
 	os << "\n} VariationState;\n\n";
-
 	return os.str();
 }
 
@@ -803,19 +863,17 @@ template <typename T>
 string IterOpenCLKernelCreator<T>::CreateZeroizeKernelString() const
 {
 	ostringstream os;
-
 	os <<
-		ConstantDefinesString(typeid(T) == typeid(double)) <<//Double precision doesn't matter here since it's not used.
-		"__kernel void " << m_ZeroizeEntryPoint << "(__global uchar* buffer, uint width, uint height)\n"
-		"{\n"
-		"	if (GLOBAL_ID_X >= width || GLOBAL_ID_Y >= height)\n"
-		"		return;\n"
-		"\n"
-		"	buffer[(GLOBAL_ID_Y * width) + GLOBAL_ID_X] = 0;\n"//Can't use INDEX_IN_GRID_2D here because the grid might be larger than the buffer to make even dimensions.
-		"	barrier(CLK_GLOBAL_MEM_FENCE);\n"//Just to be safe.
-		"}\n"
-		"\n";
-
+	   ConstantDefinesString(typeid(T) == typeid(double)) <<//Double precision doesn't matter here since it's not used.
+	   "__kernel void " << m_ZeroizeEntryPoint << "(__global uchar* buffer, uint width, uint height)\n"
+	   "{\n"
+	   "	if (GLOBAL_ID_X >= width || GLOBAL_ID_Y >= height)\n"
+	   "		return;\n"
+	   "\n"
+	   "	buffer[(GLOBAL_ID_Y * width) + GLOBAL_ID_X] = 0;\n"//Can't use INDEX_IN_GRID_2D here because the grid might be larger than the buffer to make even dimensions.
+	   "	barrier(CLK_GLOBAL_MEM_FENCE);\n"//Just to be safe.
+	   "}\n"
+	   "\n";
 	return os.str();
 }
 
@@ -831,23 +889,21 @@ template <typename T>
 string IterOpenCLKernelCreator<T>::CreateSumHistKernelString() const
 {
 	ostringstream os;
-
 	os <<
-		ConstantDefinesString(typeid(T) == typeid(double)) <<//Double precision doesn't matter here since it's not used.
-		"__kernel void " << m_SumHistEntryPoint << "(__global real4_bucket* source, __global real4_bucket* dest, uint width, uint height, uint clear)\n"
-		"{\n"
-		"	if (GLOBAL_ID_X >= width || GLOBAL_ID_Y >= height)\n"
-		"		return;\n"
-		"\n"
-		"	dest[(GLOBAL_ID_Y * width) + GLOBAL_ID_X] += source[(GLOBAL_ID_Y * width) + GLOBAL_ID_X];\n"//Can't use INDEX_IN_GRID_2D here because the grid might be larger than the buffer to make even dimensions.
-		"\n"
-		"	if (clear)\n"
-		"		source[(GLOBAL_ID_Y * width) + GLOBAL_ID_X] = 0;\n"
-		"\n"
-		"	barrier(CLK_GLOBAL_MEM_FENCE);\n"//Just to be safe.
-		"}\n"
-		"\n";
-
+	   ConstantDefinesString(typeid(T) == typeid(double)) <<//Double precision doesn't matter here since it's not used.
+	   "__kernel void " << m_SumHistEntryPoint << "(__global real4_bucket* source, __global real4_bucket* dest, uint width, uint height, uint clear)\n"
+	   "{\n"
+	   "	if (GLOBAL_ID_X >= width || GLOBAL_ID_Y >= height)\n"
+	   "		return;\n"
+	   "\n"
+	   "	dest[(GLOBAL_ID_Y * width) + GLOBAL_ID_X] += source[(GLOBAL_ID_Y * width) + GLOBAL_ID_X];\n"//Can't use INDEX_IN_GRID_2D here because the grid might be larger than the buffer to make even dimensions.
+	   "\n"
+	   "	if (clear)\n"
+	   "		source[(GLOBAL_ID_Y * width) + GLOBAL_ID_X] = 0;\n"
+	   "\n"
+	   "	barrier(CLK_GLOBAL_MEM_FENCE);\n"//Just to be safe.
+	   "}\n"
+	   "\n";
 	return os.str();
 }
 
@@ -871,44 +927,44 @@ string IterOpenCLKernelCreator<T>::CreateProjectionString(const Ember<T>& ember)
 			if (projBits & PROJBITS_YAW)
 			{
 				os <<
-	"		real_t dsin, dcos;\n"
-	"		real_t t = MwcNext01(&mwc) * M_2PI;\n"
-	"		real_t z = secondPoint.m_Z - ember->m_CamZPos;\n"
-	"		real_t x = ember->m_C00 * secondPoint.m_X + ember->m_C10 * secondPoint.m_Y;\n"
-	"		real_t y = ember->m_C01 * secondPoint.m_X + ember->m_C11 * secondPoint.m_Y + ember->m_C21 * z;\n"
-	"\n"
-	"		z = ember->m_C02 * secondPoint.m_X + ember->m_C12 * secondPoint.m_Y + ember->m_C22 * z;\n"
-	"\n"
-	"		real_t zr = Zeps(1 - ember->m_CamPerspective * z);\n"
-	"		real_t dr = MwcNext01(&mwc) * ember->m_BlurCoef * z;\n"
-	"\n"
-	"		dsin = sin(t);\n"
-	"		dcos = cos(t);\n"
-	"\n"
-	"		secondPoint.m_X  = (x + dr * dcos) / zr;\n"
-	"		secondPoint.m_Y  = (y + dr * dsin) / zr;\n"
-	"		secondPoint.m_Z -= ember->m_CamZPos;\n";
+				   "		real_t dsin, dcos;\n"
+				   "		real_t t = MwcNext01(&mwc) * M_2PI;\n"
+				   "		real_t z = secondPoint.m_Z - ember->m_CamZPos;\n"
+				   "		real_t x = ember->m_C00 * secondPoint.m_X + ember->m_C10 * secondPoint.m_Y;\n"
+				   "		real_t y = ember->m_C01 * secondPoint.m_X + ember->m_C11 * secondPoint.m_Y + ember->m_C21 * z;\n"
+				   "\n"
+				   "		z = ember->m_C02 * secondPoint.m_X + ember->m_C12 * secondPoint.m_Y + ember->m_C22 * z;\n"
+				   "\n"
+				   "		real_t zr = Zeps(1 - ember->m_CamPerspective * z);\n"
+				   "		real_t dr = MwcNext01(&mwc) * ember->m_BlurCoef * z;\n"
+				   "\n"
+				   "		dsin = sin(t);\n"
+				   "		dcos = cos(t);\n"
+				   "\n"
+				   "		secondPoint.m_X  = (x + dr * dcos) / zr;\n"
+				   "		secondPoint.m_Y  = (y + dr * dsin) / zr;\n"
+				   "		secondPoint.m_Z -= ember->m_CamZPos;\n";
 			}
 			else
 			{
 				os <<
-	"		real_t y, z, zr;\n"
-	"		real_t dsin, dcos;\n"
-	"		real_t t = MwcNext01(&mwc) * M_2PI;\n"
-	"\n"
-	"		z = secondPoint.m_Z - ember->m_CamZPos;\n"
-	"		y = ember->m_C11 * secondPoint.m_Y + ember->m_C21 * z;\n"
-	"		z = ember->m_C12 * secondPoint.m_Y + ember->m_C22 * z;\n"
-	"		zr = Zeps(1 - ember->m_CamPerspective * z);\n"
-	"\n"
-	"		dsin = sin(t);\n"
-	"		dcos = cos(t);\n"
-	"\n"
-	"		real_t dr = MwcNext01(&mwc) * ember->m_BlurCoef * z;\n"
-	"\n"
-	"		secondPoint.m_X = (secondPoint.m_X + dr * dcos) / zr;\n"
-	"		secondPoint.m_Y = (y + dr * dsin) / zr;\n"
-	"		secondPoint.m_Z -= ember->m_CamZPos;\n";
+				   "		real_t y, z, zr;\n"
+				   "		real_t dsin, dcos;\n"
+				   "		real_t t = MwcNext01(&mwc) * M_2PI;\n"
+				   "\n"
+				   "		z = secondPoint.m_Z - ember->m_CamZPos;\n"
+				   "		y = ember->m_C11 * secondPoint.m_Y + ember->m_C21 * z;\n"
+				   "		z = ember->m_C12 * secondPoint.m_Y + ember->m_C22 * z;\n"
+				   "		zr = Zeps(1 - ember->m_CamPerspective * z);\n"
+				   "\n"
+				   "		dsin = sin(t);\n"
+				   "		dcos = cos(t);\n"
+				   "\n"
+				   "		real_t dr = MwcNext01(&mwc) * ember->m_BlurCoef * z;\n"
+				   "\n"
+				   "		secondPoint.m_X = (secondPoint.m_X + dr * dcos) / zr;\n"
+				   "		secondPoint.m_Y = (y + dr * dsin) / zr;\n"
+				   "		secondPoint.m_Z -= ember->m_CamZPos;\n";
 			}
 		}
 		else if ((projBits & PROJBITS_PITCH) || (projBits & PROJBITS_YAW))
@@ -916,35 +972,35 @@ string IterOpenCLKernelCreator<T>::CreateProjectionString(const Ember<T>& ember)
 			if (projBits & PROJBITS_YAW)
 			{
 				os <<
-	"		real_t z  = secondPoint.m_Z - ember->m_CamZPos;\n"
-	"		real_t x  = ember->m_C00 * secondPoint.m_X + ember->m_C10 * secondPoint.m_Y;\n"
-	"		real_t y  = ember->m_C01 * secondPoint.m_X + ember->m_C11 * secondPoint.m_Y + ember->m_C21 * z;\n"
-	"		real_t zr = Zeps(1 - ember->m_CamPerspective * (ember->m_C02 * secondPoint.m_X + ember->m_C12 * secondPoint.m_Y + ember->m_C22 * z));\n"
-	"\n"
-	"		secondPoint.m_X = x / zr;\n"
-	"		secondPoint.m_Y = y / zr;\n"
-	"		secondPoint.m_Z -= ember->m_CamZPos;\n";
+				   "		real_t z  = secondPoint.m_Z - ember->m_CamZPos;\n"
+				   "		real_t x  = ember->m_C00 * secondPoint.m_X + ember->m_C10 * secondPoint.m_Y;\n"
+				   "		real_t y  = ember->m_C01 * secondPoint.m_X + ember->m_C11 * secondPoint.m_Y + ember->m_C21 * z;\n"
+				   "		real_t zr = Zeps(1 - ember->m_CamPerspective * (ember->m_C02 * secondPoint.m_X + ember->m_C12 * secondPoint.m_Y + ember->m_C22 * z));\n"
+				   "\n"
+				   "		secondPoint.m_X = x / zr;\n"
+				   "		secondPoint.m_Y = y / zr;\n"
+				   "		secondPoint.m_Z -= ember->m_CamZPos;\n";
 			}
 			else
 			{
 				os <<
-	"		real_t z  = secondPoint.m_Z - ember->m_CamZPos;\n"
-	"		real_t y  = ember->m_C11 * secondPoint.m_Y + ember->m_C21 * z;\n"
-	"		real_t zr = Zeps(1 - ember->m_CamPerspective * (ember->m_C12 * secondPoint.m_Y + ember->m_C22 * z));\n"
-	"\n"
-	"		secondPoint.m_X /= zr;\n"
-	"		secondPoint.m_Y  = y / zr;\n"
-	"		secondPoint.m_Z -= ember->m_CamZPos;\n";
+				   "		real_t z  = secondPoint.m_Z - ember->m_CamZPos;\n"
+				   "		real_t y  = ember->m_C11 * secondPoint.m_Y + ember->m_C21 * z;\n"
+				   "		real_t zr = Zeps(1 - ember->m_CamPerspective * (ember->m_C12 * secondPoint.m_Y + ember->m_C22 * z));\n"
+				   "\n"
+				   "		secondPoint.m_X /= zr;\n"
+				   "		secondPoint.m_Y  = y / zr;\n"
+				   "		secondPoint.m_Z -= ember->m_CamZPos;\n";
 			}
 		}
 		else
 		{
 			os <<
-	"		real_t zr = Zeps(1 - ember->m_CamPerspective * (secondPoint.m_Z - ember->m_CamZPos));\n"
-	"\n"
-	"		secondPoint.m_X /= zr;\n"
-	"		secondPoint.m_Y /= zr;\n"
-	"		secondPoint.m_Z -= ember->m_CamZPos;\n";
+			   "		real_t zr = Zeps(1 - ember->m_CamPerspective * (secondPoint.m_Z - ember->m_CamZPos));\n"
+			   "\n"
+			   "		secondPoint.m_X /= zr;\n"
+			   "		secondPoint.m_Y /= zr;\n"
+			   "		secondPoint.m_Z -= ember->m_CamZPos;\n";
 		}
 	}
 

@@ -124,7 +124,6 @@ public:
 			//Original returned false if all were 0, but it's allowed here
 			//which will just end up setting all elements to 0 which means
 			//only the first xform will get used.
-
 			//Calculate how much of a fraction of a the total density each element represents.
 			size_t j = 0;
 			//These must be double, else roundoff error will prevent the last element of m_XformDistributions from being set.
@@ -147,9 +146,11 @@ public:
 				while (tempDensity < currentDensityLimit && j < CHOOSE_XFORM_GRAIN)
 				{
 #ifdef _DEBUG
+
 					//Ensure distribution contains no out of bounds indices.
 					if (byte(i) >= ember.XformCount())
 						throw "Out of bounds xform index in selection distribution.";
+
 #endif
 					//printf("offset = %d, xform = %d, running sum = %f\n", j, i, tempDensity);
 					m_XformDistributions[(distrib * CHOOSE_XFORM_GRAIN) + j] = byte(i);
@@ -159,10 +160,16 @@ public:
 			}
 
 #ifdef _DEBUG
+
 			//Ensure every element of the distribution was populated.
 			if (j < CHOOSE_XFORM_GRAIN)
 				throw "Not all distribution elements set, undefined behavior.";
+
 #endif
+
+			for (; j < CHOOSE_XFORM_GRAIN; j++)//Make absolutely sure they are set to a valid value.
+				m_XformDistributions[(distrib * CHOOSE_XFORM_GRAIN) + j] = byte(i - 1);
+
 			//Flam3 did this, which gives the same result.
 			//T t = xforms[0].m_Weight;
 			//
@@ -217,7 +224,6 @@ protected:
 			firstBadPoint.m_Z = 0;
 			firstBadPoint.m_ColorX = point->m_ColorX;
 			firstBadPoint.m_VizAdjusted = point->m_VizAdjusted;
-
 			xformIndex = NextXformFromIndex(rand.Rand());
 
 			if (!xforms[xformIndex].Apply(&firstBadPoint, point, rand))
@@ -250,7 +256,6 @@ protected:
 		if (IsClose<T>(ember.FinalXform()->m_Opacity, 1) || rand.Frand01<T>() < ember.FinalXform()->m_Opacity)
 		{
 			T tempVizAdjusted = tempPoint.m_VizAdjusted;
-
 			ember.NonConstFinalXform()->Apply(&tempPoint, sample, rand);
 			sample->m_VizAdjusted = tempVizAdjusted;
 		}
@@ -282,7 +287,7 @@ protected:
 template <typename T>
 class EMBER_API StandardIterator : public Iterator<T>
 {
-ITERATORUSINGS
+	ITERATORUSINGS
 public:
 	/// <summary>
 	/// Empty constructor.
@@ -405,7 +410,7 @@ public:
 template <typename T>
 class EMBER_API XaosIterator : public Iterator<T>
 {
-ITERATORUSINGS
+	ITERATORUSINGS
 public:
 	/// <summary>
 	/// Empty constructor.
@@ -439,7 +444,6 @@ public:
 			firstBadPoint.m_Z = 0;
 			firstBadPoint.m_ColorX = point->m_ColorX;
 			firstBadPoint.m_VizAdjusted = point->m_VizAdjusted;
-
 			xformIndex = NextXformFromIndex(rand.Rand(), lastXformUsed);
 
 			if (!xforms[xformIndex].Apply(&firstBadPoint, point, rand))

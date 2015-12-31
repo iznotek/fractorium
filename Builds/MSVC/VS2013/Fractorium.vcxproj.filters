@@ -301,9 +301,6 @@
     <ClCompile Include="GeneratedFiles\ReleaseNvidia\moc_QssTextEdit.cpp">
       <Filter>Generated Files\ReleaseNvidia</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\Fractorium\qcssscanner.h">
-      <Filter>Dialogs\Qss</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\Fractorium\qcssscanner.cpp">
       <Filter>Dialogs\Qss</Filter>
     </ClCompile>
