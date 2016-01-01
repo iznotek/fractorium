@@ -769,14 +769,14 @@ eRenderStatus RendererCL<T, bucketT>::GaussianDensityFilter()
 template <typename T, typename bucketT>
 eRenderStatus RendererCL<T, bucketT>::AccumulatorToFinalImage(byte* pixels, size_t finalOffset)
 {
-	eRenderStatus status = RunFinalAccum();
+	auto status = RunFinalAccum();
 
-	if (status == RENDER_OK && pixels && !m_Devices.empty() && !m_Devices[0]->m_Wrapper.Shared())
+	if (status == eRenderStatus::RENDER_OK && pixels && !m_Devices.empty() && !m_Devices[0]->m_Wrapper.Shared())
 	{
 		pixels += finalOffset;
 
 		if (!ReadFinal(pixels))
-			status = RENDER_ERROR;
+			status = eRenderStatus::RENDER_ERROR;
 	}
 
 	return status;
@@ -853,7 +853,7 @@ EmberStats RendererCL<T, bucketT>::Iterate(size_t iterCount, size_t temporalSamp
 	{
 		m_IterTimer.Tic();//Tic() here to avoid including build time in iter time measurement.
 
-		if (m_LastIter == 0 && m_ProcessAction != KEEP_ITERATING)//Only reset the call count on the beginning of a new render. Do not reset on KEEP_ITERATING.
+		if (m_LastIter == 0 && m_ProcessAction != eProcessAction::KEEP_ITERATING)//Only reset the call count on the beginning of a new render. Do not reset on KEEP_ITERATING.
 			for (auto& dev : m_Devices)
 				dev->m_Calls = 0;
 
@@ -1166,7 +1166,7 @@ eRenderStatus RendererCL<T, bucketT>::RunLogScaleFilter()
 			m_Callback->ProgressFunc(m_Ember, m_ProgressParameter, 100.0, 1, 0.0);
 	}
 
-	return b ? RENDER_OK : RENDER_ERROR;
+	return b ? eRenderStatus::RENDER_OK : eRenderStatus::RENDER_ERROR;
 }
 
 /// <summary>
@@ -1288,7 +1288,7 @@ eRenderStatus RendererCL<T, bucketT>::RunDensityFilter()
 		AddToReport(loc);
 	}
 
-	return m_Abort ? RENDER_ABORT : (b ? RENDER_OK : RENDER_ERROR);
+	return m_Abort ? eRenderStatus::RENDER_ABORT : (b ? eRenderStatus::RENDER_OK : eRenderStatus::RENDER_ERROR);
 }
 
 /// <summary>
@@ -1389,7 +1389,7 @@ eRenderStatus RendererCL<T, bucketT>::RunFinalAccum()
 		AddToReport(loc);
 	}
 
-	return b ? RENDER_OK : RENDER_ERROR;
+	return b ? eRenderStatus::RENDER_OK : eRenderStatus::RENDER_ERROR;
 }
 
 /// <summary>

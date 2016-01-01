@@ -108,13 +108,13 @@ FractoriumEmberController<T>::FractoriumEmberController(Fractorium* fractorium)
 			{
 				Ember<T> ember = m_EmberFile.m_Embers[i];
 				ember.SyncSize();
-				ember.SetSizeAndAdjustScale(PREVIEW_SIZE, PREVIEW_SIZE, false, SCALE_WIDTH);
+				ember.SetSizeAndAdjustScale(PREVIEW_SIZE, PREVIEW_SIZE, false, eScaleType::SCALE_WIDTH);
 				ember.m_TemporalSamples = 1;
 				ember.m_Quality = 25;
 				ember.m_Supersample = 1;
 				m_PreviewRenderer->SetEmber(ember);
 
-				if (m_PreviewRenderer->Run(m_PreviewFinalImage) == RENDER_OK)
+				if (m_PreviewRenderer->Run(m_PreviewFinalImage) == eRenderStatus::RENDER_OK)
 				{
 					if (EmberTreeWidgetItem<T>* treeItem = dynamic_cast<EmberTreeWidgetItem<T>*>(top->child(i)))
 					{
@@ -211,7 +211,7 @@ void FractoriumEmberController<T>::SetEmber(size_t index)
 /// </summary>
 /// <param name="func">The function to call</param>
 /// <param name="updateRender">True to update renderer, else false. Default: true.</param>
-/// <param name="action">The action to add to the rendering queue. Default: FULL_RENDER.</param>
+/// <param name="action">The action to add to the rendering queue. Default: eProcessAction::FULL_RENDER.</param>
 template <typename T>
 void FractoriumEmberController<T>::Update(std::function<void (void)> func, bool updateRender, eProcessAction action)
 {
@@ -228,7 +228,7 @@ void FractoriumEmberController<T>::Update(std::function<void (void)> func, bool 
 /// <param name="func">The function to call</param>
 /// <param name="updateType">Whether to apply this update operation on the current, all or selected xforms. Default: UPDATE_CURRENT.</param>
 /// <param name="updateRender">True to update renderer, else false. Default: true.</param>
-/// <param name="action">The action to add to the rendering queue. Default: FULL_RENDER.</param>
+/// <param name="action">The action to add to the rendering queue. Default: eProcessAction::FULL_RENDER.</param>
 template <typename T>
 void FractoriumEmberController<T>::UpdateXform(std::function<void(Xform<T>*)> func, eXformUpdate updateType, bool updateRender, eProcessAction action)
 {

@@ -29,13 +29,13 @@
 
 //Wrap the sincos function for Macs and PC.
 #if defined(__APPLE__) || defined(_MSC_VER)
-	#define sincos(x, s, c) *(s)=std::sin(x); *(c)=std::cos(x);
+#define sincos(x, s, c) *(s)=std::sin(x); *(c)=std::cos(x);
 #else
-	static void sincos(float x, float* s, float* c)
-	{
-		*s = std::sin(x);
-		*c = std::cos(x);
-	}
+static void sincos(float x, float* s, float* c)
+{
+	*s = std::sin(x);
+	*c = std::cos(x);
+}
 #endif
 
 namespace EmberNs
@@ -92,9 +92,9 @@ static inline size_t NowMs()
 
 //These two must always match.
 #ifdef WIN32
-#define ALIGN __declspec(align(16))
+	#define ALIGN __declspec(align(16))
 #else
-#define ALIGN __attribute__ ((aligned (16)))
+	#define ALIGN __attribute__ ((aligned (16)))
 #endif
 
 #define ALIGN_CL "((aligned (16)))"//The extra parens are necessary.
@@ -119,35 +119,211 @@ static inline size_t NowMs()
 	#define m23T glm::detail::tmat2x3<T, glm::defaultp>
 #endif
 
-enum eInterp : uint { EMBER_INTERP_LINEAR = 0, EMBER_INTERP_SMOOTH = 1 };
-enum eAffineInterp : uint { AFFINE_INTERP_LINEAR = 0, AFFINE_INTERP_LOG = 1, AFFINE_INTERP_COMPAT = 2, AFFINE_INTERP_OLDER = 3 };
-enum ePaletteMode : uint { PALETTE_STEP = 0, PALETTE_LINEAR = 1 };
-enum ePaletteInterp : uint { INTERP_HSV = 0, INTERP_SWEEP = 1 };
-enum eMotion : uint { MOTION_SIN = 1, MOTION_TRIANGLE = 2, MOTION_HILL = 3, MOTION_SAW = 4 };
-enum eProcessAction : uint { NOTHING = 0, ACCUM_ONLY = 1, FILTER_AND_ACCUM = 2, KEEP_ITERATING = 3, FULL_RENDER = 4 };
-enum eProcessState : uint { NONE = 0, ITER_STARTED = 1, ITER_DONE = 2, FILTER_DONE = 3, ACCUM_DONE = 4 };
-enum eInteractiveFilter : uint { FILTER_LOG = 0, FILTER_DE = 1 };
-enum eScaleType : uint { SCALE_NONE = 0, SCALE_WIDTH = 1, SCALE_HEIGHT = 2 };
-enum eRenderStatus : uint { RENDER_OK = 0, RENDER_ERROR = 1, RENDER_ABORT = 2 };
-enum eEmberMotionParam : uint
+enum class eInterp : uint { EMBER_INTERP_LINEAR = 0, EMBER_INTERP_SMOOTH = 1 };
+enum class eAffineInterp : uint { AFFINE_INTERP_LINEAR = 0, AFFINE_INTERP_LOG = 1, AFFINE_INTERP_COMPAT = 2, AFFINE_INTERP_OLDER = 3 };
+enum class ePaletteMode : uint { PALETTE_STEP = 0, PALETTE_LINEAR = 1 };
+enum class ePaletteInterp : uint { INTERP_HSV = 0, INTERP_SWEEP = 1 };
+enum class eMotion : uint { MOTION_SIN = 1, MOTION_TRIANGLE = 2, MOTION_HILL = 3, MOTION_SAW = 4 };
+enum class eProcessAction : uint { NOTHING = 0, ACCUM_ONLY = 1, FILTER_AND_ACCUM = 2, KEEP_ITERATING = 3, FULL_RENDER = 4 };
+enum class eProcessState : uint { NONE = 0, ITER_STARTED = 1, ITER_DONE = 2, FILTER_DONE = 3, ACCUM_DONE = 4 };
+enum class eInteractiveFilter : uint { FILTER_LOG = 0, FILTER_DE = 1 };
+enum class eScaleType : uint { SCALE_NONE = 0, SCALE_WIDTH = 1, SCALE_HEIGHT = 2 };
+enum class eRenderStatus : uint { RENDER_OK = 0, RENDER_ERROR = 1, RENDER_ABORT = 2 };
+enum class eEmberMotionParam : uint//These must remain in this order forever.
 {
-	FLAME_MOTION_NONE = 0,
-	FLAME_MOTION_ZOOM = 1,
-	FLAME_MOTION_ZPOS = 2,
-	FLAME_MOTION_PERSPECTIVE = 3,
-	FLAME_MOTION_YAW = 4,
-	FLAME_MOTION_PITCH = 5,
-	FLAME_MOTION_DEPTH_BLUR = 6,
-	FLAME_MOTION_CENTER_X = 7,
-	FLAME_MOTION_CENTER_Y = 8,
-	FLAME_MOTION_ROTATE = 9,
-	FLAME_MOTION_BRIGHTNESS = 10,
-	FLAME_MOTION_GAMMA = 11,
-	FLAME_MOTION_GAMMA_THRESH = 12,
-	FLAME_MOTION_HIGHLIGHT_POWER = 13,
-	FLAME_MOTION_BACKGROUND_R = 14,
-	FLAME_MOTION_BACKGROUND_G = 15,
-	FLAME_MOTION_BACKGROUND_B = 16,
-	FLAME_MOTION_VIBRANCY = 17
+	FLAME_MOTION_NONE,
+	FLAME_MOTION_ZOOM,
+	FLAME_MOTION_ZPOS,
+	FLAME_MOTION_PERSPECTIVE,
+	FLAME_MOTION_YAW,
+	FLAME_MOTION_PITCH,
+	FLAME_MOTION_DEPTH_BLUR,
+	FLAME_MOTION_CENTER_X,
+	FLAME_MOTION_CENTER_Y,
+	FLAME_MOTION_ROTATE,
+	FLAME_MOTION_BRIGHTNESS,
+	FLAME_MOTION_GAMMA,
+	FLAME_MOTION_GAMMA_THRESH,
+	FLAME_MOTION_HIGHLIGHT_POWER,
+	FLAME_MOTION_BACKGROUND_R,
+	FLAME_MOTION_BACKGROUND_G,
+	FLAME_MOTION_BACKGROUND_B,
+	FLAME_MOTION_VIBRANCY
 };
+
+/// <summary>
+/// Thin wrapper to allow << operator on interp type.
+/// </summary>
+/// <param name="stream">The stream to insert into</param>
+/// <param name="t">The type whose string representation will be inserted into the stream</param>
+/// <returns></returns>
+static std::ostream& operator<<(std::ostream& stream, const eInterp& t)
+{
+	switch (t)
+	{
+		case EmberNs::eInterp::EMBER_INTERP_LINEAR:
+			stream << "linear";
+			break;
+
+		case EmberNs::eInterp::EMBER_INTERP_SMOOTH:
+			stream << "smooth";
+			break;
+
+		default:
+			stream << "error";
+			break;
+	}
+
+	return stream;
+}
+
+/// <summary>
+/// Thin wrapper to allow << operator on affine interp type.
+/// </summary>
+/// <param name="stream">The stream to insert into</param>
+/// <param name="t">The type whose string representation will be inserted into the stream</param>
+/// <returns></returns>
+static std::ostream& operator<<(std::ostream& stream, const eAffineInterp& t)
+{
+	switch (t)
+	{
+		case EmberNs::eAffineInterp::AFFINE_INTERP_LINEAR:
+			stream << "linear";
+			break;
+
+		case EmberNs::eAffineInterp::AFFINE_INTERP_LOG:
+			stream << "log";
+			break;
+
+		case EmberNs::eAffineInterp::AFFINE_INTERP_COMPAT:
+			stream << "compat";
+			break;
+
+		case EmberNs::eAffineInterp::AFFINE_INTERP_OLDER:
+			stream << "older";
+			break;
+
+		default:
+			stream << "error";
+			break;
+	}
+
+	return stream;
+}
+
+/// <summary>
+/// Thin wrapper to allow << operator on palette mode type.
+/// </summary>
+/// <param name="stream">The stream to insert into</param>
+/// <param name="t">The type whose string representation will be inserted into the stream</param>
+/// <returns></returns>
+static std::ostream& operator<<(std::ostream& stream, const ePaletteMode& t)
+{
+	switch (t)
+	{
+		case EmberNs::ePaletteMode::PALETTE_STEP:
+			stream << "step";
+			break;
+
+		case EmberNs::ePaletteMode::PALETTE_LINEAR:
+			stream << "linear";
+			break;
+
+		default:
+			stream << "error";
+			break;
+	}
+
+	return stream;
+}
+
+/// <summary>
+/// Thin wrapper to allow << operator on palette interp type.
+/// </summary>
+/// <param name="stream">The stream to insert into</param>
+/// <param name="t">The type whose string representation will be inserted into the stream</param>
+/// <returns></returns>
+static std::ostream& operator<<(std::ostream& stream, const ePaletteInterp& t)
+{
+	switch (t)
+	{
+		case EmberNs::ePaletteInterp::INTERP_HSV:
+			stream << "hsv";
+			break;
+
+		case EmberNs::ePaletteInterp::INTERP_SWEEP:
+			stream << "sweep";
+			break;
+
+		default:
+			stream << "error";
+			break;
+	}
+
+	return stream;
+}
+
+/// <summary>
+/// Thin wrapper to allow << operator on scale type.
+/// </summary>
+/// <param name="stream">The stream to insert into</param>
+/// <param name="t">The type whose string representation will be inserted into the stream</param>
+/// <returns></returns>
+static std::ostream& operator<<(std::ostream& stream, const eScaleType& t)
+{
+	switch (t)
+	{
+		case EmberNs::eScaleType::SCALE_NONE:
+			stream << "none";
+			break;
+
+		case EmberNs::eScaleType::SCALE_WIDTH:
+			stream << "width";
+			break;
+
+		case EmberNs::eScaleType::SCALE_HEIGHT:
+			stream << "height";
+			break;
+
+		default:
+			stream << "error";
+			break;
+	}
+
+	return stream;
+}
+
+/// <summary>
+/// Thin wrapper to allow << operator on motion type.
+/// </summary>
+/// <param name="stream">The stream to insert into</param>
+/// <param name="t">The type whose string representation will be inserted into the stream</param>
+/// <returns></returns>
+static std::ostream& operator<<(std::ostream& stream, const eMotion& t)
+{
+	switch (t)
+	{
+		case EmberNs::eMotion::MOTION_SIN:
+			stream << "sin";
+			break;
+
+		case EmberNs::eMotion::MOTION_TRIANGLE:
+			stream << "triangle";
+			break;
+
+		case EmberNs::eMotion::MOTION_HILL:
+			stream << "hill";
+			break;
+
+		case EmberNs::eMotion::MOTION_SAW:
+			stream << "saw";
+			break;
+
+		default:
+			stream << "error";
+			break;
+	}
+
+	return stream;
+}
 }

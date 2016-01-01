@@ -7,27 +7,22 @@
 void Fractorium::InitXformsColorUI()
 {
 	int spinHeight = 20, row = 0;
-
 	m_XformColorValueItem = new QTableWidgetItem();
 	ui.XformColorIndexTable->setItem(0, 0, m_XformColorValueItem);
-	
 	m_PaletteRefItem = new QTableWidgetItem();
 	ui.XformPaletteRefTable->setItem(0, 0, m_PaletteRefItem);
 	ui.XformPaletteRefTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 	connect(ui.XformPaletteRefTable->horizontalHeader(), SIGNAL(sectionResized(int, int, int)), this, SLOT(OnXformRefPaletteResized(int, int, int)), Qt::QueuedConnection);
-	
 	SetupSpinner<DoubleSpinBox, double>(ui.XformColorIndexTable,  this, row, 1, m_XformColorIndexSpin,  spinHeight,  0, 1, 0.01, SIGNAL(valueChanged(double)), SLOT(OnXformColorIndexChanged(double)),  false,   0,   1,   0);
 	SetupSpinner<DoubleSpinBox, double>(ui.XformColorValuesTable, this, row, 1, m_XformColorSpeedSpin,  spinHeight, -1, 1,  0.1, SIGNAL(valueChanged(double)), SLOT(OnXformColorSpeedChanged(double)),  true,  0.5, 0.5, 0.5);
 	SetupSpinner<DoubleSpinBox, double>(ui.XformColorValuesTable, this, row, 1, m_XformOpacitySpin,	    spinHeight,  0, 1,  0.1, SIGNAL(valueChanged(double)), SLOT(OnXformOpacityChanged(double)),	    true,    1,   1,   0);
 	SetupSpinner<DoubleSpinBox, double>(ui.XformColorValuesTable, this, row, 1, m_XformDirectColorSpin, spinHeight,  0, 1,  0.1, SIGNAL(valueChanged(double)), SLOT(OnXformDirectColorChanged(double)),	true,	 1,   1,   0);
-	
 	m_XformColorIndexSpin->setDecimals(3);
 	m_XformColorSpeedSpin->setDecimals(3);
 	m_XformOpacitySpin->setDecimals(3);
 	m_XformDirectColorSpin->setDecimals(3);
 	connect(ui.XformColorScroll,  SIGNAL(valueChanged(int)),							this, SLOT(OnXformScrollColorIndexChanged(int)),			Qt::QueuedConnection);
 	connect(ui.SoloXformCheckBox, SIGNAL(stateChanged(int)),							this, SLOT(OnSoloXformCheckBoxStateChanged(int)),			Qt::QueuedConnection);
-	
 	connect(ui.ResetCurvesButton, SIGNAL(clicked(bool)),								this, SLOT(OnResetCurvesButtonClicked(bool)),				Qt::QueuedConnection);
 	connect(ui.CurvesView,		  SIGNAL(PointChangedSignal(int, int, const QPointF&)), this, SLOT(OnCurvesPointChanged(int, int, const QPointF&)), Qt::QueuedConnection);
 	connect(ui.CurvesAllRadio,    SIGNAL(toggled(bool)),								this, SLOT(OnCurvesAllRadioButtonToggled(bool)),			Qt::QueuedConnection);
@@ -49,11 +44,9 @@ void FractoriumEmberController<T>::XformColorIndexChanged(double d, bool updateR
 {
 	auto scroll = m_Fractorium->ui.XformColorScroll;
 	int scrollVal = d * scroll->maximum();
-
 	scroll->blockSignals(true);
 	scroll->setValue(scrollVal);
 	scroll->blockSignals(false);
-
 	SetCurrentXformColorIndex(d, updateRender);
 }
 
@@ -143,7 +136,6 @@ void Fractorium::OnSoloXformCheckBoxStateChanged(int state)
 void Fractorium::OnXformRefPaletteResized(int logicalIndex, int oldSize, int newSize)
 {
 	QPixmap pixmap = QPixmap::fromImage(m_Controller->FinalPaletteImage());
-
 	SetPaletteTableItem(&pixmap, ui.XformPaletteRefTable, m_PaletteRefItem, 0, 0);
 }
 
@@ -158,8 +150,7 @@ void FractoriumEmberController<T>::ClearColorCurves()
 	Update([&]
 	{
 		m_Ember.m_Curves.Init();
-	}, true, m_Renderer->EarlyClip() ? FILTER_AND_ACCUM : ACCUM_ONLY);
-
+	}, true, m_Renderer->EarlyClip() ? eProcessAction::FILTER_AND_ACCUM : eProcessAction::ACCUM_ONLY);
 	FillCurvesControl();
 }
 
@@ -180,7 +171,7 @@ void FractoriumEmberController<T>::ColorCurveChanged(int curveIndex, int pointIn
 	{
 		m_Ember.m_Curves.m_Points[curveIndex][pointIndex].x = point.x();
 		m_Ember.m_Curves.m_Points[curveIndex][pointIndex].y = point.y();
-	}, true, m_Renderer->EarlyClip() ? FILTER_AND_ACCUM : ACCUM_ONLY);
+	}, true, m_Renderer->EarlyClip() ? eProcessAction::FILTER_AND_ACCUM : eProcessAction::ACCUM_ONLY);
 }
 
 void Fractorium::OnCurvesPointChanged(int curveIndex, int pointIndex, const QPointF& point) { m_Controller->ColorCurveChanged(curveIndex, pointIndex, point); }
@@ -206,11 +197,9 @@ template <typename T>
 QColor FractoriumEmberController<T>::ColorIndexToQColor(double d)
 {
 	v4T entry = m_Ember.m_Palette[Clamp<int>(d * COLORMAP_LENGTH_MINUS_1, 0, m_Ember.m_Palette.Size())];
-
 	entry.r *= 255;
 	entry.g *= 255;
 	entry.b *= 255;
-
 	QRgb rgb = uint(entry.r) << 16 | uint(entry.g) << 8 | uint(entry.b);
 	return QColor::fromRgb(rgb);
 }
@@ -226,7 +215,6 @@ void FractoriumEmberController<T>::SetCurrentXformColorIndex(double d, bool upda
 	UpdateXform([&] (Xform<T>* xform)
 	{
 		xform->m_ColorX = Clamp<T>(d, 0, 1);
-	
 		//Grab the current color from the index and assign it to the first cell of the first table.
 		m_Fractorium->ui.XformColorIndexTable->item(0, 0)->setBackgroundColor(ColorIndexToQColor(xform->m_ColorX)/*QColor::fromRgb(rgb)*/);
 	}, eXformUpdate::UPDATE_SELECTED, updateRender);
@@ -245,7 +233,6 @@ void FractoriumEmberController<T>::FillCurvesControl()
 		for (size_t j = 1; j < 3; j++)//Only do middle points.
 		{
 			QPointF point(m_Ember.m_Curves.m_Points[i][j].x, m_Ember.m_Curves.m_Points[i][j].y);
-
 			m_Fractorium->ui.CurvesView->Set(i, j, point);
 		}
 	}
@@ -290,5 +277,5 @@ void Fractorium::SetPaletteTableItem(QPixmap* pixmap, QTableWidget* table, QTabl
 template class FractoriumEmberController<float>;
 
 #ifdef DO_DOUBLE
-	template class FractoriumEmberController<double>;
+template class FractoriumEmberController<double>;
 #endif

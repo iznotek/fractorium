@@ -106,9 +106,9 @@ public:
 	//Virtual processing functions.
 	virtual bool Ok() const;
 	virtual size_t MemoryAvailable();
-	virtual void SetEmber(Ember<float>& ember, eProcessAction action = FULL_RENDER) { }
+	virtual void SetEmber(Ember<float>& ember, eProcessAction action = eProcessAction::FULL_RENDER) { }
 	virtual void SetEmber(vector<Ember<float>>& embers) { }
-	virtual void SetEmber(Ember<double>& ember, eProcessAction action = FULL_RENDER) { }
+	virtual void SetEmber(Ember<double>& ember, eProcessAction action = eProcessAction::FULL_RENDER) { }
 	virtual void SetEmber(vector<Ember<double>>& embers) { }
 	virtual bool RandVec(vector<QTIsaac<ISAAC_SIZE, ISAAC_INT>>& randVec);
 

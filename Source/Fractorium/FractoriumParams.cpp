@@ -37,7 +37,7 @@ void Fractorium::InitParamsUI()
 	comboVals.push_back("Step");
 	comboVals.push_back("Linear");
 	SetupCombo(table, this, row, 1, m_PaletteModeCombo, comboVals, SIGNAL(currentIndexChanged(int)), SLOT(OnPaletteModeComboCurrentIndexChanged(int)));
-	m_PaletteModeCombo->SetCurrentIndexStealth(PALETTE_LINEAR);
+	m_PaletteModeCombo->SetCurrentIndexStealth(int(ePaletteMode::PALETTE_LINEAR));
 	//Geometry.
 	row = 0;
 	table = ui.GeometryTable;
@@ -100,7 +100,7 @@ void Fractorium::InitParamsUI()
 /// </summary>
 /// <param name="d">The brightness</param>
 template <typename T>
-void FractoriumEmberController<T>::BrightnessChanged(double d) { Update([&] { m_Ember.m_Brightness = d; }, true, FILTER_AND_ACCUM); }
+void FractoriumEmberController<T>::BrightnessChanged(double d) { Update([&] { m_Ember.m_Brightness = d; }, true, eProcessAction::FILTER_AND_ACCUM); }
 void Fractorium::OnBrightnessChanged(double d) { m_Controller->BrightnessChanged(d); }
 
 /// <summary>
@@ -110,7 +110,7 @@ void Fractorium::OnBrightnessChanged(double d) { m_Controller->BrightnessChanged
 /// else if early clip is true, filter and accum, else final accum only.
 /// </summary>
 /// <param name="d">The gamma value</param>
-template <typename T> void FractoriumEmberController<T>::GammaChanged(double d) { Update([&] { m_Ember.m_Gamma = d; }, true, m_Ember.m_TemporalSamples > 1 ? FULL_RENDER : (m_Renderer->EarlyClip() ? FILTER_AND_ACCUM : ACCUM_ONLY)); }
+template <typename T> void FractoriumEmberController<T>::GammaChanged(double d) { Update([&] { m_Ember.m_Gamma = d; }, true, m_Ember.m_TemporalSamples > 1 ? eProcessAction::FULL_RENDER : (m_Renderer->EarlyClip() ? eProcessAction::FILTER_AND_ACCUM : eProcessAction::ACCUM_ONLY)); }
 void Fractorium::OnGammaChanged(double d) { m_Controller->GammaChanged(d); }
 
 /// <summary>
@@ -119,7 +119,7 @@ void Fractorium::OnGammaChanged(double d) { m_Controller->GammaChanged(d); }
 /// Resets the rendering process to the final accumulation stage.
 /// </summary>
 /// <param name="d">The gamma threshold</param>
-template <typename T> void FractoriumEmberController<T>::GammaThresholdChanged(double d) { Update([&] { m_Ember.m_GammaThresh = d; }, true, m_Ember.m_TemporalSamples > 1 ? FULL_RENDER : (m_Renderer->EarlyClip() ? FILTER_AND_ACCUM : ACCUM_ONLY)); }
+template <typename T> void FractoriumEmberController<T>::GammaThresholdChanged(double d) { Update([&] { m_Ember.m_GammaThresh = d; }, true, m_Ember.m_TemporalSamples > 1 ? eProcessAction::FULL_RENDER : (m_Renderer->EarlyClip() ? eProcessAction::FILTER_AND_ACCUM : eProcessAction::ACCUM_ONLY)); }
 void Fractorium::OnGammaThresholdChanged(double d) { m_Controller->GammaThresholdChanged(d); }
 
 /// <summary>
@@ -128,7 +128,7 @@ void Fractorium::OnGammaThresholdChanged(double d) { m_Controller->GammaThreshol
 /// Resets the rendering process to the final accumulation stage if temporal samples is 1, else full reset.
 /// </summary>
 /// <param name="d">The vibrancy</param>
-template <typename T> void FractoriumEmberController<T>::VibrancyChanged(double d) { Update([&] { m_Ember.m_Vibrancy = d; }, true, m_Ember.m_TemporalSamples > 1 ? FULL_RENDER : (m_Renderer->EarlyClip() ? FILTER_AND_ACCUM : ACCUM_ONLY)); }
+template <typename T> void FractoriumEmberController<T>::VibrancyChanged(double d) { Update([&] { m_Ember.m_Vibrancy = d; }, true, m_Ember.m_TemporalSamples > 1 ? eProcessAction::FULL_RENDER : (m_Renderer->EarlyClip() ? eProcessAction::FILTER_AND_ACCUM : eProcessAction::ACCUM_ONLY)); }
 void Fractorium::OnVibrancyChanged(double d) { m_Controller->VibrancyChanged(d); }
 
 /// <summary>
@@ -137,7 +137,7 @@ void Fractorium::OnVibrancyChanged(double d) { m_Controller->VibrancyChanged(d);
 /// Resets the rendering process to the final accumulation stage.
 /// </summary>
 /// <param name="d">The highlight power</param>
-template <typename T> void FractoriumEmberController<T>::HighlightPowerChanged(double d) { Update([&] { m_Ember.m_HighlightPower = d; }, true, m_Ember.m_TemporalSamples > 1 ? FULL_RENDER : (m_Renderer->EarlyClip() ? FILTER_AND_ACCUM : ACCUM_ONLY)); }
+template <typename T> void FractoriumEmberController<T>::HighlightPowerChanged(double d) { Update([&] { m_Ember.m_HighlightPower = d; }, true, m_Ember.m_TemporalSamples > 1 ? eProcessAction::FULL_RENDER : (m_Renderer->EarlyClip() ? eProcessAction::FILTER_AND_ACCUM : eProcessAction::ACCUM_ONLY)); }
 void Fractorium::OnHighlightPowerChanged(double d) { m_Controller->HighlightPowerChanged(d); }
 
 /// <summary>
@@ -188,7 +188,7 @@ void Fractorium::OnColorSelected(const QColor& color) { m_Controller->Background
 /// Resets the rendering process.
 /// </summary>
 /// <param name="index">The index of the palette mode combo box</param>
-template <typename T> void FractoriumEmberController<T>::PaletteModeChanged(uint i) { Update([&] { m_Ember.m_PaletteMode = i == 0 ? PALETTE_STEP : PALETTE_LINEAR; }); }
+template <typename T> void FractoriumEmberController<T>::PaletteModeChanged(uint i) { Update([&] { m_Ember.m_PaletteMode = i == 0 ? ePaletteMode::PALETTE_STEP : ePaletteMode::PALETTE_LINEAR; }); }
 void Fractorium::OnPaletteModeComboCurrentIndexChanged(int index) { m_Controller->PaletteModeChanged(index); }
 
 /// <summary>
@@ -302,7 +302,7 @@ void Fractorium::OnSpatialFilterTypeComboCurrentIndexChanged(const QString& text
 /// In the future, when animation is implemented, this will have an effect.
 /// </summary>
 /// <param name="d">The temporal filter width</param>
-template <typename T> void FractoriumEmberController<T>::TemporalFilterWidthChanged(double d) { Update([&] { m_Ember.m_TemporalFilterWidth = d; }, true, NOTHING); }//Don't do anything until animation is implemented.
+template <typename T> void FractoriumEmberController<T>::TemporalFilterWidthChanged(double d) { Update([&] { m_Ember.m_TemporalFilterWidth = d; }, true, eProcessAction::NOTHING); }//Don't do anything until animation is implemented.
 void Fractorium::OnTemporalFilterWidthChanged(double d) { m_Controller->TemporalFilterWidthChanged(d); }
 
 /// <summary>
@@ -312,7 +312,7 @@ void Fractorium::OnTemporalFilterWidthChanged(double d) { m_Controller->Temporal
 /// In the future, when animation is implemented, this will have an effect.
 /// </summary>
 /// <param name="text">The name of the temporal filter</param>
-template <typename T> void FractoriumEmberController<T>::TemporalFilterTypeChanged(const QString& text) { Update([&] { m_Ember.m_TemporalFilterType = TemporalFilterCreator<T>::FromString(text.toStdString()); }, true, NOTHING); }//Don't do anything until animation is implemented.
+template <typename T> void FractoriumEmberController<T>::TemporalFilterTypeChanged(const QString& text) { Update([&] { m_Ember.m_TemporalFilterType = TemporalFilterCreator<T>::FromString(text.toStdString()); }, true, eProcessAction::NOTHING); }//Don't do anything until animation is implemented.
 void Fractorium::OnTemporalFilterTypeComboCurrentIndexChanged(const QString& text) { m_Controller->TemporalFilterTypeChanged(text); }
 
 /// <summary>
@@ -399,7 +399,7 @@ void Fractorium::OnFuseChanged(int d) { m_Controller->FuseChanged(d); }
 /// the rendering process is continued, else it's reset.
 /// </summary>
 /// <param name="d">The quality in terms of iterations per pixel</param>
-template <typename T> void FractoriumEmberController<T>::QualityChanged(double d) { /*Update([&] { m_Ember.m_Quality = d; }, true, d > m_Ember.m_Quality ? KEEP_ITERATING : FULL_RENDER);*/ }
+template <typename T> void FractoriumEmberController<T>::QualityChanged(double d) { /*Update([&] { m_Ember.m_Quality = d; }, true, d > m_Ember.m_Quality ? KEEP_ITERATING : eProcessAction::FULL_RENDER);*/ }
 void Fractorium::OnQualityChanged(double d) { /*m_Controller->QualityChanged(d);*/ }
 
 /// <summary>
@@ -423,7 +423,7 @@ void Fractorium::OnSupersampleChanged(int d) { m_Controller->SupersampleChanged(
 /// In the future, when animation is implemented, this will have an effect.
 /// </summary>
 /// <param name="d">The temporal samples value</param>
-template <typename T> void FractoriumEmberController<T>::TemporalSamplesChanged(int i) { Update([&] { m_Ember.m_TemporalSamples = i; }, true, NOTHING); }//Don't do anything until animation is implemented.
+template <typename T> void FractoriumEmberController<T>::TemporalSamplesChanged(int i) { Update([&] { m_Ember.m_TemporalSamples = i; }, true, eProcessAction::NOTHING); }//Don't do anything until animation is implemented.
 void Fractorium::OnTemporalSamplesChanged(int d) { m_Controller->TemporalSamplesChanged(d); }
 
 /// <summary>
@@ -439,12 +439,12 @@ void FractoriumEmberController<T>::AffineInterpTypeChanged(int i)
 	Update([&]
 	{
 		if (i == 0)
-			m_Ember.m_AffineInterp = AFFINE_INTERP_LINEAR;
+			m_Ember.m_AffineInterp = eAffineInterp::AFFINE_INTERP_LINEAR;
 		else if (i == 1)
-			m_Ember.m_AffineInterp = AFFINE_INTERP_LOG;
+			m_Ember.m_AffineInterp = eAffineInterp::AFFINE_INTERP_LOG;
 		else
-			m_Ember.m_AffineInterp = AFFINE_INTERP_LINEAR;
-	}, true, NOTHING);
+			m_Ember.m_AffineInterp = eAffineInterp::AFFINE_INTERP_LINEAR;
+	}, true, eProcessAction::NOTHING);
 }
 
 void Fractorium::OnAffineInterpTypeComboCurrentIndexChanged(int index) { m_Controller->AffineInterpTypeChanged(index); }
@@ -462,12 +462,12 @@ void FractoriumEmberController<T>::InterpTypeChanged(int i)
 	Update([&]
 	{
 		if (i == 0)
-			m_Ember.m_Interp = EMBER_INTERP_LINEAR;
+			m_Ember.m_Interp = eInterp::EMBER_INTERP_LINEAR;
 		else if (i == 1)
-			m_Ember.m_Interp = EMBER_INTERP_SMOOTH;
+			m_Ember.m_Interp = eInterp::EMBER_INTERP_SMOOTH;
 		else
-			m_Ember.m_Interp = EMBER_INTERP_LINEAR;
-	}, true, NOTHING);
+			m_Ember.m_Interp = eInterp::EMBER_INTERP_LINEAR;
+	}, true, eProcessAction::NOTHING);
 }
 
 void Fractorium::OnInterpTypeComboCurrentIndexChanged(int index) { m_Controller->InterpTypeChanged(index); }
@@ -530,8 +530,8 @@ void FractoriumEmberController<T>::FillParamTablesAndPalette()
 	m_Fractorium->m_QualitySpin->SetValueStealth(m_Ember.m_Quality);
 	m_Fractorium->m_SupersampleSpin->SetValueStealth(m_Ember.m_Supersample);
 	m_Fractorium->m_TemporalSamplesSpin->SetValueStealth(m_Ember.m_TemporalSamples);
-	m_Fractorium->m_AffineInterpTypeCombo->SetCurrentIndexStealth(m_Ember.m_AffineInterp);
-	m_Fractorium->m_InterpTypeCombo->SetCurrentIndexStealth(m_Ember.m_Interp);
+	m_Fractorium->m_AffineInterpTypeCombo->SetCurrentIndexStealth(int(m_Ember.m_AffineInterp));
+	m_Fractorium->m_InterpTypeCombo->SetCurrentIndexStealth(int(m_Ember.m_Interp));
 	//Palette related items:
 	//The temp palette is assigned the palette read when the file was parsed/saved. The user can apply adjustments on the GUI later.
 	//These adjustments will be applied to the temp palette, then assigned back to m_Ember.m_Palette.

@@ -255,13 +255,13 @@ FinalRenderGuiState FractoriumFinalRenderDialog::State()
 eScaleType FractoriumFinalRenderDialog::Scale()
 {
 	if (ui.FinalRenderScaleNoneRadioButton->isChecked())
-		return SCALE_NONE;
+		return eScaleType::SCALE_NONE;
 	else if (ui.FinalRenderScaleWidthRadioButton->isChecked())
-		return SCALE_WIDTH;
+		return eScaleType::SCALE_WIDTH;
 	else if (ui.FinalRenderScaleHeightRadioButton->isChecked())
-		return SCALE_HEIGHT;
+		return eScaleType::SCALE_HEIGHT;
 	else
-		return SCALE_NONE;
+		return eScaleType::SCALE_NONE;
 }
 
 /// <summary>
@@ -272,11 +272,11 @@ void FractoriumFinalRenderDialog::Scale(eScaleType scale)
 {
 	ui.FinalRenderScaleNoneRadioButton->blockSignals(true);
 
-	if (scale == SCALE_NONE)
+	if (scale == eScaleType::SCALE_NONE)
 		ui.FinalRenderScaleNoneRadioButton->setChecked(true);
-	else if (scale == SCALE_WIDTH)
+	else if (scale == eScaleType::SCALE_WIDTH)
 		ui.FinalRenderScaleWidthRadioButton->setChecked(true);
-	else if (scale == SCALE_HEIGHT)
+	else if (scale == eScaleType::SCALE_HEIGHT)
 		ui.FinalRenderScaleHeightRadioButton->setChecked(true);
 	else
 		ui.FinalRenderScaleNoneRadioButton->setChecked(true);

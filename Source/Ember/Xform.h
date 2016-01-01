@@ -255,7 +255,7 @@ public:
 			m_MotionOffset = EMPTYFIELD;
 		}
 
-		m_MotionFunc = MOTION_SIN;
+		m_MotionFunc = eMotion::MOTION_SIN;
 		m_Motion.clear();
 		m_NeedPrecalcSumSquares = false;
 		m_NeedPrecalcSqrtSumSquares = false;

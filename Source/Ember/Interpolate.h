@@ -105,13 +105,12 @@ public:
 				if (xf >= sourceEmbers[i].TotalXformCount() && !aligned)
 				{
 					size_t found = 0;
-
 					//Remove linear.
 					destXform->DeleteVariationById(VAR_LINEAR);
 
 					//Only do the next substitution for log interpolation.
-					if ((i == 0 && destEmbers[i].m_AffineInterp     == AFFINE_INTERP_LOG) ||
-						(i > 0  && destEmbers[i - 1].m_AffineInterp == AFFINE_INTERP_LOG))
+					if ((i == 0 && destEmbers[i].m_AffineInterp == eAffineInterp::AFFINE_INTERP_LOG) ||
+							(i > 0 && destEmbers[i - 1].m_AffineInterp == eAffineInterp::AFFINE_INTERP_LOG))
 					{
 						for (ii = -1; ii <= 1; ii += 2)
 						{
@@ -130,15 +129,14 @@ public:
 							//with weight -1.
 							//Added JULIAN/JULIASCOPE to get rid of black wedges.
 							if (destOtherXform->GetVariationById(VAR_SPHERICAL) ||
-								destOtherXform->GetVariationById(VAR_NGON) ||
-								destOtherXform->GetVariationById(VAR_JULIAN) ||
-								destOtherXform->GetVariationById(VAR_JULIASCOPE) ||
-								destOtherXform->GetVariationById(VAR_POLAR) ||
-								destOtherXform->GetVariationById(VAR_WEDGE_SPH) ||
-								destOtherXform->GetVariationById(VAR_WEDGE_JULIA))
+									destOtherXform->GetVariationById(VAR_NGON) ||
+									destOtherXform->GetVariationById(VAR_JULIAN) ||
+									destOtherXform->GetVariationById(VAR_JULIASCOPE) ||
+									destOtherXform->GetVariationById(VAR_POLAR) ||
+									destOtherXform->GetVariationById(VAR_WEDGE_SPH) ||
+									destOtherXform->GetVariationById(VAR_WEDGE_JULIA))
 							{
 								destXform->AddVariation(new LinearVariation<T>(-1));
-
 								//Set the coefs appropriately.
 								destXform->m_Affine.A(-1);
 								destXform->m_Affine.D(0);
@@ -168,7 +166,6 @@ public:
 							if (destOtherXform->GetVariationById(VAR_RECTANGLES))
 							{
 								RectanglesVariation<T>* var = new RectanglesVariation<T>();
-
 								var->SetParamVal("rectangles_x", 0);
 								var->SetParamVal("rectangles_y", 0);
 								destXform->AddVariation(var);
@@ -178,7 +175,6 @@ public:
 							if (destOtherXform->GetVariationById(VAR_RINGS2))
 							{
 								Rings2Variation<T>* var = new Rings2Variation<T>();
-
 								var->SetParamVal("rings2_val", 0);
 								destXform->AddVariation(var);
 								found++;
@@ -187,7 +183,6 @@ public:
 							if (destOtherXform->GetVariationById(VAR_FAN2))
 							{
 								Fan2Variation<T>* var = new Fan2Variation<T>();
-
 								destXform->AddVariation(var);
 								found++;
 							}
@@ -195,7 +190,6 @@ public:
 							if (destOtherXform->GetVariationById(VAR_BLOB))
 							{
 								BlobVariation<T>* var = new BlobVariation<T>();
-
 								var->SetParamVal("blob_low", 1);
 								destXform->AddVariation(var);
 								found++;
@@ -204,7 +198,6 @@ public:
 							if (destOtherXform->GetVariationById(VAR_PERSPECTIVE))
 							{
 								PerspectiveVariation<T>* var = new PerspectiveVariation<T>();
-
 								destXform->AddVariation(var);
 								found++;
 							}
@@ -212,7 +205,6 @@ public:
 							if (destOtherXform->GetVariationById(VAR_CURL))
 							{
 								CurlVariation<T>* var = new CurlVariation<T>();
-
 								var->SetParamVal("curl_c1", 0);
 								destXform->AddVariation(var);
 								found++;
@@ -221,7 +213,6 @@ public:
 							if (destOtherXform->GetVariationById(VAR_SUPER_SHAPE))
 							{
 								SuperShapeVariation<T>* var = new SuperShapeVariation<T>();
-
 								var->SetParamVal("super_shape_n1", 2);
 								var->SetParamVal("super_shape_n2", 2);
 								var->SetParamVal("super_shape_n3", 2);
@@ -422,7 +413,7 @@ public:
 
 		//To interpolate the xforms, make copies of the source embers
 		//and ensure that they both have the same number of xforms before progressing.
-		if (embers[i1].m_Interp == EMBER_INTERP_LINEAR)
+		if (embers[i1].m_Interp == eInterp::EMBER_INTERP_LINEAR)
 		{
 			Align(&embers[i1], &localEmbers[0], 2);
 			smoothFlag = false;
@@ -450,9 +441,9 @@ public:
 		}
 
 		result.m_Time = time;
-		result.m_Interp = EMBER_INTERP_LINEAR;
+		result.m_Interp = eInterp::EMBER_INTERP_LINEAR;
 		result.m_AffineInterp = embers[0].m_AffineInterp;
-		result.m_PaletteInterp = INTERP_HSV;
+		result.m_PaletteInterp = ePaletteInterp::INTERP_HSV;
 
 		if (!smoothFlag)
 			result.Interpolate(&localEmbers[0], 2, c, stagger);
@@ -602,8 +593,8 @@ public:
 	static void ConvertLinearToPolar(Ember<T>* embers, size_t size, size_t xfi, size_t cflag, vector<v2T>& cxAng, vector<v2T>& cxMag, vector<v2T>& cxTrn)
 	{
 		if (size == cxAng.size() &&
-			size == cxMag.size() &&
-			size == cxTrn.size())
+				size == cxMag.size() &&
+				size == cxTrn.size())
 		{
 			T c1[2], d, t, refang;
 			glm::length_t col, k;
@@ -668,16 +659,16 @@ public:
 							refang = xform->m_Wind[col] - M_2PI;
 
 							//Make sure both angles are within [refang refang + 2 * pi].
-							while(cxAng[k - 1][col] < refang)
+							while (cxAng[k - 1][col] < refang)
 								cxAng[k - 1][col] += M_2PI;
 
-							while(cxAng[k - 1][col] > refang + M_2PI)
+							while (cxAng[k - 1][col] > refang + M_2PI)
 								cxAng[k - 1][col] -= M_2PI;
 
-							while(cxAng[k][col] < refang)
+							while (cxAng[k][col] < refang)
 								cxAng[k][col] += M_2PI;
 
-							while(cxAng[k][col] > refang + M_2PI)
+							while (cxAng[k][col] > refang + M_2PI)
 								cxAng[k][col] -= M_2PI;
 						}
 						else
@@ -721,7 +712,6 @@ public:
 				{
 					c1[0] = embers[k].GetXform(xfi)->m_Affine.m_Mat[0][col];//A,D then B,E.
 					c1[1] = embers[k].GetXform(xfi)->m_Affine.m_Mat[1][col];
-
 					cxang[k][col] = atan2(c1[1], c1[0]);
 				}
 			}
@@ -732,8 +722,7 @@ public:
 				{
 					int sym0, sym1;
 					int padSymFlag;
-
-					d = cxang[k][col] - cxang[k-1][col];
+					d = cxang[k][col] - cxang[k - 1][col];
 
 					//Adjust to avoid the -pi/pi discontinuity.
 					if (d > T(M_PI + EPS))
@@ -745,12 +734,11 @@ public:
 					//Check them pairwise and store the reference angle in the second
 					//to avoid overwriting if asymmetric on both sides.
 					padSymFlag = 0;
-
 					sym0 = (embers[k - 1].GetXform(xfi)->m_Animate == 0 || (embers[k - 1].GetXform(xfi)->Empty() && padSymFlag));
 					sym1 = (embers[k    ].GetXform(xfi)->m_Animate == 0 || (embers[k    ].GetXform(xfi)->Empty() && padSymFlag));
 
 					if (sym1 && !sym0)
-						embers[k].GetXform(xfi)->m_Wind[col] = cxang[k-1][col] + 2 * T(M_PI);
+						embers[k].GetXform(xfi)->m_Wind[col] = cxang[k - 1][col] + 2 * T(M_PI);
 					else if (sym0 && !sym1)
 						embers[k].GetXform(xfi)->m_Wind[col] = cxang[k][col] + 2 * T(M_PI);
 				}
@@ -835,10 +823,8 @@ public:
 	{
 		//maxStag is the spacing between xform start times if staggerPercent = 1.0.
 		T maxStag = T(numXforms - 1) / numXforms;
-
 		//Scale the spacing by staggerPercent.
 		T stagScaled = staggerPercent * maxStag;
-
 		//t ranges from 1 to 0 (the contribution of cp[0] to the blend).
 		//The first line below makes the first xform interpolate first.
 		//The second line makes the last xform interpolate first.
@@ -856,47 +842,61 @@ public:
 	/// <summary>
 	/// Apply the specified motion function to a value.
 	/// </summary>
-	/// <param name="funcNum">The function type to apply, sin, triangle or hill.</param>
+	/// <param name="funcNum">The function type to apply, sin, triangle, hill or saw.</param>
 	/// <param name="timeVal">The time value to apply the motion function to</param>
 	/// <returns>The new time value computed by applying the specified motion function to the time value</returns>
-	static T MotionFuncs(int funcNum, T timeVal)
+	static T MotionFuncs(eMotion funcNum, T timeVal)
 	{
 		//Motion funcs should be cyclic, and equal to 0 at integral time values
 		//abs peak values should be not be greater than 1.
-		if (funcNum == MOTION_SIN)
+		switch (funcNum)
 		{
-			return std::sin(T(2.0) * T(M_PI) * timeVal);
-		}
-		else if (funcNum == MOTION_TRIANGLE)
-		{
-			T fr = fmod(timeVal, T(1.0));
+			case EmberNs::eMotion::MOTION_SIN:
+			{
+				return std::sin(T(2.0) * T(M_PI) * timeVal);
+			}
+			break;
 
-			if (fr < 0)
-				fr += 1;
+			case EmberNs::eMotion::MOTION_TRIANGLE:
+			{
+				T fr = fmod(timeVal, T(1.0));
 
-			if (fr <= T(0.25))
-				fr *= 4;
-			else if (fr <= T(0.75))
-				fr = -4 * fr + 2;
-			else
-				fr = 4 * fr - 4;
+				if (fr < 0)
+					fr += 1;
 
-			return fr;
-		}
-		else if (funcNum == MOTION_HILL)
-		{
-			return ((1 - std::cos(T(2.0) * T(M_PI) * timeVal)) * T(0.5));
-		}
-		else //MOTION_SAW
-		{
-			return (T(2.0) * fmod(timeVal - T(0.5), T(1.0)) - T(1.0));
+				if (fr <= T(0.25))
+					fr *= 4;
+				else if (fr <= T(0.75))
+					fr = -4 * fr + 2;
+				else
+					fr = 4 * fr - 4;
+
+				return fr;
+			}
+			break;
+
+			case EmberNs::eMotion::MOTION_HILL:
+			{
+				return ((1 - std::cos(T(2.0) * T(M_PI) * timeVal)) * T(0.5));
+			}
+			break;
+
+			case EmberNs::eMotion::MOTION_SAW:
+			{
+				return (T(2.0) * fmod(timeVal - T(0.5), T(1.0)) - T(1.0));
+			}
+			break;
+
+			default:
+				return timeVal;
+				break;
 		}
 	}
 
 	/*
-	//Will need to alter this to handle 2D palettes.
-	static bool InterpMissingColors(vector<glm::detail::tvec4<T>>& palette)
-	{
+	    //Will need to alter this to handle 2D palettes.
+	    static bool InterpMissingColors(vector<glm::detail::tvec4<T>>& palette)
+	    {
 		//Check for a non-full palette.
 		int minIndex, maxIndex;
 		int colorli, colorri;
@@ -989,7 +989,7 @@ public:
 		}
 
 		return true;
-	}
+	    }
 	*/
 
 	/// <summary>
@@ -1002,18 +1002,19 @@ public:
 	static inline bool CompareXforms(const Xform<T>& a, const Xform<T>& b)
 	{
 		if (a.m_ColorSpeed > b.m_ColorSpeed) return true;
+
 		if (a.m_ColorSpeed < b.m_ColorSpeed) return false;
 
 		//Original did this every time, even though it's only needed if the color speeds are equal.
 		m2T aMat2 = a.m_Affine.ToMat2ColMajor();
 		m2T bMat2 = b.m_Affine.ToMat2ColMajor();
-
 		T ad = glm::determinant(aMat2);
 		T bd = glm::determinant(bMat2);
 
 		if (a.m_ColorSpeed > 0)
 		{
 			if (ad < 0) return false;
+
 			if (bd < 0) return true;
 
 			ad = atan2(a.m_Affine.A(), a.m_Affine.D());

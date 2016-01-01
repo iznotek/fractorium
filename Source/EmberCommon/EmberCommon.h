@@ -441,7 +441,7 @@ static bool StripsRender(RendererBase* renderer, Ember<T>& ember, vector<byte>& 
 			renderer->SetEmber(ember);//Set one final time after modifications for strips.
 		}
 
-		if ((renderer->Run(finalImage, time, 0, false, stripOffset) == RENDER_OK) && !renderer->Aborted() && !finalImage.empty())
+		if ((renderer->Run(finalImage, time, 0, false, stripOffset) == eRenderStatus::RENDER_OK) && !renderer->Aborted() && !finalImage.empty())
 		{
 			perStripFinish(strip);
 		}

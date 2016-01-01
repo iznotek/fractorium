@@ -64,14 +64,12 @@ public:
 	SheepTools(const string& palettePath, Renderer<T, bucketT>* renderer)
 	{
 		Timing t;
-
 		m_Smooth = true;
 		m_SheepGen = -1;
 		m_SheepId = -1;
 		m_Stagger = 0;
 		m_OffsetX = 0;
 		m_OffsetY = 0;
-
 		m_PaletteList.Add(palettePath);
 		m_StandardIterator = unique_ptr<StandardIterator<T>>(new StandardIterator<T>());
 		m_XaosIterator = unique_ptr<XaosIterator<T>>(new XaosIterator<T>());
@@ -86,15 +84,12 @@ public:
 	Ember<T> CreateLinearDefault()
 	{
 		Ember<T> ember;
-
 		Xform<T> xform1(T(0.25), T(1),    T(0.5), T(1), T(0.5), T(0), T(0), T(0.5), T(0.5),  T(0.25));
 		Xform<T> xform2(T(0.25), T(0.66), T(0.5), T(1), T(0.5), T(0), T(0), T(0.5), T(-0.5), T(0.25));
 		Xform<T> xform3(T(0.25), T(0.33), T(0.5), T(1), T(0.5), T(0), T(0), T(0.5), T(0.0),  T(-0.5));
-
 		xform1.AddVariation(new LinearVariation<T>());
 		xform2.AddVariation(new LinearVariation<T>());
 		xform3.AddVariation(new LinearVariation<T>());
-
 		ember.AddXform(xform1);
 		ember.AddXform(xform2);
 		ember.AddXform(xform3);
@@ -142,7 +137,6 @@ public:
 			{
 				Variation<T>* var = nullptr;
 				Variation<T>* smallestVar = nullptr;
-
 				numVars = 0;
 				smallest = -1;
 
@@ -171,7 +165,8 @@ public:
 					if (smallestVar)
 						xform->DeleteVariationById(smallestVar->VariationId());
 				}
-			} while (numVars > maxVars);
+			}
+			while (numVars > maxVars);
 		}
 
 		return os.str();
@@ -194,7 +189,6 @@ public:
 		T randSelect;
 		ostringstream os;
 		Ember<T> mutation;
-
 		mutation.Clear();
 
 		//If mutate_mode = -1, choose a random mutation mode.
@@ -251,13 +245,13 @@ public:
 						}
 					}
 				}
-			} while (!done);
+			}
+			while (!done);
 		}
 		else if (mode == MUTATE_ONE_XFORM_COEFS)
 		{
 			//Generate a 2-xform random.
 			Random(mutation, useVars, sym, 2, maxVars);
-
 			//Which xform to mutate?
 			modXform = m_Rand.Rand() % ember.TotalXformCount();
 			Xform<T>* xform1 = ember.GetTotalXform(modXform);
@@ -286,7 +280,6 @@ public:
 		{
 			bool same = (m_Rand.Rand() & 3) > 0;//25% chance of using the same post for all of them.
 			size_t b = 1 + m_Rand.Rand() % 6;
-
 			os << "mutate post xforms " << b << (same ? " same" : "");
 
 			for (size_t i = 0; i < ember.TotalXformCount(); i++)
@@ -305,24 +298,19 @@ public:
 					{
 						T f = T(M_PI) * m_Rand.Frand11<T>();
 						T ra, rb, rd, re;
-
 						ra = (xform->m_Affine.A() * std::cos(f) + xform->m_Affine.B() * -std::sin(f));
 						rd = (xform->m_Affine.A() * std::sin(f) + xform->m_Affine.D() *  std::cos(f));
 						rb = (xform->m_Affine.B() * std::cos(f) + xform->m_Affine.E() * -std::sin(f));
 						re = (xform->m_Affine.B() * std::sin(f) + xform->m_Affine.E() *  std::cos(f));
-
 						xform->m_Affine.A(ra);
 						xform->m_Affine.B(rb);
 						xform->m_Affine.D(rd);
 						xform->m_Affine.E(re);
-
 						f *= -1;
-
 						ra = (xform->m_Post.A() * std::cos(f) + xform->m_Post.B() * -std::sin(f));
 						rd = (xform->m_Post.A() * std::sin(f) + xform->m_Post.D() *  std::cos(f));
 						rb = (xform->m_Post.B() * std::cos(f) + xform->m_Post.E() * -std::sin(f));
 						re = (xform->m_Post.B() * std::sin(f) + xform->m_Post.E() *  std::cos(f));
-
 						xform->m_Post.A(ra);
 						xform->m_Post.B(rb);
 						xform->m_Post.D(rd);
@@ -340,9 +328,8 @@ public:
 
 						if (m_Rand.RandBit())
 							g = f;
-						else
-							if (m_Rand.RandBit())
-								g = 1 / g;
+						else if (m_Rand.RandBit())
+							g = 1 / g;
 
 						xform->m_Affine.A(xform->m_Affine.A() / f);
 						xform->m_Affine.D(xform->m_Affine.D() / f);
@@ -358,7 +345,6 @@ public:
 					{
 						T f = m_Rand.Frand11<T>();
 						T g = m_Rand.Frand11<T>();
-
 						xform->m_Affine.C(xform->m_Affine.C() - f);
 						xform->m_Affine.F(xform->m_Affine.F() - g);
 						xform->m_Post.C(xform->m_Post.C() + f);
@@ -473,7 +459,6 @@ public:
 			Ember<T> parents[2];
 			//t = 0.5;//If you ever need to test.
 			t = m_Rand.Frand01<T>();
-
 			parents[0] = ember0;
 			parents[1] = ember1;
 			parents[0].m_Time = T(0);
@@ -497,7 +482,6 @@ public:
 				got0 = got1 = 0;
 				rb = m_Rand.RandBit();
 				os << rb << ":";
-
 				//Copy the parent, sorting the final xform to the end if it's present.
 				emberOut = rb ? ember1 : ember0;
 				usedParent = rb;
@@ -556,8 +540,8 @@ public:
 					got0 = 1;
 				else if (usedParent == 1 && ember1.UseFinalXform())
 					got1 = 1;
-
-			} while ((i > 1) && !(got0 && got1));
+			}
+			while ((i > 1) && !(got0 && got1));
 
 			os << "cross alternate ";
 			os << trystr;
@@ -577,7 +561,6 @@ public:
 			//Select the starting parent.
 			size_t ci;
 			uint startParent = m_Rand.RandBit();
-
 			os << " cmap_cross " << startParent << ":";
 
 			//Loop over the entries, switching to the other parent 1% of the time.
@@ -604,7 +587,6 @@ public:
 	void Random(Ember<T>& ember, size_t maxVars)
 	{
 		vector<eVariationId> useVars;
-
 		Random(ember, useVars, static_cast<intmax_t>(m_Rand.Frand<T>(-2, 2)), 0, maxVars);
 	}
 
@@ -623,7 +605,6 @@ public:
 		glm::length_t i, j, k, n;
 		size_t varCount = m_VariationList.Size();
 		Palette<T> palette;
-
 		static size_t xformDistrib[] =
 		{
 			2, 2, 2, 2,
@@ -632,15 +613,14 @@ public:
 			5, 5,
 			6
 		};
-
 		ember.Clear();
 
 		if (m_PaletteList.Size())
 			ember.m_Palette = *m_PaletteList.GetRandomPalette();
 
 		ember.m_Time = 0;
-		ember.m_Interp = EMBER_INTERP_LINEAR;
-		ember.m_PaletteInterp = INTERP_HSV;
+		ember.m_Interp = eInterp::EMBER_INTERP_LINEAR;
+		ember.m_PaletteInterp = ePaletteInterp::INTERP_HSV;
 
 		//Choose the number of xforms.
 		if (specXforms > 0)
@@ -655,7 +635,6 @@ public:
 			if (addfinal)
 			{
 				Xform<T> xform;
-
 				xform.m_Affine.A(T(1.1));//Just put something in there so it doesn't show up as being an empty final xform.
 				ember.SetFinalXform(xform);
 			}
@@ -676,7 +655,6 @@ public:
 		for (i = 0; i < ember.TotalXformCount(); i++)
 		{
 			Xform<T>* xform = ember.GetTotalXform(i);
-
 			xform->m_Weight = T(1) / ember.TotalXformCount();
 			xform->m_ColorX = m_Rand.Frand01<T>();//Original pingponged between 0 and 1, which gives bad coloring. Ember does random instead.
 			xform->m_ColorY = m_Rand.Frand01<T>();//Will need to update this if 2D coordinates are ever supported.
@@ -733,6 +711,7 @@ public:
 						//but less than varCount. Probability leans
 						//towards fewer variations.
 						n = 2;
+
 						while (m_Rand.RandBit() && (n < varCount))
 							n++;
 
@@ -821,7 +800,6 @@ public:
 		size_t i;
 		T best, b;
 		Ember<T> bestEmber = ember;
-
 		best = TryColors(ember, colorResolution);
 
 		if (best < 0)
@@ -864,11 +842,9 @@ public:
 		size_t pixTotal, res3 = res * res * res;
 		T scalar;
 		Ember<T> adjustedEmber = ember;
-
 		adjustedEmber.m_Quality = 1;
 		adjustedEmber.m_Supersample = 1;
 		adjustedEmber.m_MaxRadDE = 0;
-
 		//Scale the image so that the total number of pixels is ~10,000.
 		pixTotal = ember.m_FinalRasW * ember.m_FinalRasH;
 		scalar = std::sqrt(T(10000) / pixTotal);
@@ -876,7 +852,6 @@ public:
 		adjustedEmber.m_FinalRasH = static_cast<size_t>(ember.m_FinalRasH  * scalar);
 		adjustedEmber.m_PixelsPerUnit *= scalar;
 		adjustedEmber.m_TemporalSamples = 1;
-
 		m_Renderer->SetEmber(adjustedEmber);
 		m_Renderer->BytesPerChannel(1);
 		m_Renderer->EarlyClip(true);
@@ -884,7 +859,7 @@ public:
 		m_Renderer->ThreadCount(Timing::ProcessorCount());
 		m_Renderer->Callback(nullptr);
 
-		if (m_Renderer->Run(m_FinalImage) != RENDER_OK)
+		if (m_Renderer->Run(m_FinalImage) != eRenderStatus::RENDER_OK)
 		{
 			cout << "Error rendering test image for TryColors().  Aborting." << endl;
 			return -1;
@@ -892,7 +867,6 @@ public:
 
 		m_Hist.resize(res3);
 		memset(m_Hist.data(), 0, res3);
-
 		p = m_FinalImage.data();
 
 		for (i = 0; i < m_Renderer->FinalDimensions(); i++)
@@ -1052,17 +1026,13 @@ public:
 		{
 			//Align what's going to be interpolated.
 			Interpolater<T>::Align(prealign, spun, 2);
-
 			spun[0].m_Time = 0;
 			spun[1].m_Time = 1;
-
 			//Call this first to establish the asymmetric reference angles.
 			Interpolater<T>::AsymmetricRefAngles(spun, 2);
-
 			//Rotate the aligned xforms.
 			spun[0].RotateAffines(-blend * 360);
 			spun[1].RotateAffines(-blend * 360);
-
 			Interpolater<T>::Interpolate(spun, 2, m_Smooth ? Interpolater<T>::Smoother(blend) : blend, m_Stagger, result);
 		}
 
@@ -1084,7 +1054,6 @@ public:
 	void Spin(Ember<T>& parent, Ember<T>* templ, Ember<T>& result, size_t frame, T blend)
 	{
 		char temp[50];
-
 		//Spin the parent blend degrees.
 		Loop(parent, result, blend);
 
@@ -1094,17 +1063,14 @@ public:
 
 		//Set ember parameters accordingly.
 		result.m_Time = T(frame);
-		result.m_Interp = EMBER_INTERP_LINEAR;
-		result.m_PaletteInterp = INTERP_HSV;
-
+		result.m_Interp = eInterp::EMBER_INTERP_LINEAR;
+		result.m_PaletteInterp = ePaletteInterp::INTERP_HSV;
 		//Create the edit doc xml.
 		sprintf_s(temp, 50, "rotate %g", blend * 360.0);
 		result.ClearEdit();
 		result.m_Edits = m_EmberToXml.CreateNewEditdoc(&parent, nullptr, temp, m_Nick, m_Url, m_Id, m_Comment, m_SheepGen, m_SheepId);
-
 		//Subpixel jitter.
 		Offset(result, m_OffsetX, m_OffsetY);
-
 		//Make the name of the flame the time.
 		sprintf_s(temp, 50, "%f", result.m_Time);
 		result.m_Name = string(temp);
@@ -1125,7 +1091,6 @@ public:
 	void SpinInter(Ember<T>* parents, Ember<T>* templ, Ember<T>& result, size_t frame, bool seqFlag, T blend)
 	{
 		char temp[50];
-
 		//Interpolate between spun parents.
 		Edge(parents, result, blend, seqFlag);
 
@@ -1137,15 +1102,12 @@ public:
 
 		//Set ember parameters accordingly.
 		result.m_Time = T(frame);
-
 		//Create the edit doc xml.
 		sprintf_s(temp, 50, "interpolate %g", blend * 360.0);
 		result.ClearEdit();
 		result.m_Edits = m_EmberToXml.CreateNewEditdoc(&parents[0], &parents[1], temp, m_Nick, m_Url, m_Id, m_Comment, m_SheepGen, m_SheepId);
-
 		//Subpixel jitter.
 		Offset(result, m_OffsetX, m_OffsetY);
-
 		//Make the name of the flame the time.
 		sprintf_s(temp, 50, "%f", result.m_Time);
 		result.m_Name = string(temp);
@@ -1200,16 +1162,16 @@ public:
 		if (templ.m_GammaThresh >= 0)
 			ember.m_GammaThresh = templ.m_GammaThresh;
 
-		if (templ.m_SpatialFilterType > 0)
+		if (templ.m_SpatialFilterType > eSpatialFilterType::GAUSSIAN_SPATIAL_FILTER)
 			ember.m_SpatialFilterType = templ.m_SpatialFilterType;
 
-		if (templ.m_Interp >= 0)
+		if (templ.m_Interp >= eInterp::EMBER_INTERP_LINEAR)
 			ember.m_Interp = templ.m_Interp;
 
-		if (templ.m_AffineInterp >= 0)
+		if (templ.m_AffineInterp >= eAffineInterp::AFFINE_INTERP_LINEAR)
 			ember.m_AffineInterp = templ.m_AffineInterp;
 
-		if (templ.m_TemporalFilterType >= 0)
+		if (templ.m_TemporalFilterType >= eTemporalFilterType::BOX_TEMPORAL_FILTER)
 			ember.m_TemporalFilterType = templ.m_TemporalFilterType;
 
 		if (templ.m_TemporalFilterWidth > 0)
@@ -1221,7 +1183,7 @@ public:
 		if (templ.m_HighlightPower >= 0)
 			ember.m_HighlightPower = templ.m_HighlightPower;
 
-		if (templ.m_PaletteMode >= 0)
+		if (templ.m_PaletteMode >= ePaletteMode::PALETTE_STEP)
 			ember.m_PaletteMode = templ.m_PaletteMode;
 	}
 
@@ -1254,7 +1216,6 @@ public:
 		T th = by * 2 * T(M_PI) / 360;
 		T c = std::cos(th);
 		T s = -std::sin(th);
-
 		newCenterX -= oldCenterX;
 		newCenterY -= oldCenterY;
 		r[0] = c * newCenterX - s * newCenterY;
@@ -1279,7 +1240,6 @@ public:
 		size_t i, lowTarget, highTarget;
 		T min[2], max[2];
 		IterParams<T> params;
-
 		m_Renderer->SetEmber(ember);
 		m_Renderer->CreateSpatialFilter(newAlloc);
 		m_Renderer->CreateDEFilter(newAlloc);
@@ -1298,7 +1258,6 @@ public:
 		params.m_Skip = 20;
 		//params.m_OneColDiv2 = m_Renderer->CoordMap().OneCol() / 2;
 		//params.m_OneRowDiv2 = m_Renderer->CoordMap().OneRow() / 2;
-
 		size_t bv = m_Iterator->Iterate(ember, params, m_Samples.data(), m_Rand);//Use a special fuse of 20, all other calls to this will use 15, or 100.
 
 		if (bv / T(samples) > eps)
@@ -1309,15 +1268,17 @@ public:
 
 		lowTarget = static_cast<size_t>(samples * eps);
 		highTarget = samples - lowTarget;
-
 		min[0] = min[1] =  1e10;
 		max[0] = max[1] = -1e10;
 
 		for (i = 0; i < samples; i++)
 		{
 			if (m_Samples[i].m_X < min[0]) min[0] = m_Samples[i].m_X;
+
 			if (m_Samples[i].m_Y < min[1]) min[1] = m_Samples[i].m_Y;
+
 			if (m_Samples[i].m_X > max[0]) max[0] = m_Samples[i].m_X;
+
 			if (m_Samples[i].m_Y > max[1]) max[1] = m_Samples[i].m_Y;
 		}
 
@@ -1327,18 +1288,15 @@ public:
 			bmin[1] = min[1];
 			bmax[0] = max[0];
 			bmax[1] = max[1];
-
 			return bv;
 		}
 
 		std::sort(m_Samples.begin(), m_Samples.end(), &SortPointByX<T>);
 		bmin[0] = m_Samples[lowTarget].m_X;
 		bmax[0] = m_Samples[highTarget].m_X;
-
 		std::sort(m_Samples.begin(), m_Samples.end(), &SortPointByY<T>);
 		bmin[1] = m_Samples[lowTarget + 1].m_Y;
 		bmax[1] = m_Samples[highTarget + 1].m_Y;
-
 		return bv;
 	}
 

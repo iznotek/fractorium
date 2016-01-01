@@ -219,7 +219,7 @@ public:
 	void StopRenderTimer(bool wait);
 	void ClearFinalImages();
 	void Shutdown();
-	void UpdateRender(eProcessAction action = FULL_RENDER);
+	void UpdateRender(eProcessAction action = eProcessAction::FULL_RENDER);
 	void DeleteRenderer();
 	void SaveCurrentRender(const QString& filename, const EmberImageComments& comments, vector<byte>& pixels, size_t width, size_t height, size_t channels, size_t bpc);
 	RendererBase* Renderer() { return m_Renderer.get(); }
@@ -231,7 +231,7 @@ protected:
 	//Rendering/progress.
 	void AddProcessAction(eProcessAction action);
 	eProcessAction CondenseAndClearProcessActions();
-	eProcessState ProcessState() { return m_Renderer.get() ? m_Renderer->ProcessState() : NONE; }
+	eProcessState ProcessState() { return m_Renderer.get() ? m_Renderer->ProcessState() : eProcessState::NONE; }
 
 	//Non-templated members.
 	bool m_Rendering;
@@ -473,13 +473,13 @@ private:
 	QString MakeXformCaption(size_t i);
 	bool XformCheckboxAt(int i, std::function<void(QCheckBox*)> func);
 	bool XformCheckboxAt(Xform<T>* xform, std::function<void(QCheckBox*)> func);
-	void UpdateXform(std::function<void(Xform<T>*)> func, eXformUpdate updateType = eXformUpdate::UPDATE_CURRENT, bool updateRender = true, eProcessAction action = FULL_RENDER);
+	void UpdateXform(std::function<void(Xform<T>*)> func, eXformUpdate updateType = eXformUpdate::UPDATE_CURRENT, bool updateRender = true, eProcessAction action = eProcessAction::FULL_RENDER);
 
 	//Palette.
 	void UpdateAdjustedPaletteGUI(Palette<T>& palette);
 
 	//Rendering/progress.
-	void Update(std::function<void (void)> func, bool updateRender = true, eProcessAction action = FULL_RENDER);
+	void Update(std::function<void (void)> func, bool updateRender = true, eProcessAction action = eProcessAction::FULL_RENDER);
 	bool SyncSizes();
 
 	//Templated members.

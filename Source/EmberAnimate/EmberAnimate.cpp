@@ -354,7 +354,7 @@ bool EmberAnimate(EmberOptions& opt)
 
 			renderer->Reset();
 
-			if ((renderer->Run(finalImages[finalImageIndex], localTime) != RENDER_OK) || renderer->Aborted() || finalImages[finalImageIndex].empty())
+			if ((renderer->Run(finalImages[finalImageIndex], localTime) != eRenderStatus::RENDER_OK) || renderer->Aborted() || finalImages[finalImageIndex].empty())
 			{
 				cout << "Error: image rendering failed, skipping to next image." << endl;
 				renderer->DumpErrorReport();//Something went wrong, print errors.

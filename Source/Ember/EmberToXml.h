@@ -43,7 +43,6 @@ public:
 	bool Save(const string& filename, Ember<T>& ember, size_t printEditDepth, bool doEdits, bool intPalette, bool hexPalette, bool append = false, bool start = false, bool finish = false)
 	{
 		vector<Ember<T>> vec;
-
 		vec.push_back(ember);
 		return Save(filename, vec, printEditDepth, doEdits, intPalette, hexPalette, append, start, finish);
 	}
@@ -154,7 +153,6 @@ public:
 		string s;
 		ostringstream os;
 		vector<Variation<T>*> variations;
-
 		os << "<flame version=\"EMBER-" << EmberVersion() << "\" time=\"" << ember.m_Time << "\"";
 
 		if (!ember.m_Name.empty())
@@ -170,11 +168,10 @@ public:
 		os << " rotate=\"" << ember.m_Rotate << "\"";
 		os << " supersample=\"" << std::max<size_t>(1, ember.m_Supersample) << "\"";
 		os << " filter=\"" << ember.m_SpatialFilterRadius << "\"";
-
 		os << " filter_shape=\"" << ToLower(SpatialFilterCreator<T>::ToString(ember.m_SpatialFilterType)) << "\"";
 		os << " temporal_filter_type=\"" << ToLower(TemporalFilterCreator<T>::ToString(ember.m_TemporalFilterType)) << "\"";
 
-		if (ember.m_TemporalFilterType == EXP_TEMPORAL_FILTER)
+		if (ember.m_TemporalFilterType == eTemporalFilterType::EXP_TEMPORAL_FILTER)
 			os << " temporal_filter_exp=\"" << ember.m_TemporalFilterExp << "\"";
 
 		os << " temporal_filter_width=\"" << ember.m_TemporalFilterWidth << "\"";
@@ -197,26 +194,26 @@ public:
 		os << " cam_pitch=\"" << ember.m_CamPitch << "\"";
 		os << " cam_dof=\"" << ember.m_CamDepthBlur << "\"";
 
-		if (ember.m_PaletteMode == PALETTE_STEP)
+		if (ember.m_PaletteMode == ePaletteMode::PALETTE_STEP)
 			os << " palette_mode=\"step\"";
-		else if (ember.m_PaletteMode == PALETTE_LINEAR)
+		else if (ember.m_PaletteMode == ePaletteMode::PALETTE_LINEAR)
 			os << " palette_mode=\"linear\"";
 
-		if (ember.m_Interp == EMBER_INTERP_LINEAR)
+		if (ember.m_Interp == eInterp::EMBER_INTERP_LINEAR)
 			os << " interpolation=\"linear\"";
-		else if (ember.m_Interp == EMBER_INTERP_SMOOTH)
+		else if (ember.m_Interp == eInterp::EMBER_INTERP_SMOOTH)
 			os << " interpolation=\"smooth\"";
 
-		if (ember.m_AffineInterp == AFFINE_INTERP_LINEAR)
+		if (ember.m_AffineInterp == eAffineInterp::AFFINE_INTERP_LINEAR)
 			os << " interpolation_type=\"linear\"";
-		else if (ember.m_AffineInterp == AFFINE_INTERP_LOG)
+		else if (ember.m_AffineInterp == eAffineInterp::AFFINE_INTERP_LOG)
 			os << " interpolation_type=\"log\"";
-		else if (ember.m_AffineInterp == AFFINE_INTERP_COMPAT)
+		else if (ember.m_AffineInterp == eAffineInterp::AFFINE_INTERP_COMPAT)
 			os << " interpolation_type=\"old\"";
-		else if (ember.m_AffineInterp == AFFINE_INTERP_OLDER)
+		else if (ember.m_AffineInterp == eAffineInterp::AFFINE_INTERP_OLDER)
 			os << " interpolation_type=\"older\"";
 
-		if (ember.m_PaletteInterp == INTERP_SWEEP)
+		if (ember.m_PaletteInterp == ePaletteInterp::INTERP_SWEEP)
 			os << " palette_interpolation=\"sweep\"";
 
 		if (!extraAttributes.empty())
@@ -273,7 +270,6 @@ public:
 				for (j = 0; j < 8; j++)
 				{
 					size_t idx = 8 * i + j;
-
 					os << hex << setw(2) << setfill('0') << int(Rint(ember.m_Palette[idx][0] * 255));
 					os << hex << setw(2) << setfill('0') << int(Rint(ember.m_Palette[idx][1] * 255));
 					os << hex << setw(2) << setfill('0') << int(Rint(ember.m_Palette[idx][2] * 255));
@@ -292,8 +288,8 @@ public:
 				double g = ember.m_Palette[i][1] * 255;
 				double b = ember.m_Palette[i][2] * 255;
 				double a = ember.m_Palette[i][3] * 255;
-
 				os << "   ";
+
 				//The original used a precision of 6 which is totally unnecessary, use 2.
 				if (IsClose(a, 255.0))
 				{
@@ -318,7 +314,6 @@ public:
 			os << ToString(xmlDocGetRootElement(ember.m_Edits), 1, true, printEditDepth);
 
 		os << "</flame>\n";
-
 		return os.str();
 	}
 
@@ -347,11 +342,9 @@ public:
 		xmlNodePtr rootNode = nullptr, node = nullptr, nodeCopy = nullptr;
 		xmlNodePtr rootComment = nullptr;
 		ostringstream os;
-
 		//Create the root node, called "edit".
 		rootNode = xmlNewNode(nullptr, XC("edit"));
 		xmlDocSetRootElement(doc, rootNode);
-
 		//Add the edit attributes.
 		//Date.
 		myTime = time(nullptr);
@@ -385,13 +378,11 @@ public:
 		{
 			//Create a child node of the root node called sheep.
 			node = xmlNewChild(rootNode, nullptr, XC("sheep"), nullptr);
-
 			//Create the sheep attributes.
 			os << sheepGen;
 			s = os.str();
 			xmlNewProp(node, XC("generation"), XC(s.c_str()));
 			os.str("");
-
 			os << sheepId;
 			s = os.str();
 			xmlNewProp(node, XC("id"), XC(s.c_str()));
@@ -411,7 +402,6 @@ public:
 				node = xmlDocGetRootElement(parent0->m_Edits);
 				nodeCopy = xmlCopyNode(node, 1);
 				AddFilenameWithoutAmpersand(nodeCopy, parent0->m_ParentFilename);
-
 				xmlNewProp(nodeCopy, XC("index"), XC(s.c_str()));
 				xmlAddChild(rootNode, nodeCopy);
 			}
@@ -443,7 +433,7 @@ public:
 			else
 			{
 				//Insert a (parent has no edit) message.
-				nodeCopy = xmlNewChild(rootNode, nullptr, XC("edit"),nullptr);
+				nodeCopy = xmlNewChild(rootNode, nullptr, XC("edit"), nullptr);
 				AddFilenameWithoutAmpersand(nodeCopy, parent1->m_ParentFilename);
 				xmlNewProp(nodeCopy, XC("index"), XC(s.c_str()));
 			}
@@ -468,7 +458,6 @@ public:
 			//Check for errors.
 			if (commentDoc)
 			{
-
 				//Loop through the children of the new document and copy them into the rootNode.
 				rootComment = xmlDocGetRootElement(commentDoc);
 
@@ -509,13 +498,13 @@ private:
 		{
 			os << "      <motion motion_frequency=\"" << xform.m_MotionFreq << "\" ";
 
-			if (xform.m_MotionFunc == MOTION_SIN)
+			if (xform.m_MotionFunc == eMotion::MOTION_SIN)
 				os << "motion_function=\"sin\" ";
-			else if (xform.m_MotionFunc == MOTION_TRIANGLE)
+			else if (xform.m_MotionFunc == eMotion::MOTION_TRIANGLE)
 				os << "motion_function=\"triangle\" ";
-			else if (xform.m_MotionFunc== MOTION_HILL)
+			else if (xform.m_MotionFunc == eMotion::MOTION_HILL)
 				os << "motion_function=\"hill\" ";
-			else if (xform.m_MotionFunc== MOTION_SAW)
+			else if (xform.m_MotionFunc == eMotion::MOTION_SAW)
 				os << "motion_function=\"saw\" ";
 
 			if (xform.m_MotionOffset != 0)
@@ -530,15 +519,17 @@ private:
 		}
 
 		if (!doMotion || xform.m_ColorX != EMPTYFIELD) os << "color=\"" << xform.m_ColorX << "\" ";
+
 		//if (!doMotion || xform.m_ColorY != EMPTYFIELD) os << "color=\"" << xform.m_ColorX << " " << xform.m_ColorY << "\" ";
 		if (!doMotion || xform.m_DirectColor != EMPTYFIELD) os << "var_color=\"" << xform.m_DirectColor << "\" ";
+
 		if (!doMotion || xform.m_ColorSpeed != EMPTYFIELD) os << "color_speed=\"" << xform.m_ColorSpeed << "\" ";
+
 		//os << "symmetry=\"" << fabs(xform.m_ColorSpeed - 1) * 2 << "\" ";//Legacy support.
 
 		if (!doMotion)
 		{
 			string s = xform.m_Name;
-
 			std::replace(s.begin(), s.end(), ' ', '_');
 			os << "name=\"" << s << "\" ";//Flam3 didn't do this, but Apo does.
 
@@ -575,13 +566,13 @@ private:
 		if (!doMotion || (doMotion && !xform.m_Affine.IsZero() && !xform.m_Affine.IsEmpty()))
 		{
 			os << "coefs=\"" << xform.m_Affine.A() << " " << xform.m_Affine.D() << " " << xform.m_Affine.B() << " "
-				 << xform.m_Affine.E() << " " << xform.m_Affine.C() << " " << xform.m_Affine.F() << "\"";
+			   << xform.m_Affine.E() << " " << xform.m_Affine.C() << " " << xform.m_Affine.F() << "\"";
 		}
 
 		if ((!doMotion && !xform.m_Post.IsID()) || (doMotion && !xform.m_Post.IsZero() && !xform.m_Post.IsEmpty()))
 		{
 			os << " post=\"" << xform.m_Post.A() << " " << xform.m_Post.D() << " " << xform.m_Post.B() << " "
-				<< xform.m_Post.E() << " " << xform.m_Post.C() << " " << xform.m_Post.F() << "\"";
+			   << xform.m_Post.E() << " " << xform.m_Post.C() << " " << xform.m_Post.F() << "\"";
 		}
 
 		//Original only printed xaos values that were not 1. Here, print them all out if any are present.
@@ -655,10 +646,10 @@ private:
 				tabs++;
 			}
 			else if (!Compare(editNode->name, sheepString)) { }
-				//editOrSheep = 2;
+			//editOrSheep = 2;
 			else { }
-				//editOrSheep = 0;
 
+			//editOrSheep = 0;
 			//Print the attributes.
 			attPtr = editNode->properties;
 
@@ -696,7 +687,7 @@ private:
 				{
 					//If child is an element, indent first and then print it.
 					if (curChild->type == XML_ELEMENT_NODE &&
-					   (!Compare(curChild->name, editString) || !Compare(curChild->name, sheepString)))
+							(!Compare(curChild->name, editString) || !Compare(curChild->name, sheepString)))
 					{
 						if (indentPrinted)
 						{
@@ -765,19 +756,22 @@ private:
 
 		switch (motion.m_MotionFunc)
 		{
-		case MOTION_SIN:
-			os << "\"sin\"";
-			break;
-		case MOTION_HILL:
-			os << "\"hill\"";
-			break;
-		case MOTION_TRIANGLE:
-			os << "\"triangle\"";
-			break;
-		default:
-		case MOTION_SAW:
-			os << "\"saw\"";
-			break;
+			case eMotion::MOTION_SIN:
+				os << "\"sin\"";
+				break;
+
+			case eMotion::MOTION_HILL:
+				os << "\"hill\"";
+				break;
+
+			case eMotion::MOTION_TRIANGLE:
+				os << "\"triangle\"";
+				break;
+
+			case eMotion::MOTION_SAW:
+			default:
+				os << "\"saw\"";
+				break;
 		}
 
 		T r = 0.0;
@@ -788,62 +782,79 @@ private:
 
 		for (size_t i = 0; i < motion.m_MotionParams.size(); ++i)
 		{
-			switch(motion.m_MotionParams[i].first)
+			switch (motion.m_MotionParams[i].first)
 			{
-			case FLAME_MOTION_ZOOM:
-				os << " zoom=\"" << motion.m_MotionParams[i].second << "\"";
-				break;
-			case FLAME_MOTION_ZPOS:
-				os << " cam_zpos=\"" << motion.m_MotionParams[i].second << "\"";
-				break;
-			case FLAME_MOTION_PERSPECTIVE:
-				os << " cam_persp=\"" << motion.m_MotionParams[i].second << "\"";
-				break;
-			case FLAME_MOTION_YAW:
-				os << " cam_yaw=\"" << motion.m_MotionParams[i].second << "\"";
-				break;
-			case FLAME_MOTION_PITCH:
-				os << " cam_pitch=\"" << motion.m_MotionParams[i].second << "\"";
-				break;
-			case FLAME_MOTION_DEPTH_BLUR:
-				os << " cam_dof=\"" << motion.m_MotionParams[i].second << "\"";
-				break;
-			case FLAME_MOTION_CENTER_X:
-				cx = motion.m_MotionParams[i].second;
-				break;
-			case FLAME_MOTION_CENTER_Y:
-				cy = motion.m_MotionParams[i].second;
-				break;
-			case FLAME_MOTION_ROTATE:
-				os << " rotate=\"" << motion.m_MotionParams[i].second << "\"";
-				break;
-			case FLAME_MOTION_BRIGHTNESS:
-				os << " brightness=\"" << motion.m_MotionParams[i].second << "\"";
-				break;
-			case FLAME_MOTION_GAMMA:
-				os << " gamma=\"" << motion.m_MotionParams[i].second << "\"";
-				break;
-			case FLAME_MOTION_GAMMA_THRESH:
-				os << " gamma_threshold=\"" << motion.m_MotionParams[i].second << "\"";
-				break;
-			case FLAME_MOTION_HIGHLIGHT_POWER:
-				os << " highlight_power=\"" << motion.m_MotionParams[i].second << "\"";
-				break;
-			case FLAME_MOTION_BACKGROUND_R:
-				r = motion.m_MotionParams[i].second;
-				break;
-			case FLAME_MOTION_BACKGROUND_G:
-				g = motion.m_MotionParams[i].second;
-				break;
-			case FLAME_MOTION_BACKGROUND_B:
-				b = motion.m_MotionParams[i].second;
-				break;
-			case FLAME_MOTION_VIBRANCY:
-				os << " vibrancy=\"" << motion.m_MotionParams[i].second << "\"";
-				break;
-			case FLAME_MOTION_NONE:
-			default:
-				break;
+				case eEmberMotionParam::FLAME_MOTION_ZOOM:
+					os << " zoom=\"" << motion.m_MotionParams[i].second << "\"";
+					break;
+
+				case eEmberMotionParam::FLAME_MOTION_ZPOS:
+					os << " cam_zpos=\"" << motion.m_MotionParams[i].second << "\"";
+					break;
+
+				case eEmberMotionParam::FLAME_MOTION_PERSPECTIVE:
+					os << " cam_persp=\"" << motion.m_MotionParams[i].second << "\"";
+					break;
+
+				case eEmberMotionParam::FLAME_MOTION_YAW:
+					os << " cam_yaw=\"" << motion.m_MotionParams[i].second << "\"";
+					break;
+
+				case eEmberMotionParam::FLAME_MOTION_PITCH:
+					os << " cam_pitch=\"" << motion.m_MotionParams[i].second << "\"";
+					break;
+
+				case eEmberMotionParam::FLAME_MOTION_DEPTH_BLUR:
+					os << " cam_dof=\"" << motion.m_MotionParams[i].second << "\"";
+					break;
+
+				case eEmberMotionParam::FLAME_MOTION_CENTER_X:
+					cx = motion.m_MotionParams[i].second;
+					break;
+
+				case eEmberMotionParam::FLAME_MOTION_CENTER_Y:
+					cy = motion.m_MotionParams[i].second;
+					break;
+
+				case eEmberMotionParam::FLAME_MOTION_ROTATE:
+					os << " rotate=\"" << motion.m_MotionParams[i].second << "\"";
+					break;
+
+				case eEmberMotionParam::FLAME_MOTION_BRIGHTNESS:
+					os << " brightness=\"" << motion.m_MotionParams[i].second << "\"";
+					break;
+
+				case eEmberMotionParam::FLAME_MOTION_GAMMA:
+					os << " gamma=\"" << motion.m_MotionParams[i].second << "\"";
+					break;
+
+				case eEmberMotionParam::FLAME_MOTION_GAMMA_THRESH:
+					os << " gamma_threshold=\"" << motion.m_MotionParams[i].second << "\"";
+					break;
+
+				case eEmberMotionParam::FLAME_MOTION_HIGHLIGHT_POWER:
+					os << " highlight_power=\"" << motion.m_MotionParams[i].second << "\"";
+					break;
+
+				case eEmberMotionParam::FLAME_MOTION_BACKGROUND_R:
+					r = motion.m_MotionParams[i].second;
+					break;
+
+				case eEmberMotionParam::FLAME_MOTION_BACKGROUND_G:
+					g = motion.m_MotionParams[i].second;
+					break;
+
+				case eEmberMotionParam::FLAME_MOTION_BACKGROUND_B:
+					b = motion.m_MotionParams[i].second;
+					break;
+
+				case eEmberMotionParam::FLAME_MOTION_VIBRANCY:
+					os << " vibrancy=\"" << motion.m_MotionParams[i].second << "\"";
+					break;
+
+				case eEmberMotionParam::FLAME_MOTION_NONE:
+				default:
+					break;
 			}
 		}
 
@@ -854,7 +865,6 @@ private:
 			os << " center=\"" << cx << " " << cy << "\"";
 
 		os << "/>\n";
-
 		return os.str();
 	}
 
@@ -863,7 +873,6 @@ private:
 		if (filename.find_first_of('&') != std::string::npos)
 		{
 			string filenameWithoutAmpersands = filename;
-
 			FindAndReplace<string>(filenameWithoutAmpersands, "&", "&amp;");
 			xmlNewProp(node, XC("filename"), XC(filenameWithoutAmpersands.c_str()));
 		}

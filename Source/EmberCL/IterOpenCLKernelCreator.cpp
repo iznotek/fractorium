@@ -455,7 +455,7 @@ string IterOpenCLKernelCreator<T>::CreateIterKernelString(const Ember<T>& ember,
 		//Basic texture index interoplation does not produce identical results
 		//to the CPU. So the code here must explicitly do the same thing and not
 		//rely on the GPU texture coordinate lookup.
-		if (ember.m_PaletteMode == PALETTE_LINEAR)
+		if (ember.m_PaletteMode == ePaletteMode::PALETTE_LINEAR)
 		{
 			os <<
 			   "				real_t colorIndexFrac;\n"
@@ -484,7 +484,7 @@ string IterOpenCLKernelCreator<T>::CreateIterKernelString(const Ember<T>& ember,
 			   "				palColor2 = read_imagef(palette, paletteSampler, iPaletteCoord);\n"
 			   "				palColor1 = (palColor1 * (1.0f - (float)colorIndexFrac)) + (palColor2 * (float)colorIndexFrac);\n";//The 1.0f here *must* have the 'f' suffix at the end to compile.
 		}
-		else if (ember.m_PaletteMode == PALETTE_STEP)
+		else if (ember.m_PaletteMode == ePaletteMode::PALETTE_STEP)
 		{
 			os <<
 			   "				iPaletteCoord.x = (int)(secondPoint.m_ColorX * COLORMAP_LENGTH);\n"
@@ -922,9 +922,9 @@ string IterOpenCLKernelCreator<T>::CreateProjectionString(const Ember<T>& ember)
 
 	if (projBits)
 	{
-		if (projBits & PROJBITS_BLUR)
+		if (projBits & size_t(eProjBits::PROJBITS_BLUR))
 		{
-			if (projBits & PROJBITS_YAW)
+			if (projBits & size_t(eProjBits::PROJBITS_YAW))
 			{
 				os <<
 				   "		real_t dsin, dcos;\n"
@@ -967,9 +967,9 @@ string IterOpenCLKernelCreator<T>::CreateProjectionString(const Ember<T>& ember)
 				   "		secondPoint.m_Z -= ember->m_CamZPos;\n";
 			}
 		}
-		else if ((projBits & PROJBITS_PITCH) || (projBits & PROJBITS_YAW))
+		else if ((projBits & size_t(eProjBits::PROJBITS_PITCH)) || (projBits & size_t(eProjBits::PROJBITS_YAW)))
 		{
-			if (projBits & PROJBITS_YAW)
+			if (projBits & size_t(eProjBits::PROJBITS_YAW))
 			{
 				os <<
 				   "		real_t z  = secondPoint.m_Z - ember->m_CamZPos;\n"

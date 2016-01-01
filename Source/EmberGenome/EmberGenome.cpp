@@ -11,8 +11,8 @@ template <typename T>
 void SetDefaultTestValues(Ember<T>& ember)
 {
 	ember.m_Time = 0.0;
-	ember.m_Interp = EMBER_INTERP_LINEAR;
-	ember.m_PaletteInterp = INTERP_HSV;
+	ember.m_Interp = eInterp::EMBER_INTERP_LINEAR;
+	ember.m_PaletteInterp = ePaletteInterp::INTERP_HSV;
 	ember.m_Background[0] = 0;
 	ember.m_Background[1] = 0;
 	ember.m_Background[2] = 0;
@@ -25,7 +25,7 @@ void SetDefaultTestValues(Ember<T>& ember)
 	ember.m_FinalRasH = 128;
 	ember.m_Supersample = 1;
 	ember.m_SpatialFilterRadius = T(0.5);
-	ember.m_SpatialFilterType = GAUSSIAN_SPATIAL_FILTER;
+	ember.m_SpatialFilterType = eSpatialFilterType::GAUSSIAN_SPATIAL_FILTER;
 	ember.m_Zoom = 0;
 	ember.m_Quality = 1;
 	ember.m_TemporalSamples = 1;
@@ -353,7 +353,7 @@ bool EmberGenome(EmberOptions& opt)
 				}
 
 				if (!exactTimeMatch)
-					interpolated.m_AffineInterp = AFFINE_INTERP_LINEAR;
+					interpolated.m_AffineInterp = eAffineInterp::AFFINE_INTERP_LINEAR;
 			}
 
 			if (pTemplate)
@@ -685,7 +685,7 @@ bool EmberGenome(EmberOptions& opt)
 				SetDefaultTestValues(orig);
 				renderer->SetEmber(orig);
 
-				if (renderer->Run(finalImage) != RENDER_OK)
+				if (renderer->Run(finalImage) != eRenderStatus::RENDER_OK)
 				{
 					cerr << "Error: test image rendering failed, aborting." << endl;
 					return false;

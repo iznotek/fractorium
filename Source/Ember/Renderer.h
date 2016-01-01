@@ -56,7 +56,7 @@ public:
 	virtual void ComputeBounds() override;
 	virtual void ComputeQuality() override;
 	virtual void ComputeCamera() override;
-	virtual void SetEmber(Ember<T>& ember, eProcessAction action = FULL_RENDER) override;
+	virtual void SetEmber(Ember<T>& ember, eProcessAction action = eProcessAction::FULL_RENDER) override;
 	virtual void SetEmber(vector<Ember<T>>& embers) override;
 	virtual bool CreateDEFilter(bool& newAlloc) override;
 	virtual bool CreateSpatialFilter(bool& newAlloc) override;
@@ -146,7 +146,7 @@ protected:
 	//Non-virtual functions that might be needed by a derived class.
 	void PrepFinalAccumVals(Color<bucketT>& background, bucketT& g, bucketT& linRange, bucketT& vibrancy);
 
-	private:
+private:
 	//Miscellaneous non-virtual functions used only in this class.
 	void Accumulate(QTIsaac<ISAAC_SIZE, ISAAC_INT>& rand, Point<T>* samples, size_t sampleCount, const Palette<bucketT>* palette);
 	/*inline*/ void AddToAccum(const tvec4<bucketT, glm::defaultp>& bucket, intmax_t i, intmax_t ii, intmax_t j, intmax_t jj);

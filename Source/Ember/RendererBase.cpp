@@ -8,7 +8,7 @@ namespace EmberNs
 /// The thread count is set to the number of cores detected on the system.
 /// </summary>
 RendererBase::RendererBase()
-	:m_TaskGroup(new tbb::task_group)
+	: m_TaskGroup(new tbb::task_group)
 {
 	m_Abort = false;
 	m_LockAccum = false;
@@ -27,10 +27,10 @@ RendererBase::RendererBase()
 	m_LastTemporalSample = 0;
 	m_LastIter = 0;
 	m_LastIterPercent = 0;
-	m_InteractiveFilter = FILTER_LOG;
+	m_InteractiveFilter = eInteractiveFilter::FILTER_LOG;
 	m_Priority = eThreadPriority::NORMAL;
-	m_ProcessState = NONE;
-	m_ProcessAction = FULL_RENDER;
+	m_ProcessState = eProcessState::NONE;
+	m_ProcessAction = eProcessAction::FULL_RENDER;
 	m_InRender = false;
 	m_InFinalAccum = false;
 }
@@ -56,62 +56,62 @@ void RendererBase::ChangeVal(std::function<void(void)> func, eProcessAction acti
 	func();
 
 	//If they want a full render, don't bother inspecting process state, just start over.
-	if (action == FULL_RENDER)
+	if (action == eProcessAction::FULL_RENDER)
 	{
-		m_ProcessState = NONE;
-		m_ProcessAction = FULL_RENDER;
+		m_ProcessState = eProcessState::NONE;
+		m_ProcessAction = eProcessAction::FULL_RENDER;
 	}
 	//Keep iterating is when rendering has completed and the user increases the quality.
 	//Rendering can be started where it left off by adding just the difference between the
 	//new and old quality values.
-	else if (action == KEEP_ITERATING)
+	else if (action == eProcessAction::KEEP_ITERATING)
 	{
-		if (m_ProcessState == ACCUM_DONE && TemporalSamples() == 1)
+		if (m_ProcessState == eProcessState::ACCUM_DONE && TemporalSamples() == 1)
 		{
-			m_ProcessState = ITER_STARTED;
-			m_ProcessAction = KEEP_ITERATING;
+			m_ProcessState = eProcessState::ITER_STARTED;
+			m_ProcessAction = eProcessAction::KEEP_ITERATING;
 		}
 		else//Invaid process state to handle KEEP_ITERATING, so just start over.
 		{
-			m_ProcessState = NONE;
-			m_ProcessAction = FULL_RENDER;
+			m_ProcessState = eProcessState::NONE;
+			m_ProcessAction = eProcessAction::FULL_RENDER;
 		}
 	}
-	else if (action == FILTER_AND_ACCUM)
+	else if (action == eProcessAction::FILTER_AND_ACCUM)
 	{
 		//If in the middle of a render, cannot skip to filtering or accum, so just start over.
-		if (m_ProcessState == NONE || m_ProcessState == ITER_STARTED)
+		if (m_ProcessState == eProcessState::NONE || m_ProcessState == eProcessState::ITER_STARTED)
 		{
-			m_ProcessState = NONE;
-			m_ProcessAction = FULL_RENDER;
+			m_ProcessState = eProcessState::NONE;
+			m_ProcessAction = eProcessAction::FULL_RENDER;
 		}
 		//Set the state to ITER_DONE and the next process action to FILTER_AND_ACCUM.
 		else
 		{
-			m_ProcessState = ITER_DONE;
-			m_ProcessAction = FILTER_AND_ACCUM;
+			m_ProcessState = eProcessState::ITER_DONE;
+			m_ProcessAction = eProcessAction::FILTER_AND_ACCUM;
 		}
 	}
 	//Run accum only.
-	else if (action == ACCUM_ONLY)
+	else if (action == eProcessAction::ACCUM_ONLY)
 	{
 		//Doesn't make sense if in the middle of iterating, so just start over.
-		if (m_ProcessState == NONE || m_ProcessState == ITER_STARTED)
+		if (m_ProcessState == eProcessState::NONE || m_ProcessState == eProcessState::ITER_STARTED)
 		{
-			m_ProcessAction = FULL_RENDER;
+			m_ProcessAction = eProcessAction::FULL_RENDER;
 		}
-		else if (m_ProcessState == ITER_DONE)//If iterating is done, can start at density filtering and proceed.
+		else if (m_ProcessState == eProcessState::ITER_DONE)//If iterating is done, can start at density filtering and proceed.
 		{
-			m_ProcessAction = FILTER_AND_ACCUM;
+			m_ProcessAction = eProcessAction::FILTER_AND_ACCUM;
 		}
-		else if (m_ProcessState == FILTER_DONE)//Density filtering is done, so the process action is assigned as desired.
+		else if (m_ProcessState == eProcessState::FILTER_DONE)//Density filtering is done, so the process action is assigned as desired.
 		{
-			m_ProcessAction = ACCUM_ONLY;
+			m_ProcessAction = eProcessAction::ACCUM_ONLY;
 		}
-		else if (m_ProcessState == ACCUM_DONE)//Final accum is done, so back up and run final accum again.
+		else if (m_ProcessState == eProcessState::ACCUM_DONE)//Final accum is done, so back up and run final accum again.
 		{
-			m_ProcessState = FILTER_DONE;
-			m_ProcessAction = ACCUM_ONLY;
+			m_ProcessState = eProcessState::FILTER_DONE;
+			m_ProcessAction = eProcessAction::ACCUM_ONLY;
 		}
 	}
 
@@ -125,11 +125,9 @@ void RendererBase::ChangeVal(std::function<void(void)> func, eProcessAction acti
 size_t RendererBase::HistMemoryRequired(size_t strips)
 {
 	bool newFilterAlloc = false;
-
 	CreateSpatialFilter(newFilterAlloc);
 	CreateTemporalFilter(newFilterAlloc);
 	ComputeBounds();
-
 	//Because ComputeBounds() was called, this includes gutter.
 	return (SuperSize() * HistBucketSize()) / strips;
 }
@@ -149,11 +147,9 @@ pair<size_t, size_t> RendererBase::MemoryRequired(size_t strips, bool includeFin
 {
 	pair<size_t, size_t> p;
 	size_t outSize = includeFinal ? FinalBufferSize() : 0;
-
 	outSize *= (threadedWrite ? 2 : 1);
 	p.first = HistMemoryRequired(strips);
 	p.second = (p.first * 2) + outSize;//Multiply hist by 2 to account for the density filtering buffer which is the same size as the histogram.
-
 	return p;
 }
 
@@ -183,7 +179,7 @@ bool RendererBase::RandVec(vector<QTIsaac<ISAAC_SIZE, ISAAC_INT>>& randVec)
 		{
 			m_Rand = randVec;
 			b = true;
-		}, FULL_RENDER);
+		}, eProcessAction::FULL_RENDER);
 	}
 
 	return b;
@@ -218,7 +214,6 @@ bool RendererBase::PrepFinalAccumVector(vector<byte>& pixels)
 	}
 
 	LeaveResize();
-
 	return pixels.size() >= size;//Ensure allocation went ok.
 }
 
@@ -244,21 +239,14 @@ bool RendererBase::Ok() const
 size_t RendererBase::MemoryAvailable()
 {
 	size_t memAvailable = 0;
-
 #ifdef WIN32
-
 	MEMORYSTATUSEX stat;
-
 	stat.dwLength = sizeof(stat);
 	GlobalMemoryStatusEx(&stat);
 	memAvailable = stat.ullTotalPhys;
-
 #elif defined(_SC_PHYS_PAGES) && defined(_SC_PAGESIZE)
-
 	memAvailable = sysconf(_SC_PHYS_PAGES) * sysconf(_SC_PAGESIZE);
-
 #elif defined __APPLE__
-
 #ifdef __LP64__
 	long physmem;
 	size_t len = sizeof(physmem);
@@ -280,12 +268,9 @@ size_t RendererBase::MemoryAvailable()
 	}
 
 #else
-
 	cout << "Warning: unable to determine physical memory." << endl;
 	memAvailable = 4e9;
-
 #endif
-
 	return memAvailable;
 }
 
@@ -336,7 +321,7 @@ bool RendererBase::LockAccum() const { return m_LockAccum; }
 /// <param name="lockAccum">True if the histogram should be locked when accumulating, else false</param>
 void RendererBase::LockAccum(bool lockAccum)
 {
-	ChangeVal([&] { m_LockAccum = lockAccum; }, FULL_RENDER);
+	ChangeVal([&] { m_LockAccum = lockAccum; }, eProcessAction::FULL_RENDER);
 }
 
 /// <summary>
@@ -355,7 +340,7 @@ bool RendererBase::EarlyClip() const { return m_EarlyClip; }
 /// <param name="earlyClip">True if early clip, else false.</param>
 void RendererBase::EarlyClip(bool earlyClip)
 {
-	ChangeVal([&] { m_EarlyClip = earlyClip; }, FILTER_AND_ACCUM);
+	ChangeVal([&] { m_EarlyClip = earlyClip; }, eProcessAction::FILTER_AND_ACCUM);
 }
 
 /// <summary>
@@ -371,7 +356,7 @@ bool RendererBase::YAxisUp() const { return m_YAxisUp; }
 /// <param name="yup">True if the positive y axis is up, else false.</param>
 void RendererBase::YAxisUp(bool yup)
 {
-	ChangeVal([&] { m_YAxisUp = yup; }, ACCUM_ONLY);
+	ChangeVal([&] { m_YAxisUp = yup; }, eProcessAction::ACCUM_ONLY);
 }
 
 /// <summary>
@@ -390,7 +375,7 @@ bool RendererBase::InsertPalette() const { return m_InsertPalette; }
 /// <param name="insertPalette">True if inserting the palette, else false.</param>
 void RendererBase::InsertPalette(bool insertPalette)
 {
-	ChangeVal([&] { m_InsertPalette = insertPalette; }, ACCUM_ONLY);
+	ChangeVal([&] { m_InsertPalette = insertPalette; }, eProcessAction::ACCUM_ONLY);
 }
 
 /// <summary>
@@ -409,7 +394,7 @@ bool RendererBase::ReclaimOnResize() const { return m_ReclaimOnResize; }
 /// <param name="reclaimOnResize">True if reclaim, else false.</param>
 void RendererBase::ReclaimOnResize(bool reclaimOnResize)
 {
-	ChangeVal([&] { m_ReclaimOnResize = reclaimOnResize; }, FULL_RENDER);
+	ChangeVal([&] { m_ReclaimOnResize = reclaimOnResize; }, eProcessAction::FULL_RENDER);
 }
 
 /// <summary>
@@ -430,7 +415,7 @@ bool RendererBase::Transparency() const { return m_Transparency; }
 /// <param name="transparency">True if using transparency, else false.</param>
 void RendererBase::Transparency(bool transparency)
 {
-	ChangeVal([&] { m_Transparency = transparency; }, ACCUM_ONLY);
+	ChangeVal([&] { m_Transparency = transparency; }, eProcessAction::ACCUM_ONLY);
 }
 
 /// <summary>
@@ -483,7 +468,6 @@ void RendererBase::ThreadCount(size_t threads, const char* seedString)
 			if (seedString)
 			{
 				ISAAC_INT newSize = ISAAC_INT(size + 5 + (t.Toc() + t.EndTime()));
-
 #ifdef ISAAC_FLAM3_DEBUG
 				QTIsaac<ISAAC_SIZE, ISAAC_INT> isaac(0, 0, 0, seeds);
 #else
@@ -505,11 +489,10 @@ void RendererBase::ThreadCount(size_t threads, const char* seedString)
 				t.Toc();
 				ISAAC_INT r = ISAAC_INT((size * i) + i + t.EndTime());
 				QTIsaac<ISAAC_SIZE, ISAAC_INT> isaac(r, r * 2, r * 3, seeds);
-
 				m_Rand.push_back(isaac);
 			}
 		}
-	}, FULL_RENDER);
+	}, eProcessAction::FULL_RENDER);
 }
 
 /// <summary>
@@ -536,7 +519,7 @@ void RendererBase::BytesPerChannel(size_t bytesPerChannel)
 			m_BytesPerChannel = 1;
 		else
 			m_BytesPerChannel = bytesPerChannel;
-	}, ACCUM_ONLY);
+	}, eProcessAction::ACCUM_ONLY);
 }
 
 /// <summary>
@@ -576,7 +559,7 @@ eInteractiveFilter RendererBase::InteractiveFilter() const { return m_Interactiv
 /// <param name="filter">The filter.</param>
 void RendererBase::InteractiveFilter(eInteractiveFilter filter)
 {
-	ChangeVal([&] { m_InteractiveFilter = filter; }, FULL_RENDER);
+	ChangeVal([&] { m_InteractiveFilter = filter; }, eProcessAction::FULL_RENDER);
 }
 
 /// <summary>
@@ -592,7 +575,7 @@ void RendererBase::InteractiveFilter(eInteractiveFilter filter)
 /// <param name="numChannels">The number of channels per pixel in the output image</param>
 void RendererBase::NumChannels(size_t numChannels)
 {
-	ChangeVal([&] { m_NumChannels = numChannels; }, ACCUM_ONLY);
+	ChangeVal([&] { m_NumChannels = numChannels; }, eProcessAction::ACCUM_ONLY);
 }
 
 /// <summary>
@@ -623,8 +606,8 @@ void RendererBase::Reset()
 	EnterFinalAccum();
 	LeaveFinalAccum();
 	LeaveRender();
-	m_ProcessState = NONE;
-	m_ProcessAction = FULL_RENDER;
+	m_ProcessState = eProcessState::NONE;
+	m_ProcessAction = eProcessAction::FULL_RENDER;
 }
 
 void RendererBase::EnterRender() { m_RenderingCs.Enter(); }

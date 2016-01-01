@@ -235,7 +235,7 @@ FinalRenderEmberController<T>::FinalRenderEmberController(FractoriumFinalRenderD
 						renderTimer.Tic();//Toc() is called in RenderComplete().
 
 						//Can't use strips render here. Run() must be called directly for animation.
-						if (renderer->Run(finalImages[finalImageIndex], localTime) != RENDER_OK)
+						if (renderer->Run(finalImages[finalImageIndex], localTime) != eRenderStatus::RENDER_OK)
 						{
 							Output("Rendering failed.\n");
 							m_Fractorium->ErrorReportToQTextEdit(renderer->ErrorReport(), m_FinalRenderDialog->ui.FinalRenderTextOutput, false);//Internally calls invoke.
@@ -874,7 +874,7 @@ void FinalRenderEmberController<T>::RenderComplete(Ember<T>& ember, const EmberS
 		m_Settings->FinalDoAll(m_GuiState.m_DoAll);
 		m_Settings->FinalDoSequence(m_GuiState.m_DoSequence);
 		m_Settings->FinalKeepAspect(m_GuiState.m_KeepAspect);
-		m_Settings->FinalScale(m_GuiState.m_Scale);
+		m_Settings->FinalScale(uint(m_GuiState.m_Scale));
 		m_Settings->FinalExt(m_GuiState.m_Ext);
 		m_Settings->FinalThreadCount(m_GuiState.m_ThreadCount);
 		m_Settings->FinalThreadPriority(m_GuiState.m_ThreadPriority);

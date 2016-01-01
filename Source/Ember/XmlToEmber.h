@@ -5,7 +5,7 @@
 #include "VariationList.h"
 
 #ifdef __APPLE__
-#include <libgen.h>
+	#include <libgen.h>
 #endif
 
 /// <summary>
@@ -174,14 +174,12 @@ public:
 			m_BadParamNames["exponentZ"]		 = "bubbleT3D_exponentZ";
 			m_BadParamNames["_symmetryZ"]		 = "bubbleT3D_symmetryZ";
 			m_BadParamNames["_modusBlur"]		 = "bubbleT3D_modusBlur";
-
 			m_FlattenNames.reserve(24);
 			m_FlattenNames.push_back("pre_crop");
 			m_FlattenNames.push_back("pre_falloff2");
 			m_FlattenNames.push_back("pre_rotate_x");
 			m_FlattenNames.push_back("pre_rotate_y");
 			m_FlattenNames.push_back("pre_ztranslate");
-
 			m_FlattenNames.push_back("blur3D");
 			m_FlattenNames.push_back("bubble");
 			m_FlattenNames.push_back("bwraps");
@@ -196,19 +194,14 @@ public:
 			m_FlattenNames.push_back("zblur");
 			m_FlattenNames.push_back("zcone");
 			m_FlattenNames.push_back("ztranslate");
-
 			m_FlattenNames.push_back("post_crop");
 			m_FlattenNames.push_back("post_falloff2");
 			m_FlattenNames.push_back("post_rotate_x");
 			m_FlattenNames.push_back("post_rotate_y");
-
 			m_FlattenNames.push_back("curl3D_cz");
-
 			//This is a vector of the param names as they are in the legacy, badly named flam3/Apophysis code.
 			vector<string> badParams;
-
 			badParams.reserve(6);
-
 			badParams.push_back("bwraps7_cellsize");
 			badParams.push_back("bwraps7_space");
 			badParams.push_back("bwraps7_gain");
@@ -216,7 +209,6 @@ public:
 			badParams.push_back("bwraps7_outer_twist");
 			m_BadVariationNames.push_back(make_pair(make_pair(string("bwraps7"), string("bwraps")), badParams));//bwraps7 is the same as bwraps.
 			badParams.clear();
-
 			badParams.push_back("bwraps2_cellsize");
 			badParams.push_back("bwraps2_space");
 			badParams.push_back("bwraps2_gain");
@@ -224,7 +216,6 @@ public:
 			badParams.push_back("bwraps2_outer_twist");
 			m_BadVariationNames.push_back(make_pair(make_pair(string("bwraps2"), string("bwraps")), badParams));//bwraps2 is the same as bwraps.
 			badParams.clear();
-
 			badParams.push_back("pre_bwraps2_cellsize");
 			badParams.push_back("pre_bwraps2_space");
 			badParams.push_back("pre_bwraps2_gain");
@@ -232,7 +223,6 @@ public:
 			badParams.push_back("pre_bwraps2_outer_twist");
 			m_BadVariationNames.push_back(make_pair(make_pair(string("pre_bwraps2"), string("pre_bwraps")), badParams));
 			badParams.clear();
-
 			badParams.push_back("post_bwraps2_cellsize");
 			badParams.push_back("post_bwraps2_space");
 			badParams.push_back("post_bwraps2_gain");
@@ -240,7 +230,6 @@ public:
 			badParams.push_back("post_bwraps2_outer_twist");
 			m_BadVariationNames.push_back(make_pair(make_pair(string("post_bwraps2"), string("post_bwraps")), badParams));
 			badParams.clear();
-
 			badParams.push_back("mobius_radius");
 			badParams.push_back("mobius_width");
 			badParams.push_back("mobius_rect_x");
@@ -249,7 +238,6 @@ public:
 			badParams.push_back("mobius_rotate_y");
 			m_BadVariationNames.push_back(make_pair(make_pair(string("mobius"),	string("mobius_strip")), badParams));//mobius_strip clashes with Mobius.
 			badParams.clear();
-
 			badParams.push_back("post_dcztransl_x0");
 			badParams.push_back("post_dcztransl_x1");
 			badParams.push_back("post_dcztransl_factor");
@@ -257,11 +245,9 @@ public:
 			badParams.push_back("post_dcztransl_clamp");
 			m_BadVariationNames.push_back(make_pair(make_pair(string("post_dcztransl"), string("post_dc_ztransl")), badParams));
 			badParams.clear();
-
 			m_BadVariationNames.push_back(make_pair(make_pair(string("pre_blur"),    string("pre_gaussian_blur")), badParams));//No other special params for these.
 			m_BadVariationNames.push_back(make_pair(make_pair(string("pre_spin_z"),  string("pre_rotate_z")),      badParams));
 			m_BadVariationNames.push_back(make_pair(make_pair(string("post_spin_z"), string("post_rotate_z")),     badParams));
-
 			m_Init = true;
 		}
 	}
@@ -286,7 +272,6 @@ public:
 		Locale locale;//Sets and restores on exit.
 		//Timing t;
 		ClearErrorReport();
-
 		//Parse XML string into internal document.
 		xmlPtr = CX(&buf[0]);
 		bufSize = strlen(xmlPtr);
@@ -302,7 +287,6 @@ public:
 
 		//What is the root node of the document?
 		rootnode = xmlDocGetRootElement(doc);
-
 		//Scan for <flame> nodes, starting with this node.
 		//t.Tic();
 		bn = basename(const_cast<char*>(filename));
@@ -316,16 +300,16 @@ public:
 		//and should be reset to linear (with a warning).
 		if (emberSize > 0)
 		{
-			if (embers[0].m_Interp == EMBER_INTERP_SMOOTH)
+			if (embers[0].m_Interp == eInterp::EMBER_INTERP_SMOOTH)
 			{
 				cout << "Warning: smooth interpolation cannot be used for first segment.\n         switching to linear.\n" << endl;
-				embers[0].m_Interp = EMBER_INTERP_LINEAR;
+				embers[0].m_Interp = eInterp::EMBER_INTERP_LINEAR;
 			}
 
-			if (emberSize >= 2 && embers[emberSize - 2].m_Interp == EMBER_INTERP_SMOOTH)
+			if (emberSize >= 2 && embers[emberSize - 2].m_Interp == eInterp::EMBER_INTERP_SMOOTH)
 			{
 				cout << "Warning: smooth interpolation cannot be used for last segment.\n         switching to linear.\n" << endl;
-				embers[emberSize - 2].m_Interp = EMBER_INTERP_LINEAR;
+				embers[emberSize - 2].m_Interp = eInterp::EMBER_INTERP_LINEAR;
 			}
 		}
 
@@ -336,8 +320,8 @@ public:
 		{
 			for (size_t i = 1; i < emberSize; i++)
 			{
-				//Only do this adjustment if not in compat mode..
-				if (embers[i - 1].m_AffineInterp != AFFINE_INTERP_COMPAT && embers[i - 1].m_AffineInterp != AFFINE_INTERP_OLDER)
+				//Only do this adjustment if not in compat mode.
+				if (embers[i - 1].m_AffineInterp != eAffineInterp::AFFINE_INTERP_COMPAT && embers[i - 1].m_AffineInterp != eAffineInterp::AFFINE_INTERP_OLDER)
 				{
 					while (embers[i].m_Rotate < embers[i - 1].m_Rotate - 180)
 						embers[i].m_Rotate += 360;
@@ -393,7 +377,6 @@ public:
 		bool b = true;
 		const char* loc = __FUNCTION__;
 		std::istringstream istr(str);
-
 		istr >> val;
 
 		if (istr.bad() || istr.fail())
@@ -405,7 +388,7 @@ public:
 		return b;
 	}
 
-	
+
 	/// <summary>
 	/// Convert an integer to a string.
 	/// Just a wrapper around _itoa_s() which wraps the result in a std::string.
@@ -416,7 +399,6 @@ public:
 	static string Itos(int i, int radix = 10)
 	{
 		char ch[16];
-
 #ifdef WIN32
 		_itoa_s(i, ch, 16, radix);
 #else
@@ -435,7 +417,6 @@ public:
 	static string Itos64(size_t i, int radix = 10)
 	{
 		char ch[64];
-
 #ifdef WIN32
 		_ui64toa_s(i, ch, 64, radix);
 #else
@@ -493,7 +474,6 @@ private:
 
 				//if (!Interpolater<T>::InterpMissingColors(currentEmber.m_Palette.m_Entries))
 				//	AddToReport(string(loc) + " : Error interpolating missing palette colors");
-
 				currentEmber.CacheXforms();
 				currentEmber.m_Index = embers.size();
 				currentEmber.m_ParentFilename = parentFileString;
@@ -525,7 +505,6 @@ private:
 		double vals[16];
 		xmlAttrPtr att, curAtt;
 		xmlNodePtr editNode, childNode, motionNode;
-
 		currentEmber.m_Palette.Clear();//Wipe out the current palette.
 		att = emberNode->properties;//The top level element is a ember element, read the attributes of it and store them.
 
@@ -562,7 +541,6 @@ private:
 			else if (ParseAndAssign(curAtt->name, attStr, "cam_yaw",			   currentEmber.m_CamYaw,			   ret)) { }
 			else if (ParseAndAssign(curAtt->name, attStr, "cam_pitch",			   currentEmber.m_CamPitch,			   ret)) { }
 			else if (ParseAndAssign(curAtt->name, attStr, "cam_dof",			   currentEmber.m_CamDepthBlur,        ret)) { }
-
 			//Parse simple int reads.
 			else if (ParseAndAssign(curAtt->name, attStr, "palette",          currentEmber.m_Palette.m_Index, ret)) { }
 			else if (ParseAndAssign(curAtt->name, attStr, "oversample",       currentEmber.m_Supersample    , ret)) { }
@@ -572,36 +550,35 @@ private:
 			else if (ParseAndAssign(curAtt->name, attStr, "fuse",			  currentEmber.m_FuseCount	    , ret)) { }
 			else if (ParseAndAssign(curAtt->name, attStr, "soloxform",		  soloXform                     , ret)) { }
 			else if (ParseAndAssign(curAtt->name, attStr, "new_linear",		  newLinear					    , ret)) { }
-
 			//Parse more complicated reads that have multiple possible values.
 			else if (!Compare(curAtt->name, "interpolation"))
 			{
 				if (!_stricmp("linear", attStr))
-					currentEmber.m_Interp = EMBER_INTERP_LINEAR;
+					currentEmber.m_Interp = eInterp::EMBER_INTERP_LINEAR;
 				else if (!_stricmp("smooth", attStr))
-					currentEmber.m_Interp = EMBER_INTERP_SMOOTH;
+					currentEmber.m_Interp = eInterp::EMBER_INTERP_SMOOTH;
 				else
 					AddToReport(string(loc) + " : Unrecognized interpolation type " + string(attStr));
 			}
 			else if (!Compare(curAtt->name, "palette_interpolation"))
 			{
 				if (!_stricmp("hsv", attStr))
-					currentEmber.m_PaletteInterp = INTERP_HSV;
+					currentEmber.m_PaletteInterp = ePaletteInterp::INTERP_HSV;
 				else if (!_stricmp("sweep", attStr))
-					currentEmber.m_PaletteInterp = INTERP_SWEEP;
+					currentEmber.m_PaletteInterp = ePaletteInterp::INTERP_SWEEP;
 				else
 					AddToReport(string(loc) + " : Unrecognized palette interpolation type " + string(attStr));
 			}
 			else if (!Compare(curAtt->name, "interpolation_space") || !Compare(curAtt->name, "interpolation_type"))
 			{
 				if (!_stricmp("linear", attStr))
-					currentEmber.m_AffineInterp = AFFINE_INTERP_LINEAR;
+					currentEmber.m_AffineInterp = eAffineInterp::AFFINE_INTERP_LINEAR;
 				else if (!_stricmp("log", attStr))
-					currentEmber.m_AffineInterp = AFFINE_INTERP_LOG;
+					currentEmber.m_AffineInterp = eAffineInterp::AFFINE_INTERP_LOG;
 				else if (!_stricmp("old", attStr))
-					currentEmber.m_AffineInterp = AFFINE_INTERP_COMPAT;
+					currentEmber.m_AffineInterp = eAffineInterp::AFFINE_INTERP_COMPAT;
 				else if (!_stricmp("older", attStr))
-					currentEmber.m_AffineInterp = AFFINE_INTERP_OLDER;
+					currentEmber.m_AffineInterp = eAffineInterp::AFFINE_INTERP_OLDER;
 				else
 					AddToReport(string(loc) + " : Unrecognized interpolation type " + string(attStr));
 			}
@@ -621,7 +598,6 @@ private:
 				{
 					AddToReport(string(loc) + " : Invalid size attribute " + string(attStr));
 					xmlFree(attStr);
-
 					//These return statements are bad. One because they are inconsistent with others that just assign defaults.
 					//Two, because assigning easily guessable defaults is easy and less drastic.
 					return false;
@@ -653,12 +629,12 @@ private:
 			else if (!Compare(curAtt->name, "palette_mode"))
 			{
 				if (!_stricmp("step", attStr))
-					currentEmber.m_PaletteMode = PALETTE_STEP;
+					currentEmber.m_PaletteMode = ePaletteMode::PALETTE_STEP;
 				else if (!_stricmp("linear", attStr))
-					currentEmber.m_PaletteMode = PALETTE_LINEAR;
+					currentEmber.m_PaletteMode = ePaletteMode::PALETTE_LINEAR;
 				else
 				{
-					currentEmber.m_PaletteMode = PALETTE_STEP;
+					currentEmber.m_PaletteMode = ePaletteMode::PALETTE_STEP;
 					AddToReport(string(loc) + " : Unrecognized palette mode " + string(attStr) + ", using step");
 				}
 			}
@@ -700,7 +676,6 @@ private:
 			{
 				index = -1;
 				double r = 0, g = 0, b = 0, a = 0;
-
 				//Loop through the attributes of the color element.
 				att = childNode->properties;
 
@@ -714,7 +689,6 @@ private:
 				{
 					attStr = reinterpret_cast<char*>(xmlGetProp(childNode, curAtt->name));
 					a = 255;
-
 					//This signifies that a palette is not being retrieved from the palette file, rather it's being parsed directly out of the ember xml.
 					//This also means the palette has already been hue adjusted and it doesn't need to be done again, which would be necessary if it were
 					//coming from the palette file.
@@ -724,17 +698,17 @@ private:
 					{
 						Aton(attStr, index);
 					}
-					else if(!Compare(curAtt->name, "rgb"))
+					else if (!Compare(curAtt->name, "rgb"))
 					{
 						if (sscanf_s(attStr, "%lf %lf %lf", &r, &g, &b) != 3)
 							AddToReport(string(loc) + " : Invalid rgb attribute " + string(attStr));
 					}
-					else if(!Compare(curAtt->name, "rgba"))
+					else if (!Compare(curAtt->name, "rgba"))
 					{
 						if (sscanf_s(attStr, "%lf %lf %lf %lf", &r, &g, &b, &a) != 4)
 							AddToReport(string(loc) + " : Invalid rgba attribute " + string(attStr));
 					}
-					else if(!Compare(curAtt->name, "a"))
+					else if (!Compare(curAtt->name, "a"))
 					{
 						if (sscanf_s(attStr, "%lf", &a) != 1)
 							AddToReport(string(loc) + " : Invalid a attribute " + string(attStr));
@@ -751,7 +725,6 @@ private:
 				if (index >= 0 && index <= 255)
 				{
 					T alphaPercent = T(a) / T(255);//Aplha percentage in the range of 0 to 1.
-
 					//Premultiply the palette.
 					currentEmber.m_Palette.m_Entries[index].r = alphaPercent * (T(r) / T(255));
 					currentEmber.m_Palette.m_Entries[index].g = alphaPercent * (T(g) / T(255));
@@ -805,7 +778,6 @@ private:
 				//Make sure BOTH are not specified, otherwise either are ok.
 				int numColors = 0;
 				int numBytes = 0;
-
 				//Loop through the attributes of the palette element.
 				att = childNode->properties;
 
@@ -857,7 +829,6 @@ private:
 			else if (!Compare(childNode->name, "symmetry"))
 			{
 				int symKind = INT_MAX;
-
 				//Loop through the attributes of the palette element.
 				att = childNode->properties;
 
@@ -961,7 +932,6 @@ private:
 			else if (!Compare(childNode->name, "flame_motion"))
 			{
 				EmberMotion<T> motion;
-
 				att = childNode->properties;
 
 				if (att == nullptr)
@@ -981,13 +951,13 @@ private:
 						string func(attStr);
 
 						if (func == "sin")
-							motion.m_MotionFunc = MOTION_SIN;
+							motion.m_MotionFunc = eMotion::MOTION_SIN;
 						else if (func == "triangle")
-							motion.m_MotionFunc = MOTION_TRIANGLE;
+							motion.m_MotionFunc = eMotion::MOTION_TRIANGLE;
 						else if (func == "hill")
-							motion.m_MotionFunc = MOTION_HILL;
+							motion.m_MotionFunc = eMotion::MOTION_HILL;
 						else if (func == "saw")
-							motion.m_MotionFunc = MOTION_SAW;
+							motion.m_MotionFunc = eMotion::MOTION_SAW;
 						else
 						{
 							AddToReport(string(loc) + " : invalid flame motion function " + func);
@@ -995,29 +965,29 @@ private:
 						}
 					}
 					else if (!Compare(curAtt->name, "zoom"))
-						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_ZOOM, motion);
+						ret = ret && AttToEmberMotionFloat(att, attStr, eEmberMotionParam::FLAME_MOTION_ZOOM, motion);
 					else if (!Compare(curAtt->name, "cam_zpos"))
-						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_ZPOS, motion);
+						ret = ret && AttToEmberMotionFloat(att, attStr, eEmberMotionParam::FLAME_MOTION_ZPOS, motion);
 					else if (!Compare(curAtt->name, "cam_persp"))
-						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_PERSPECTIVE, motion);
+						ret = ret && AttToEmberMotionFloat(att, attStr, eEmberMotionParam::FLAME_MOTION_PERSPECTIVE, motion);
 					else if (!Compare(curAtt->name, "cam_yaw"))
-						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_YAW, motion);
+						ret = ret && AttToEmberMotionFloat(att, attStr, eEmberMotionParam::FLAME_MOTION_YAW, motion);
 					else if (!Compare(curAtt->name, "cam_pitch"))
-						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_PITCH, motion);
+						ret = ret && AttToEmberMotionFloat(att, attStr, eEmberMotionParam::FLAME_MOTION_PITCH, motion);
 					else if (!Compare(curAtt->name, "cam_dof"))
-						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_DEPTH_BLUR, motion);
+						ret = ret && AttToEmberMotionFloat(att, attStr, eEmberMotionParam::FLAME_MOTION_DEPTH_BLUR, motion);
 					else if (!Compare(curAtt->name, "rotate"))
-						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_ROTATE, motion);
+						ret = ret && AttToEmberMotionFloat(att, attStr, eEmberMotionParam::FLAME_MOTION_ROTATE, motion);
 					else if (!Compare(curAtt->name, "brightness"))
-						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_BRIGHTNESS, motion);
+						ret = ret && AttToEmberMotionFloat(att, attStr, eEmberMotionParam::FLAME_MOTION_BRIGHTNESS, motion);
 					else if (!Compare(curAtt->name, "gamma"))
-						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_GAMMA, motion);
+						ret = ret && AttToEmberMotionFloat(att, attStr, eEmberMotionParam::FLAME_MOTION_GAMMA, motion);
 					else if (!Compare(curAtt->name, "gamma_threshold"))
-						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_GAMMA_THRESH, motion);
+						ret = ret && AttToEmberMotionFloat(att, attStr, eEmberMotionParam::FLAME_MOTION_GAMMA_THRESH, motion);
 					else if (!Compare(curAtt->name, "highlight_power"))
-						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_HIGHLIGHT_POWER, motion);
+						ret = ret && AttToEmberMotionFloat(att, attStr, eEmberMotionParam::FLAME_MOTION_HIGHLIGHT_POWER, motion);
 					else if (!Compare(curAtt->name, "vibrancy"))
-						ret = ret && AttToEmberMotionFloat(att, attStr, FLAME_MOTION_VIBRANCY, motion);
+						ret = ret && AttToEmberMotionFloat(att, attStr, eEmberMotionParam::FLAME_MOTION_VIBRANCY, motion);
 					else if (!Compare(curAtt->name, "background"))
 					{
 						double r, g, b;
@@ -1030,13 +1000,13 @@ private:
 						}
 
 						if (r != 0)
-							motion.m_MotionParams.push_back(MotionParam<T>(FLAME_MOTION_BACKGROUND_R, T(r)));
+							motion.m_MotionParams.push_back(MotionParam<T>(eEmberMotionParam::FLAME_MOTION_BACKGROUND_R, T(r)));
 
 						if (g != 0)
-							motion.m_MotionParams.push_back(MotionParam<T>(FLAME_MOTION_BACKGROUND_G, T(g)));
+							motion.m_MotionParams.push_back(MotionParam<T>(eEmberMotionParam::FLAME_MOTION_BACKGROUND_G, T(g)));
 
 						if (b != 0)
-							motion.m_MotionParams.push_back(MotionParam<T>(FLAME_MOTION_BACKGROUND_B, T(b)));
+							motion.m_MotionParams.push_back(MotionParam<T>(eEmberMotionParam::FLAME_MOTION_BACKGROUND_B, T(b)));
 					}
 					else if (!Compare(curAtt->name, "center"))
 					{
@@ -1050,10 +1020,10 @@ private:
 						}
 
 						if (cx != 0)
-							motion.m_MotionParams.push_back(MotionParam<T>(FLAME_MOTION_CENTER_X, T(cx)));
+							motion.m_MotionParams.push_back(MotionParam<T>(eEmberMotionParam::FLAME_MOTION_CENTER_X, T(cx)));
 
 						if (cy != 0)
-							motion.m_MotionParams.push_back(MotionParam<T>(FLAME_MOTION_CENTER_Y, T(cy)));
+							motion.m_MotionParams.push_back(MotionParam<T>(eEmberMotionParam::FLAME_MOTION_CENTER_Y, T(cy)));
 					}
 					else
 					{
@@ -1123,7 +1093,6 @@ private:
 		double a, b, c, d, e, f;
 		double vals[10];
 		xmlAttrPtr attPtr, curAtt;
-
 		//Loop through the attributes of the xform element.
 		attPtr = childNode->properties;
 
@@ -1145,7 +1114,6 @@ private:
 			else if (ParseAndAssign(curAtt->name, attStr, "var_color",		  xform.m_DirectColor, success))  { }
 			else if (ParseAndAssign(curAtt->name, attStr, "motion_frequency", xform.m_MotionFreq, success))   { }
 			else if (ParseAndAssign(curAtt->name, attStr, "motion_offset",	  xform.m_MotionOffset, success)) { }
-
 			//Parse more complicated reads that have multiple possible values.
 			else if (!Compare(curAtt->name, "name"))
 			{
@@ -1163,16 +1131,16 @@ private:
 			else if (!Compare(curAtt->name, "motion_function"))
 			{
 				if (!_stricmp("sin", attStr))
-					xform.m_MotionFunc = MOTION_SIN;
+					xform.m_MotionFunc = eMotion::MOTION_SIN;
 				else if (!_stricmp("triangle", attStr))
-					xform.m_MotionFunc = MOTION_TRIANGLE;
+					xform.m_MotionFunc = eMotion::MOTION_TRIANGLE;
 				else if (!_stricmp("hill", attStr))
-					xform.m_MotionFunc = MOTION_HILL;
+					xform.m_MotionFunc = eMotion::MOTION_HILL;
 				else if (!_stricmp("saw", attStr))
-					xform.m_MotionFunc = MOTION_SAW;
+					xform.m_MotionFunc = eMotion::MOTION_SAW;
 				else
 				{
-					xform.m_MotionFunc = MOTION_SIN;
+					xform.m_MotionFunc = eMotion::MOTION_SIN;
 					AddToReport(string(loc) + " : Unknown motion function " + string(attStr) + ", using sin");
 				}
 			}
@@ -1254,10 +1222,10 @@ private:
 				if (auto var = m_VariationList.GetVariation(s))
 				{
 					auto varCopy = var->Copy();
-
 					Aton(attStr, varCopy->m_Weight);
 					xform.AddVariation(varCopy);
 				}
+
 				//else
 				//{
 				//	AddToReport("Unsupported variation: " + string((const char*)curAtt->name));
@@ -1421,7 +1389,8 @@ private:
 		{
 			if (!_stricmp(name, CCX(temp->name)))
 				return true;
-		} while ((temp = temp->next));
+		}
+		while ((temp = temp->next));
 
 		return false;
 	}
@@ -1454,11 +1423,11 @@ private:
 		{
 			//Parse an RGB triplet at a time.
 			if (chan == 3)
-				ret = sscanf_s(&(colstr[colorIndex]),"%2x%2x%2x", &r, &g, &b);
+				ret = sscanf_s(&(colstr[colorIndex]), "%2x%2x%2x", &r, &g, &b);
 			else if (chan == -4)
-				ret = sscanf_s(&(colstr[colorIndex]),"00%2x%2x%2x", &r, &g, &b);
+				ret = sscanf_s(&(colstr[colorIndex]), "00%2x%2x%2x", &r, &g, &b);
 			else // chan==4
-				ret = sscanf_s(&(colstr[colorIndex]),"%2x%2x%2x%2x", &r,&g, &b, &a);
+				ret = sscanf_s(&(colstr[colorIndex]), "%2x%2x%2x%2x", &r, &g, &b, &a);
 
 			a = 1;//Original allows for alpha, even though it will most likely never happen. Ember omits support for it.
 
@@ -1479,15 +1448,15 @@ private:
 			ember.m_Palette.m_Entries[colorCount].g = T(g) / T(255);
 			ember.m_Palette.m_Entries[colorCount].b = T(b) / T(255);
 			ember.m_Palette.m_Entries[colorCount].a = T(a);
-
 			colorCount++;
-
-		} while (colorCount < numColors && colorCount < ember.m_Palette.m_Entries.size());
+		}
+		while (colorCount < numColors && colorCount < ember.m_Palette.m_Entries.size());
 
 #ifdef WIN32
-		if (sscanf_s(&(colstr[colorIndex]),"%1s", tmps, sizeof(tmps)) > 0)//Really need to migrate all of this parsing to C++.//TODO
+
+		if (sscanf_s(&(colstr[colorIndex]), "%1s", tmps, sizeof(tmps)) > 0) //Really need to migrate all of this parsing to C++.//TODO
 #else
-		if (sscanf_s(&(colstr[colorIndex]),"%1s", tmps) > 0)
+		if (sscanf_s(&(colstr[colorIndex]), "%1s", tmps) > 0)
 #endif
 		{
 			AddToReport(string(loc) + " : Extra data at end of hex color data " + string(&(colstr[colorIndex])));
@@ -1514,7 +1483,6 @@ private:
 		if (!Compare(name, str))
 		{
 			istringstream istr(attStr);
-
 			istr >> val;
 			ret = !istr.bad() && !istr.fail();//Means the Compare() was right, and the conversion succeeded.
 		}

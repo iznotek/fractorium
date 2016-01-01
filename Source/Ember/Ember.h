@@ -17,7 +17,7 @@ namespace EmberNs
 /// Bit position specifying the presence of each type of 3D parameter.
 /// One, none, some or all of these can be present.
 /// </summary>
-enum eProjBits
+enum class eProjBits : size_t
 {
 	PROJBITS_ZPOS = 1,
 	PROJBITS_PERSP = 2,
@@ -214,22 +214,22 @@ public:
 		m_HighlightPower = -1;
 		m_Time = 0;
 		m_Background.Reset();
-		m_Interp = EMBER_INTERP_LINEAR;
-		m_AffineInterp = AFFINE_INTERP_LOG;
+		m_Interp = eInterp::EMBER_INTERP_LINEAR;
+		m_AffineInterp = eAffineInterp::AFFINE_INTERP_LOG;
 		//DE filter.
 		m_MinRadDE = 0;
 		m_MaxRadDE = 9;
 		m_CurveDE = T(0.4);
 		//Spatial filter.
-		m_SpatialFilterType = GAUSSIAN_SPATIAL_FILTER;
+		m_SpatialFilterType = eSpatialFilterType::GAUSSIAN_SPATIAL_FILTER;
 		m_SpatialFilterRadius = T(0.5);
 		//Temporal filter.
-		m_TemporalFilterType = BOX_TEMPORAL_FILTER;
+		m_TemporalFilterType = eTemporalFilterType::BOX_TEMPORAL_FILTER;
 		m_TemporalFilterExp = 0;
 		m_TemporalFilterWidth = 1;
 		//Palette.
-		m_PaletteMode = PALETTE_LINEAR;
-		m_PaletteInterp = INTERP_HSV;
+		m_PaletteMode = ePaletteMode::PALETTE_LINEAR;
+		m_PaletteInterp = ePaletteInterp::INTERP_HSV;
 		//Curves.
 		m_Curves.Init();
 		m_Name = "No name";
@@ -493,16 +493,16 @@ public:
 			m_CamMat[1][2] =  std::sin(m_CamPitch) * std::cos(-m_CamYaw);
 			m_CamMat[2][2] =  std::cos(m_CamPitch);
 
-			if (projBits & PROJBITS_BLUR)
+			if (projBits & size_t(eProjBits::PROJBITS_BLUR))
 			{
-				if (projBits & PROJBITS_YAW)
+				if (projBits & size_t(eProjBits::PROJBITS_YAW))
 					m_ProjFunc = &EmberNs::Ember<T>::ProjectPitchYawDepthBlur;
 				else
 					m_ProjFunc = &EmberNs::Ember<T>::ProjectPitchDepthBlur;
 			}
-			else if ((projBits & PROJBITS_PITCH) || (projBits & PROJBITS_YAW))
+			else if ((projBits & size_t(eProjBits::PROJBITS_PITCH)) || (projBits & size_t(eProjBits::PROJBITS_YAW)))
 			{
-				if (projBits & PROJBITS_YAW)
+				if (projBits & size_t(eProjBits::PROJBITS_YAW))
 					m_ProjFunc = &EmberNs::Ember<T>::ProjectPitchYaw;
 				else
 					m_ProjFunc = &EmberNs::Ember<T>::ProjectPitch;
@@ -548,9 +548,9 @@ public:
 	{
 		if ((onlyScaleIfNewIsSmaller && (width < m_OrigFinalRasW || height < m_OrigFinalRasH)) || !onlyScaleIfNewIsSmaller)
 		{
-			if (scaleType == SCALE_WIDTH)
+			if (scaleType == eScaleType::SCALE_WIDTH)
 				m_PixelsPerUnit = m_OrigPixPerUnit * (T(width) / T(m_OrigFinalRasW));
-			else if (scaleType == SCALE_HEIGHT)
+			else if (scaleType == eScaleType::SCALE_HEIGHT)
 				m_PixelsPerUnit = m_OrigPixPerUnit * (T(height) / T(m_OrigFinalRasH));
 		}
 
@@ -717,7 +717,7 @@ public:
 		vector<Xform<T>*> xformVec;
 
 		//Palette and others
-		if (embers[0].m_PaletteInterp == INTERP_HSV)
+		if (embers[0].m_PaletteInterp == ePaletteInterp::INTERP_HSV)
 		{
 			for (glm::length_t i = 0; i < 256; i++)
 			{
@@ -740,7 +740,7 @@ public:
 					Clamp<T>(m_Palette[i][j], 0, 1);
 			}
 		}
-		else if (embers[0].m_PaletteInterp == INTERP_SWEEP)
+		else if (embers[0].m_PaletteInterp == ePaletteInterp::INTERP_SWEEP)
 		{
 			//Sweep - not the best option for float indices.
 			for (glm::length_t i = 0; i < 256; i++)
@@ -888,7 +888,7 @@ public:
 			ClampRef<T>(thisXform->m_ColorSpeed, -1, 1);
 
 			//Interp affine and post.
-			if (m_AffineInterp == AFFINE_INTERP_LOG)
+			if (m_AffineInterp == eAffineInterp::AFFINE_INTERP_LOG)
 			{
 				vector<v2T> cxMag(size);
 				vector<v2T> cxAng(size);
@@ -922,7 +922,7 @@ public:
 					Interpolater<T>::InterpAndConvertBack(coefs, cxAng, cxMag, cxTrn, thisXform->m_Post);
 				}
 			}
-			else if (m_AffineInterp == AFFINE_INTERP_LINEAR)
+			else if (m_AffineInterp == eAffineInterp::AFFINE_INTERP_LINEAR)
 			{
 				//Interpolate pre and post affine using coefs.
 				allID = true;
@@ -1033,7 +1033,7 @@ public:
 				continue;
 
 			//Assume that if there are no variations, then it's a padding xform.
-			if (m_Xforms[i].Empty() && m_AffineInterp != AFFINE_INTERP_LOG)
+			if (m_Xforms[i].Empty() && m_AffineInterp != eAffineInterp::AFFINE_INTERP_LOG)
 				continue;
 
 			m_Xforms[i].m_Affine.Rotate(angle);
@@ -1136,15 +1136,15 @@ public:
 	{
 		size_t val = 0;
 
-		if (m_CamZPos != 0) val |= PROJBITS_ZPOS;
+		if (m_CamZPos != 0) val |= size_t(eProjBits::PROJBITS_ZPOS);
 
-		if (m_CamPerspective != 0) val |= PROJBITS_PERSP;
+		if (m_CamPerspective != 0) val |= size_t(eProjBits::PROJBITS_PERSP);
 
-		if (m_CamPitch != 0) val |= PROJBITS_PITCH;
+		if (m_CamPitch != 0) val |= size_t(eProjBits::PROJBITS_PITCH);
 
-		if (m_CamYaw != 0) val |= PROJBITS_YAW;
+		if (m_CamYaw != 0) val |= size_t(eProjBits::PROJBITS_YAW);
 
-		if (m_CamDepthBlur != 0) val |= PROJBITS_BLUR;
+		if (m_CamDepthBlur != 0) val |= size_t(eProjBits::PROJBITS_BLUR);
 
 		return val;
 	}
@@ -1272,75 +1272,75 @@ public:
 
 				switch (param.first)
 				{
-					case FLAME_MOTION_ZOOM:
+					case eEmberMotionParam::FLAME_MOTION_ZOOM:
 						APP_FMP(m_Zoom);
 						break;
 
-					case FLAME_MOTION_ZPOS:
+					case eEmberMotionParam::FLAME_MOTION_ZPOS:
 						APP_FMP(m_CamZPos);
 						break;
 
-					case FLAME_MOTION_PERSPECTIVE:
+					case eEmberMotionParam::FLAME_MOTION_PERSPECTIVE:
 						APP_FMP(m_CamPerspective);
 						break;
 
-					case FLAME_MOTION_YAW:
+					case eEmberMotionParam::FLAME_MOTION_YAW:
 						APP_FMP(m_CamYaw);
 						break;
 
-					case FLAME_MOTION_PITCH:
+					case eEmberMotionParam::FLAME_MOTION_PITCH:
 						APP_FMP(m_CamPitch);
 						break;
 
-					case FLAME_MOTION_DEPTH_BLUR:
+					case eEmberMotionParam::FLAME_MOTION_DEPTH_BLUR:
 						APP_FMP(m_CamDepthBlur);
 						break;
 
-					case FLAME_MOTION_CENTER_X:
+					case eEmberMotionParam::FLAME_MOTION_CENTER_X:
 						APP_FMP(m_CenterX);
 						break;
 
-					case FLAME_MOTION_CENTER_Y:
+					case eEmberMotionParam::FLAME_MOTION_CENTER_Y:
 						APP_FMP(m_CenterY);
 						break;
 
-					case FLAME_MOTION_ROTATE:
+					case eEmberMotionParam::FLAME_MOTION_ROTATE:
 						APP_FMP(m_Rotate);
 						break;
 
-					case FLAME_MOTION_BRIGHTNESS:
+					case eEmberMotionParam::FLAME_MOTION_BRIGHTNESS:
 						APP_FMP(m_Brightness);
 						break;
 
-					case FLAME_MOTION_GAMMA:
+					case eEmberMotionParam::FLAME_MOTION_GAMMA:
 						APP_FMP(m_Gamma);
 						break;
 
-					case FLAME_MOTION_GAMMA_THRESH:
+					case eEmberMotionParam::FLAME_MOTION_GAMMA_THRESH:
 						APP_FMP(m_GammaThresh);
 						break;
 
-					case FLAME_MOTION_HIGHLIGHT_POWER:
+					case eEmberMotionParam::FLAME_MOTION_HIGHLIGHT_POWER:
 						APP_FMP(m_HighlightPower);
 						break;
 
-					case FLAME_MOTION_BACKGROUND_R:
+					case eEmberMotionParam::FLAME_MOTION_BACKGROUND_R:
 						APP_FMP(m_Background.r);
 						break;
 
-					case FLAME_MOTION_BACKGROUND_G:
+					case eEmberMotionParam::FLAME_MOTION_BACKGROUND_G:
 						APP_FMP(m_Background.g);
 						break;
 
-					case FLAME_MOTION_BACKGROUND_B:
+					case eEmberMotionParam::FLAME_MOTION_BACKGROUND_B:
 						APP_FMP(m_Background.b);
 						break;
 
-					case FLAME_MOTION_VIBRANCY:
+					case eEmberMotionParam::FLAME_MOTION_VIBRANCY:
 						APP_FMP(m_Vibrancy);
 						break;
 
-					case FLAME_MOTION_NONE:
+					case eEmberMotionParam::FLAME_MOTION_NONE:
 					default:
 						break;
 				}
@@ -1364,8 +1364,8 @@ public:
 		m_Symmetry = 0;
 		m_Rotate = 0;
 		m_PixelsPerUnit = 50;
-		m_Interp = EMBER_INTERP_LINEAR;
-		m_PaletteInterp = INTERP_HSV;
+		m_Interp = eInterp::EMBER_INTERP_LINEAR;
+		m_PaletteInterp = ePaletteInterp::INTERP_HSV;
 		m_Index = 0;
 		m_ParentFilename = "";
 		m_ScaleType = eScaleType::SCALE_NONE;
@@ -1394,12 +1394,12 @@ public:
 			m_CurveDE = T(0.4);
 			m_GammaThresh = T(0.01);
 			m_TemporalSamples = 100;
-			m_SpatialFilterType = GAUSSIAN_SPATIAL_FILTER;
-			m_AffineInterp = AFFINE_INTERP_LOG;
-			m_TemporalFilterType = BOX_TEMPORAL_FILTER;
+			m_SpatialFilterType = eSpatialFilterType::GAUSSIAN_SPATIAL_FILTER;
+			m_AffineInterp = eAffineInterp::AFFINE_INTERP_LOG;
+			m_TemporalFilterType = eTemporalFilterType::BOX_TEMPORAL_FILTER;
 			m_TemporalFilterWidth = 1;
 			m_TemporalFilterExp = 0;
-			m_PaletteMode = PALETTE_STEP;
+			m_PaletteMode = ePaletteMode::PALETTE_STEP;
 		}
 		else
 		{
@@ -1425,12 +1425,12 @@ public:
 			m_CurveDE = -1;
 			m_GammaThresh = -1;
 			m_TemporalSamples = 0;
-			m_SpatialFilterType = GAUSSIAN_SPATIAL_FILTER;
-			m_AffineInterp = AFFINE_INTERP_LOG;
-			m_TemporalFilterType = BOX_TEMPORAL_FILTER;
+			m_SpatialFilterType = eSpatialFilterType::GAUSSIAN_SPATIAL_FILTER;
+			m_AffineInterp = eAffineInterp::AFFINE_INTERP_LOG;
+			m_TemporalFilterType = eTemporalFilterType::BOX_TEMPORAL_FILTER;
 			m_TemporalFilterWidth = -1;
 			m_TemporalFilterExp = -999;
-			m_PaletteMode = PALETTE_STEP;
+			m_PaletteMode = ePaletteMode::PALETTE_STEP;
 		}
 
 		m_Xforms.clear();

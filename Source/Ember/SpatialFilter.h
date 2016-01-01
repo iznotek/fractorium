@@ -11,22 +11,22 @@ namespace EmberNs
 /// <summary>
 /// The types of spatial filters available.
 /// </summary>
-enum eSpatialFilterType
+enum class eSpatialFilterType : size_t
 {
-	GAUSSIAN_SPATIAL_FILTER = 0,
-	HERMITE_SPATIAL_FILTER = 1,
-	BOX_SPATIAL_FILTER = 2,
-	TRIANGLE_SPATIAL_FILTER = 3,
-	BELL_SPATIAL_FILTER = 4,
-	BSPLINE_SPATIAL_FILTER = 5,
-	LANCZOS3_SPATIAL_FILTER = 6,
-	LANCZOS2_SPATIAL_FILTER = 7,
-	MITCHELL_SPATIAL_FILTER = 8,
-	BLACKMAN_SPATIAL_FILTER = 9,
-	CATROM_SPATIAL_FILTER = 10,
-	HAMMING_SPATIAL_FILTER = 11,
-	HANNING_SPATIAL_FILTER = 12,
-	QUADRATIC_SPATIAL_FILTER = 13
+	GAUSSIAN_SPATIAL_FILTER,
+	HERMITE_SPATIAL_FILTER,
+	BOX_SPATIAL_FILTER,
+	TRIANGLE_SPATIAL_FILTER,
+	BELL_SPATIAL_FILTER,
+	BSPLINE_SPATIAL_FILTER,
+	LANCZOS3_SPATIAL_FILTER,
+	LANCZOS2_SPATIAL_FILTER,
+	MITCHELL_SPATIAL_FILTER,
+	BLACKMAN_SPATIAL_FILTER,
+	CATROM_SPATIAL_FILTER,
+	HAMMING_SPATIAL_FILTER,
+	HANNING_SPATIAL_FILTER,
+	QUADRATIC_SPATIAL_FILTER
 };
 
 /// <summary>
@@ -109,7 +109,6 @@ public:
 		{
 			T fw = T(2.0) * m_Support * m_Supersample * m_FilterRadius / m_PixelAspectRatio;
 			T adjust, ii, jj;
-
 			int fwidth = int(fw) + 1;
 			int i, j;
 
@@ -133,10 +132,8 @@ public:
 					//Calculate the function inputs for the kernel function.
 					ii = ((T(2.0) * i + T(1.0)) / T(fwidth) - T(1.0)) * adjust;
 					jj = ((T(2.0) * j + T(1.0)) / T(fwidth) - T(1.0)) * adjust;
-
 					//Adjust for aspect ratio.
 					jj /= m_PixelAspectRatio;
-
 					m_Filter[i + j * fwidth] = Filter(ii) * Filter(jj);//Call virtual Filter(), implemented in specific derived filter classes.
 				}
 			}
@@ -149,7 +146,8 @@ public:
 			}
 
 			m_FilterRadius += T(0.01);//Values were too small.
-		} while (1);
+		}
+		while (1);
 	}
 
 	/// <summary>
@@ -160,16 +158,14 @@ public:
 	{
 		size_t i;
 		stringstream ss;
-
 		ss
-			<< "Spatial Filter:" << endl
-			<< "	       Support: " << m_Support << endl
-			<< "     Filter radius: " << m_FilterRadius << endl
-			<< "	   Supersample: " << m_Supersample << endl
-			<< "Pixel aspect ratio: " << m_PixelAspectRatio << endl
-			<< "Final filter width: " << m_FinalFilterWidth << endl
-			<< "Filter buffer size: " << m_Filter.size() << endl;
-
+				<< "Spatial Filter:" << endl
+				<< "	       Support: " << m_Support << endl
+				<< "     Filter radius: " << m_FilterRadius << endl
+				<< "	   Supersample: " << m_Supersample << endl
+				<< "Pixel aspect ratio: " << m_PixelAspectRatio << endl
+				<< "Final filter width: " << m_FinalFilterWidth << endl
+				<< "Filter buffer size: " << m_Filter.size() << endl;
 		ss << "Filter: " << endl;
 
 		for (i = 0; i < m_Filter.size(); i++)
@@ -260,7 +256,7 @@ public:
 	/// <param name="superSample">The supersample of the ember being rendered</param>
 	/// <param name="pixelAspectRatio">The pixel aspect ratio being used to render. Default: 1.</param>
 	GaussianFilter(T filterRadius, size_t superSample, T pixelAspectRatio = T(1.0))
-		: SpatialFilter<T>(GAUSSIAN_SPATIAL_FILTER, T(1.5), filterRadius, superSample, pixelAspectRatio) { }
+		: SpatialFilter<T>(eSpatialFilterType::GAUSSIAN_SPATIAL_FILTER, T(1.5), filterRadius, superSample, pixelAspectRatio) { }
 
 	/// <summary>
 	/// Apply Gaussian filter to t parameter and return.
@@ -288,7 +284,7 @@ public:
 	/// <param name="superSample">The supersample of the ember being rendered</param>
 	/// <param name="pixelAspectRatio">The pixel aspect ratio being used to render. Default: 1.</param>
 	HermiteFilter(T filterRadius, size_t superSample, T pixelAspectRatio = T(1.0))
-		: SpatialFilter<T>(HERMITE_SPATIAL_FILTER, T(1.0), filterRadius, superSample, pixelAspectRatio) { }
+		: SpatialFilter<T>(eSpatialFilterType::HERMITE_SPATIAL_FILTER, T(1.0), filterRadius, superSample, pixelAspectRatio) { }
 
 	/// <summary>
 	/// Apply Hermite filter to t parameter and return.
@@ -323,7 +319,7 @@ public:
 	/// <param name="superSample">The supersample of the ember being rendered</param>
 	/// <param name="pixelAspectRatio">The pixel aspect ratio being used to render. Default: 1.</param>
 	BoxFilter(T filterRadius, size_t superSample, T pixelAspectRatio = T(1.0))
-		: SpatialFilter<T>(BOX_SPATIAL_FILTER, T(0.5), filterRadius, superSample, pixelAspectRatio) { }
+		: SpatialFilter<T>(eSpatialFilterType::BOX_SPATIAL_FILTER, T(0.5), filterRadius, superSample, pixelAspectRatio) { }
 
 	/// <summary>
 	/// Apply Box filter to t parameter and return.
@@ -354,7 +350,7 @@ public:
 	/// <param name="superSample">The supersample of the ember being rendered</param>
 	/// <param name="pixelAspectRatio">The pixel aspect ratio being used to render. Default: 1.</param>
 	TriangleFilter(T filterRadius, size_t superSample, T pixelAspectRatio = T(1.0))
-		: SpatialFilter<T>(TRIANGLE_SPATIAL_FILTER, T(1.0), filterRadius, superSample, pixelAspectRatio) { }
+		: SpatialFilter<T>(eSpatialFilterType::TRIANGLE_SPATIAL_FILTER, T(1.0), filterRadius, superSample, pixelAspectRatio) { }
 
 	/// <summary>
 	/// Apply Triangle filter to t parameter and return.
@@ -388,7 +384,7 @@ public:
 	/// <param name="superSample">The supersample of the ember being rendered</param>
 	/// <param name="pixelAspectRatio">The pixel aspect ratio being used to render. Default: 1.</param>
 	BellFilter(T filterRadius, size_t superSample, T pixelAspectRatio = T(1.0))
-		: SpatialFilter<T>(BELL_SPATIAL_FILTER, T(1.5), filterRadius, superSample, pixelAspectRatio) { }
+		: SpatialFilter<T>(eSpatialFilterType::BELL_SPATIAL_FILTER, T(1.5), filterRadius, superSample, pixelAspectRatio) { }
 
 	/// <summary>
 	/// Apply Bell filter to t parameter and return.
@@ -429,7 +425,7 @@ public:
 	/// <param name="superSample">The supersample of the ember being rendered</param>
 	/// <param name="pixelAspectRatio">The pixel aspect ratio being used to render. Default: 1.</param>
 	BsplineFilter(T filterRadius, size_t superSample, T pixelAspectRatio = T(1.0))
-		: SpatialFilter<T>(BSPLINE_SPATIAL_FILTER, T(2.0), filterRadius, superSample, pixelAspectRatio) { }
+		: SpatialFilter<T>(eSpatialFilterType::BSPLINE_SPATIAL_FILTER, T(2.0), filterRadius, superSample, pixelAspectRatio) { }
 
 	/// <summary>
 	/// Apply B Spline filter to t parameter and return.
@@ -474,7 +470,7 @@ public:
 	/// <param name="superSample">The supersample of the ember being rendered</param>
 	/// <param name="pixelAspectRatio">The pixel aspect ratio being used to render. Default: 1.</param>
 	Lanczos3Filter(T filterRadius, size_t superSample, T pixelAspectRatio = T(1.0))
-		: SpatialFilter<T>(LANCZOS3_SPATIAL_FILTER, T(3.0), filterRadius, superSample, pixelAspectRatio) { }
+		: SpatialFilter<T>(eSpatialFilterType::LANCZOS3_SPATIAL_FILTER, T(3.0), filterRadius, superSample, pixelAspectRatio) { }
 
 	/// <summary>
 	/// Apply Lanczos 3 filter to t parameter and return.
@@ -508,7 +504,7 @@ public:
 	/// <param name="superSample">The supersample of the ember being rendered</param>
 	/// <param name="pixelAspectRatio">The pixel aspect ratio being used to render. Default: 1.</param>
 	Lanczos2Filter(T filterRadius, size_t superSample, T pixelAspectRatio = T(1.0))
-		: SpatialFilter<T>(LANCZOS2_SPATIAL_FILTER, T(2.0), filterRadius, superSample, pixelAspectRatio) { }
+		: SpatialFilter<T>(eSpatialFilterType::LANCZOS2_SPATIAL_FILTER, T(2.0), filterRadius, superSample, pixelAspectRatio) { }
 
 	/// <summary>
 	/// Apply Lanczos 2 filter to t parameter and return.
@@ -542,7 +538,7 @@ public:
 	/// <param name="superSample">The supersample of the ember being rendered</param>
 	/// <param name="pixelAspectRatio">The pixel aspect ratio being used to render. Default: 1.</param>
 	MitchellFilter(T filterRadius, size_t superSample, T pixelAspectRatio = T(1.0))
-		: SpatialFilter<T>(MITCHELL_SPATIAL_FILTER, T(2.0), filterRadius, superSample, pixelAspectRatio) { }
+		: SpatialFilter<T>(eSpatialFilterType::MITCHELL_SPATIAL_FILTER, T(2.0), filterRadius, superSample, pixelAspectRatio) { }
 
 	/// <summary>
 	/// Apply Mitchell filter to t parameter and return.
@@ -561,18 +557,16 @@ public:
 		if (t < 1)
 		{
 			t = (((T(12.0) - T(9.0) * b - T(6.0) * c) * (t * tt))
-			+ ((T(-18.0) + T(12.0) * b + T(6.0) * c) * tt)
-			+ (T(6.0) - 2 * b));
-
+				 + ((T(-18.0) + T(12.0) * b + T(6.0) * c) * tt)
+				 + (T(6.0) - 2 * b));
 			return t / 6;
 		}
 		else if (t < 2)
 		{
 			t = (((T(-1.0) * b - T(6.0) * c) * (t * tt))
-			+ ((T(6.0) * b + T(30.0) * c) * tt)
-			+ ((T(-12.0) * b - T(48.0) * c) * t)
-			+ (T(8.0) * b + 24 * c));
-
+				 + ((T(6.0) * b + T(30.0) * c) * tt)
+				 + ((T(-12.0) * b - T(48.0) * c) * t)
+				 + (T(8.0) * b + 24 * c));
 			return t / 6;
 		}
 
@@ -595,7 +589,7 @@ public:
 	/// <param name="superSample">The supersample of the ember being rendered</param>
 	/// <param name="pixelAspectRatio">The pixel aspect ratio being used to render. Default: 1.</param>
 	BlackmanFilter(T filterRadius, size_t superSample, T pixelAspectRatio = T(1.0))
-		: SpatialFilter<T>(BLACKMAN_SPATIAL_FILTER, T(1.0), filterRadius, superSample, pixelAspectRatio) { }
+		: SpatialFilter<T>(eSpatialFilterType::BLACKMAN_SPATIAL_FILTER, T(1.0), filterRadius, superSample, pixelAspectRatio) { }
 
 	/// <summary>
 	/// Apply Blackman filter to t parameter and return.
@@ -623,7 +617,7 @@ public:
 	/// <param name="superSample">The supersample of the ember being rendered</param>
 	/// <param name="pixelAspectRatio">The pixel aspect ratio being used to render. Default: 1.</param>
 	CatromFilter(T filterRadius, size_t superSample, T pixelAspectRatio = T(1.0))
-		: SpatialFilter<T>(CATROM_SPATIAL_FILTER, T(2.0), filterRadius, superSample, pixelAspectRatio) { }
+		: SpatialFilter<T>(eSpatialFilterType::CATROM_SPATIAL_FILTER, T(2.0), filterRadius, superSample, pixelAspectRatio) { }
 
 	/// <summary>
 	/// Apply Catmull-Rom filter to t parameter and return.
@@ -666,7 +660,7 @@ public:
 	/// <param name="superSample">The supersample of the ember being rendered</param>
 	/// <param name="pixelAspectRatio">The pixel aspect ratio being used to render. Default: 1.</param>
 	HammingFilter(T filterRadius, size_t superSample, T pixelAspectRatio = T(1.0))
-		: SpatialFilter<T>(HAMMING_SPATIAL_FILTER, T(1.0), filterRadius, superSample, pixelAspectRatio) { }
+		: SpatialFilter<T>(eSpatialFilterType::HAMMING_SPATIAL_FILTER, T(1.0), filterRadius, superSample, pixelAspectRatio) { }
 
 	/// <summary>
 	/// Apply Hamming filter to t parameter and return.
@@ -694,7 +688,7 @@ public:
 	/// <param name="superSample">The supersample of the ember being rendered</param>
 	/// <param name="pixelAspectRatio">The pixel aspect ratio being used to render. Default: 1.</param>
 	HanningFilter(T filterRadius, size_t superSample, T pixelAspectRatio = T(1.0))
-		: SpatialFilter<T>(HANNING_SPATIAL_FILTER, T(1.0), filterRadius, superSample, pixelAspectRatio) { }
+		: SpatialFilter<T>(eSpatialFilterType::HANNING_SPATIAL_FILTER, T(1.0), filterRadius, superSample, pixelAspectRatio) { }
 
 	/// <summary>
 	/// Apply Hanning filter to t parameter and return.
@@ -722,7 +716,7 @@ public:
 	/// <param name="superSample">The supersample of the ember being rendered</param>
 	/// <param name="pixelAspectRatio">The pixel aspect ratio being used to render. Default: 1.</param>
 	QuadraticFilter(T filterRadius, size_t superSample, T pixelAspectRatio = T(1.0))
-		: SpatialFilter<T>(QUADRATIC_SPATIAL_FILTER, T(1.5), filterRadius, superSample, pixelAspectRatio) { }
+		: SpatialFilter<T>(eSpatialFilterType::QUADRATIC_SPATIAL_FILTER, T(1.5), filterRadius, superSample, pixelAspectRatio) { }
 
 	/// <summary>
 	/// Apply Quadratic filter to t parameter and return.
@@ -766,36 +760,68 @@ public:
 	{
 		SpatialFilter<T>* filter = nullptr;
 
-		if (filterType == GAUSSIAN_SPATIAL_FILTER)
-			filter = new GaussianFilter<T>(filterRadius, superSample, pixelAspectRatio);
-		else if (filterType == HERMITE_SPATIAL_FILTER)
-			filter = new HermiteFilter<T>(filterRadius, superSample, pixelAspectRatio);
-		else if (filterType == BOX_SPATIAL_FILTER)
-			filter = new BoxFilter<T>(filterRadius, superSample, pixelAspectRatio);
-		else if (filterType == TRIANGLE_SPATIAL_FILTER)
-			filter = new TriangleFilter<T>(filterRadius, superSample, pixelAspectRatio);
-		else if (filterType == BELL_SPATIAL_FILTER)
-			filter = new BellFilter<T>(filterRadius, superSample, pixelAspectRatio);
-		else if (filterType == BSPLINE_SPATIAL_FILTER)
-			filter = new BsplineFilter<T>(filterRadius, superSample, pixelAspectRatio);
-		else if (filterType == LANCZOS3_SPATIAL_FILTER)
-			filter = new Lanczos3Filter<T>(filterRadius, superSample, pixelAspectRatio);
-		else if (filterType == LANCZOS2_SPATIAL_FILTER)
-			filter = new Lanczos2Filter<T>(filterRadius, superSample, pixelAspectRatio);
-		else if (filterType == MITCHELL_SPATIAL_FILTER)
-			filter = new MitchellFilter<T>(filterRadius, superSample, pixelAspectRatio);
-		else if (filterType == BLACKMAN_SPATIAL_FILTER)
-			filter = new BlackmanFilter<T>(filterRadius, superSample, pixelAspectRatio);
-		else if (filterType == CATROM_SPATIAL_FILTER)
-			filter = new CatromFilter<T>(filterRadius, superSample, pixelAspectRatio);
-		else if (filterType == HAMMING_SPATIAL_FILTER)
-			filter = new HammingFilter<T>(filterRadius, superSample, pixelAspectRatio);
-		else if (filterType == HANNING_SPATIAL_FILTER)
-			filter = new HanningFilter<T>(filterRadius, superSample, pixelAspectRatio);
-		else if (filterType == QUADRATIC_SPATIAL_FILTER)
-			filter = new QuadraticFilter<T>(filterRadius, superSample, pixelAspectRatio);
-		else
-			filter = new GaussianFilter<T>(filterRadius, superSample, pixelAspectRatio);
+		switch (filterType)
+		{
+			case EmberNs::eSpatialFilterType::GAUSSIAN_SPATIAL_FILTER:
+				filter = new GaussianFilter<T>(filterRadius, superSample, pixelAspectRatio);
+				break;
+
+			case EmberNs::eSpatialFilterType::HERMITE_SPATIAL_FILTER:
+				filter = new HermiteFilter<T>(filterRadius, superSample, pixelAspectRatio);
+				break;
+
+			case EmberNs::eSpatialFilterType::BOX_SPATIAL_FILTER:
+				filter = new BoxFilter<T>(filterRadius, superSample, pixelAspectRatio);
+				break;
+
+			case EmberNs::eSpatialFilterType::TRIANGLE_SPATIAL_FILTER:
+				filter = new TriangleFilter<T>(filterRadius, superSample, pixelAspectRatio);
+				break;
+
+			case EmberNs::eSpatialFilterType::BELL_SPATIAL_FILTER:
+				filter = new BellFilter<T>(filterRadius, superSample, pixelAspectRatio);
+				break;
+
+			case EmberNs::eSpatialFilterType::BSPLINE_SPATIAL_FILTER:
+				filter = new BsplineFilter<T>(filterRadius, superSample, pixelAspectRatio);
+				break;
+
+			case EmberNs::eSpatialFilterType::LANCZOS3_SPATIAL_FILTER:
+				filter = new Lanczos3Filter<T>(filterRadius, superSample, pixelAspectRatio);
+				break;
+
+			case EmberNs::eSpatialFilterType::LANCZOS2_SPATIAL_FILTER:
+				filter = new Lanczos2Filter<T>(filterRadius, superSample, pixelAspectRatio);
+				break;
+
+			case EmberNs::eSpatialFilterType::MITCHELL_SPATIAL_FILTER:
+				filter = new MitchellFilter<T>(filterRadius, superSample, pixelAspectRatio);
+				break;
+
+			case EmberNs::eSpatialFilterType::BLACKMAN_SPATIAL_FILTER:
+				filter = new BlackmanFilter<T>(filterRadius, superSample, pixelAspectRatio);
+				break;
+
+			case EmberNs::eSpatialFilterType::CATROM_SPATIAL_FILTER:
+				filter = new CatromFilter<T>(filterRadius, superSample, pixelAspectRatio);
+				break;
+
+			case EmberNs::eSpatialFilterType::HAMMING_SPATIAL_FILTER:
+				filter = new HammingFilter<T>(filterRadius, superSample, pixelAspectRatio);
+				break;
+
+			case EmberNs::eSpatialFilterType::HANNING_SPATIAL_FILTER:
+				filter = new HanningFilter<T>(filterRadius, superSample, pixelAspectRatio);
+				break;
+
+			case EmberNs::eSpatialFilterType::QUADRATIC_SPATIAL_FILTER:
+				filter = new QuadraticFilter<T>(filterRadius, superSample, pixelAspectRatio);
+				break;
+
+			default:
+				filter = new GaussianFilter<T>(filterRadius, superSample, pixelAspectRatio);
+				break;
+		}
 
 		if (filter)
 			filter->Create();
@@ -810,7 +836,6 @@ public:
 	static vector<string> FilterTypes()
 	{
 		vector<string> v;
-
 		v.reserve(14);
 		v.push_back("Gaussian");
 		v.push_back("Hermite");
@@ -826,7 +851,6 @@ public:
 		v.push_back("Hamming");
 		v.push_back("Hanning");
 		v.push_back("Quadratic");
-
 		return v;
 	}
 
@@ -838,35 +862,35 @@ public:
 	static eSpatialFilterType FromString(const string& filterType)
 	{
 		if (!_stricmp(filterType.c_str(), "Gaussian"))
-			return GAUSSIAN_SPATIAL_FILTER;
+			return eSpatialFilterType::GAUSSIAN_SPATIAL_FILTER;
 		else if (!_stricmp(filterType.c_str(), "Hermite"))
-			return HERMITE_SPATIAL_FILTER;
+			return eSpatialFilterType::HERMITE_SPATIAL_FILTER;
 		else if (!_stricmp(filterType.c_str(), "Box"))
-			return BOX_SPATIAL_FILTER;
+			return eSpatialFilterType::BOX_SPATIAL_FILTER;
 		else if (!_stricmp(filterType.c_str(), "Triangle"))
-			return TRIANGLE_SPATIAL_FILTER;
+			return eSpatialFilterType::TRIANGLE_SPATIAL_FILTER;
 		else if (!_stricmp(filterType.c_str(), "Bell"))
-			return BELL_SPATIAL_FILTER;
+			return eSpatialFilterType::BELL_SPATIAL_FILTER;
 		else if (!_stricmp(filterType.c_str(), "Bspline"))
-			return BSPLINE_SPATIAL_FILTER;
+			return eSpatialFilterType::BSPLINE_SPATIAL_FILTER;
 		else if (!_stricmp(filterType.c_str(), "Lanczos3"))
-			return LANCZOS3_SPATIAL_FILTER;
+			return eSpatialFilterType::LANCZOS3_SPATIAL_FILTER;
 		else if (!_stricmp(filterType.c_str(), "Lanczos2"))
-			return LANCZOS2_SPATIAL_FILTER;
+			return eSpatialFilterType::LANCZOS2_SPATIAL_FILTER;
 		else if (!_stricmp(filterType.c_str(), "Mitchell"))
-			return MITCHELL_SPATIAL_FILTER;
+			return eSpatialFilterType::MITCHELL_SPATIAL_FILTER;
 		else if (!_stricmp(filterType.c_str(), "Blackman"))
-			return BLACKMAN_SPATIAL_FILTER;
+			return eSpatialFilterType::BLACKMAN_SPATIAL_FILTER;
 		else if (!_stricmp(filterType.c_str(), "Catrom"))
-			return CATROM_SPATIAL_FILTER;
+			return eSpatialFilterType::CATROM_SPATIAL_FILTER;
 		else if (!_stricmp(filterType.c_str(), "Hamming"))
-			return HAMMING_SPATIAL_FILTER;
+			return eSpatialFilterType::HAMMING_SPATIAL_FILTER;
 		else if (!_stricmp(filterType.c_str(), "Hanning"))
-			return HANNING_SPATIAL_FILTER;
+			return eSpatialFilterType::HANNING_SPATIAL_FILTER;
 		else if (!_stricmp(filterType.c_str(), "Quadratic"))
-			return QUADRATIC_SPATIAL_FILTER;
+			return eSpatialFilterType::QUADRATIC_SPATIAL_FILTER;
 		else
-			return GAUSSIAN_SPATIAL_FILTER;
+			return eSpatialFilterType::GAUSSIAN_SPATIAL_FILTER;
 	}
 
 	/// <summary>
@@ -878,38 +902,82 @@ public:
 	{
 		string filter;
 
-		if (filterType == GAUSSIAN_SPATIAL_FILTER)
-			filter = "Gaussian";
-		else if (filterType == HERMITE_SPATIAL_FILTER)
-			filter = "Hermite";
-		else if (filterType == BOX_SPATIAL_FILTER)
-			filter = "Box";
-		else if (filterType == TRIANGLE_SPATIAL_FILTER)
-			filter = "Triangle";
-		else if (filterType == BELL_SPATIAL_FILTER)
-			filter = "Bell";
-		else if (filterType == BSPLINE_SPATIAL_FILTER)
-			filter = "Bspline";
-		else if (filterType == LANCZOS3_SPATIAL_FILTER)
-			filter = "Lanczos3";
-		else if (filterType == LANCZOS2_SPATIAL_FILTER)
-			filter = "Lanczos2";
-		else if (filterType == MITCHELL_SPATIAL_FILTER)
-			filter = "Mitchell";
-		else if (filterType == BLACKMAN_SPATIAL_FILTER)
-			filter = "Blackman";
-		else if (filterType == CATROM_SPATIAL_FILTER)
-			filter = "Catrom";
-		else if (filterType == HAMMING_SPATIAL_FILTER)
-			filter = "Hamming";
-		else if (filterType == HANNING_SPATIAL_FILTER)
-			filter = "Hanning";
-		else if (filterType == QUADRATIC_SPATIAL_FILTER)
-			filter = "Quadratic";
-		else
-			filter = "Gaussian";
+		switch (filterType)
+		{
+			case EmberNs::eSpatialFilterType::GAUSSIAN_SPATIAL_FILTER:
+				filter = "Gaussian";
+				break;
+
+			case EmberNs::eSpatialFilterType::HERMITE_SPATIAL_FILTER:
+				filter = "Hermite";
+				break;
+
+			case EmberNs::eSpatialFilterType::BOX_SPATIAL_FILTER:
+				filter = "Box";
+				break;
+
+			case EmberNs::eSpatialFilterType::TRIANGLE_SPATIAL_FILTER:
+				filter = "Triangle";
+				break;
+
+			case EmberNs::eSpatialFilterType::BELL_SPATIAL_FILTER:
+				filter = "Bell";
+				break;
+
+			case EmberNs::eSpatialFilterType::BSPLINE_SPATIAL_FILTER:
+				filter = "Bspline";
+				break;
+
+			case EmberNs::eSpatialFilterType::LANCZOS3_SPATIAL_FILTER:
+				filter = "Lanczos3";
+				break;
+
+			case EmberNs::eSpatialFilterType::LANCZOS2_SPATIAL_FILTER:
+				filter = "Lanczos2";
+				break;
+
+			case EmberNs::eSpatialFilterType::MITCHELL_SPATIAL_FILTER:
+				filter = "Mitchell";
+				break;
+
+			case EmberNs::eSpatialFilterType::BLACKMAN_SPATIAL_FILTER:
+				filter = "Blackman";
+				break;
+
+			case EmberNs::eSpatialFilterType::CATROM_SPATIAL_FILTER:
+				filter = "Catrom";
+				break;
+
+			case EmberNs::eSpatialFilterType::HAMMING_SPATIAL_FILTER:
+				filter = "Hamming";
+				break;
+
+			case EmberNs::eSpatialFilterType::HANNING_SPATIAL_FILTER:
+				filter = "Hanning";
+				break;
+
+			case EmberNs::eSpatialFilterType::QUADRATIC_SPATIAL_FILTER:
+				filter = "Quadratic";
+				break;
+
+			default:
+				filter = "Gaussian";
+				break;
+		}
 
 		return filter;
 	}
 };
+
+/// <summary>
+/// Thin wrapper around SpatialFilterCreator::ToString() to allow << operator on spatial filter type.
+/// </summary>
+/// <param name="stream">The stream to insert into</param>
+/// <param name="t">The type whose string representation will be inserted into the stream</param>
+/// <returns></returns>
+static std::ostream& operator<<(std::ostream& stream, const eSpatialFilterType& t)
+{
+	stream << SpatialFilterCreator<float>::ToString(t);
+	return stream;
+}
 }

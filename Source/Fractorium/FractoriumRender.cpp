@@ -201,7 +201,7 @@ void FractoriumEmberControllerBase::AddProcessAction(eProcessAction action)
 eProcessAction FractoriumEmberControllerBase::CondenseAndClearProcessActions()
 {
 	m_Cs.Enter();
-	eProcessAction action = NOTHING;
+	auto action = eProcessAction::NOTHING;
 
 	for (auto a : m_ProcessActions)
 		if (a > action)
@@ -310,7 +310,7 @@ bool FractoriumEmberController<T>::Render()
 		m_Ember.m_Quality = d;
 		qualityAction = eProcessAction::FULL_RENDER;
 	}
-	else if (d > m_Ember.m_Quality && ProcessState() == ACCUM_DONE)//If quality increased, keep iterating after current render finishes.
+	else if (d > m_Ember.m_Quality && ProcessState() == eProcessState::ACCUM_DONE)//If quality increased, keep iterating after current render finishes.
 	{
 		m_Ember.m_Quality = d;
 		qualityAction = eProcessAction::KEEP_ITERATING;
@@ -332,7 +332,7 @@ bool FractoriumEmberController<T>::Render()
 	m_Ember.m_TemporalSamples = 1;
 
 	//Take care of solo xforms and set the current ember and action.
-	if (action != NOTHING)
+	if (action != eProcessAction::NOTHING)
 	{
 		int i, solo = m_Fractorium->ui.CurrentXformCombo->property("soloxform").toInt();
 
@@ -361,12 +361,12 @@ bool FractoriumEmberController<T>::Render()
 	//Ensure sizes are equal and if not, update dimensions.
 	if (SyncSizes())
 	{
-		action = FULL_RENDER;
+		action = eProcessAction::FULL_RENDER;
 		return true;
 	}
 
 	//Determining if a completely new rendering process is being started.
-	bool iterBegin = ProcessState() == NONE;
+	bool iterBegin = ProcessState() == eProcessState::NONE;
 
 	if (iterBegin)
 	{
@@ -380,10 +380,10 @@ bool FractoriumEmberController<T>::Render()
 	}
 
 	//If the rendering process hasn't finished, render with the current specified action.
-	if (ProcessState() != ACCUM_DONE)
+	if (ProcessState() != eProcessState::ACCUM_DONE)
 	{
 		//if (m_Renderer->Run(m_FinalImage, 0) == RENDER_OK)//Full, non-incremental render for debugging.
-		if (m_Renderer->Run(m_FinalImage, 0, m_SubBatchCount, (iterBegin || m_Fractorium->m_Settings->ContinuousUpdate())) == RENDER_OK)//Force output on iterBegin or if the settings specify to always do it.
+		if (m_Renderer->Run(m_FinalImage, 0, m_SubBatchCount, (iterBegin || m_Fractorium->m_Settings->ContinuousUpdate())) == eRenderStatus::RENDER_OK)//Force output on iterBegin or if the settings specify to always do it.
 		{
 			//The amount to increment sub batch while rendering proceeds is purely empirical.
 			//Change later if better values can be derived/observed.
@@ -401,7 +401,7 @@ bool FractoriumEmberController<T>::Render()
 			}
 
 			//Rendering has finished, update final stats.
-			if (ProcessState() == ACCUM_DONE)
+			if (ProcessState() == eProcessState::ACCUM_DONE)
 			{
 				EmberStats stats = m_Renderer->Stats();
 				QString iters = ToString<qulonglong>(stats.m_Iters);
@@ -454,7 +454,7 @@ bool FractoriumEmberController<T>::Render()
 
 			//Update the GL window on start because the output will be forced.
 			//Update it on finish because the rendering process is completely done.
-			if (iterBegin || ProcessState() == ACCUM_DONE)
+			if (iterBegin || ProcessState() == eProcessState::ACCUM_DONE)
 			{
 				if (m_FinalImage.size() == m_Renderer->FinalBufferSize())//Make absolutely sure the correct amount of data is passed.
 					gl->update();
@@ -500,7 +500,7 @@ bool FractoriumEmberController<T>::Render()
 	}
 
 	//Upon finishing, or having nothing to do, rest.
-	if (ProcessState() == ACCUM_DONE)
+	if (ProcessState() == eProcessState::ACCUM_DONE)
 		QThread::msleep(1);
 
 	//QApplication::processEvents();
@@ -578,10 +578,10 @@ bool FractoriumEmberController<T>::CreateRenderer(eRendererType renderType, cons
 		m_Renderer->ThreadCount(s->ThreadCount());
 		m_Renderer->Transparency(s->Transparency());
 
-		if (m_Renderer->RendererType() == CPU_RENDERER)
-			m_Renderer->InteractiveFilter(s->CpuDEFilter() ? FILTER_DE : FILTER_LOG);
+		if (m_Renderer->RendererType() == eRendererType::CPU_RENDERER)
+			m_Renderer->InteractiveFilter(s->CpuDEFilter() ? eInteractiveFilter::FILTER_DE : eInteractiveFilter::FILTER_LOG);
 		else
-			m_Renderer->InteractiveFilter(s->OpenCLDEFilter() ? FILTER_DE : FILTER_LOG);
+			m_Renderer->InteractiveFilter(s->OpenCLDEFilter() ? eInteractiveFilter::FILTER_DE : eInteractiveFilter::FILTER_LOG);
 
 		if ((m_Renderer->EarlyClip() != m_PreviewRenderer->EarlyClip()) ||
 				(m_Renderer->YAxisUp() != m_PreviewRenderer->YAxisUp()))

@@ -69,11 +69,10 @@ public:
 	/// <param name="other">The MotionParam object to copy.</param>
 	/// <returns>Reference to updated self</returns>
 	template <typename U>
-	MotionParam &operator = (const MotionParam<U>& other)
+	MotionParam& operator = (const MotionParam<U>& other)
 	{
 		this->first = other.first;
 		this->second = T(other.second);
-
 		return *this;
 	}
 };
@@ -94,7 +93,7 @@ public:
 	EmberMotion()
 	{
 		m_MotionFreq = 0;
-		m_MotionFunc = MOTION_SIN;
+		m_MotionFunc = eMotion::MOTION_SIN;
 		m_MotionOffset = 0;
 	}
 
@@ -135,7 +134,7 @@ public:
 	/// <param name="other">The EmberMotion object to copy.</param>
 	/// <returns>Reference to updated self</returns>
 	template <typename U>
-	EmberMotion &operator = (const EmberMotion<U>& other)
+	EmberMotion& operator = (const EmberMotion<U>& other)
 	{
 		CopyVec(m_MotionParams, other.m_MotionParams);
 		m_MotionFunc = other.m_MotionFunc;

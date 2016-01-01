@@ -11,11 +11,11 @@ namespace EmberNs
 /// <summary>
 /// The types of temporal filters available.
 /// </summary>
-enum eTemporalFilterType
+enum class eTemporalFilterType : size_t
 {
-	BOX_TEMPORAL_FILTER = 0,
-	GAUSSIAN_TEMPORAL_FILTER = 1,
-	EXP_TEMPORAL_FILTER = 2
+	BOX_TEMPORAL_FILTER,
+	GAUSSIAN_TEMPORAL_FILTER,
+	EXP_TEMPORAL_FILTER
 };
 
 /// <summary>
@@ -49,7 +49,6 @@ public:
 	TemporalFilter(eTemporalFilterType filterType, size_t temporalSamples, T filterWidth)
 	{
 		size_t i, steps = temporalSamples;
-
 		m_TemporalSamples = temporalSamples;
 		m_FilterWidth = filterWidth;
 		m_Deltas.resize(steps);
@@ -116,12 +115,10 @@ public:
 	{
 		size_t i;
 		stringstream ss;
-
 		ss  << "Temporal Filter:" << endl
 			<< "	       Size: " << Size() << endl
 			<< "           Type: " << TemporalFilterCreator<T>::ToString(m_FilterType) << endl
 			<< "       Sum Filt: " << SumFilt() << endl;
-
 		ss << "Deltas: " << endl;
 
 		for (i = 0; i < m_Deltas.size(); i++)
@@ -184,7 +181,7 @@ protected:
 template <typename T>
 class EMBER_API ExpTemporalFilter : public TemporalFilter<T>
 {
-TEMPORALFILTERUSINGS
+	TEMPORALFILTERUSINGS
 public:
 	/// <summary>
 	/// Constructor to create an Exp filter.
@@ -193,7 +190,7 @@ public:
 	/// <param name="filterWidth">The width of the filter.</param>
 	/// <param name="filterExp">The filter exp.</param>
 	ExpTemporalFilter(size_t temporalSamples, T filterWidth, T filterExp)
-		: TemporalFilter<T>(BOX_TEMPORAL_FILTER, temporalSamples, filterWidth)
+		: TemporalFilter<T>(eTemporalFilterType::BOX_TEMPORAL_FILTER, temporalSamples, filterWidth)
 	{
 		if (Size() > 1)
 		{
@@ -226,7 +223,7 @@ public:
 template <typename T>
 class EMBER_API GaussianTemporalFilter : public TemporalFilter<T>
 {
-TEMPORALFILTERUSINGS
+	TEMPORALFILTERUSINGS
 public:
 	/// <summary>
 	/// Constructor to create a Gaussian filter.
@@ -234,7 +231,7 @@ public:
 	/// <param name="temporalSamples">The number of temporal samples in the ember being rendered</param>
 	/// <param name="filterWidth">The width of the filter.</param>
 	GaussianTemporalFilter(size_t temporalSamples, T filterWidth)
-		: TemporalFilter<T>(GAUSSIAN_TEMPORAL_FILTER, temporalSamples, filterWidth)
+		: TemporalFilter<T>(eTemporalFilterType::GAUSSIAN_TEMPORAL_FILTER, temporalSamples, filterWidth)
 	{
 		if (Size() > 1)
 		{
@@ -261,7 +258,7 @@ public:
 template <typename T>
 class EMBER_API BoxTemporalFilter : public TemporalFilter<T>
 {
-TEMPORALFILTERUSINGS
+	TEMPORALFILTERUSINGS
 public:
 	/// <summary>
 	/// Constructor to create a Box filter.
@@ -269,7 +266,7 @@ public:
 	/// <param name="temporalSamples">The number of temporal samples in the ember being rendered</param>
 	/// <param name="filterWidth">The width of the filter.</param>
 	BoxTemporalFilter(size_t temporalSamples, T filterWidth)
-		: TemporalFilter<T>(BOX_TEMPORAL_FILTER, temporalSamples, filterWidth)
+		: TemporalFilter<T>(eTemporalFilterType::BOX_TEMPORAL_FILTER, temporalSamples, filterWidth)
 	{
 		if (Size() > 1)
 		{
@@ -300,14 +297,24 @@ public:
 	{
 		TemporalFilter<T>* filter = nullptr;
 
-		if (filterType == BOX_TEMPORAL_FILTER)
-			filter = new BoxTemporalFilter<T>(temporalSamples, filterWidth);
-		else if (filterType == GAUSSIAN_TEMPORAL_FILTER)
-			filter = new GaussianTemporalFilter<T>(temporalSamples, filterWidth);
-		else if (filterType == EXP_TEMPORAL_FILTER)
-			filter = new ExpTemporalFilter<T>(temporalSamples, filterWidth, filterExp);
-		else
-			filter = new BoxTemporalFilter<T>(temporalSamples, filterWidth);//Default to box if bad enum passed in.
+		switch (filterType)
+		{
+			case EmberNs::eTemporalFilterType::BOX_TEMPORAL_FILTER:
+				filter = new BoxTemporalFilter<T>(temporalSamples, filterWidth);
+				break;
+
+			case EmberNs::eTemporalFilterType::GAUSSIAN_TEMPORAL_FILTER:
+				filter = new GaussianTemporalFilter<T>(temporalSamples, filterWidth);
+				break;
+
+			case EmberNs::eTemporalFilterType::EXP_TEMPORAL_FILTER:
+				filter = new ExpTemporalFilter<T>(temporalSamples, filterWidth, filterExp);
+				break;
+
+			default:
+				filter = new BoxTemporalFilter<T>(temporalSamples, filterWidth);//Default to box if bad enum passed in.
+				break;
+		}
 
 		return filter;
 	}
@@ -319,12 +326,10 @@ public:
 	static vector<string> FilterTypes()
 	{
 		vector<string> v;
-
 		v.reserve(3);
 		v.push_back("Box");
 		v.push_back("Gaussian");
 		v.push_back("Exp");
-
 		return v;
 	}
 
@@ -336,13 +341,13 @@ public:
 	static eTemporalFilterType FromString(const string& filterType)
 	{
 		if (!_stricmp(filterType.c_str(), "box"))
-			return BOX_TEMPORAL_FILTER;
+			return eTemporalFilterType::BOX_TEMPORAL_FILTER;
 		else if (!_stricmp(filterType.c_str(), "gaussian"))
-			return GAUSSIAN_TEMPORAL_FILTER;
+			return eTemporalFilterType::GAUSSIAN_TEMPORAL_FILTER;
 		else if (!_stricmp(filterType.c_str(), "exp"))
-			return EXP_TEMPORAL_FILTER;
+			return eTemporalFilterType::EXP_TEMPORAL_FILTER;
 		else
-			return BOX_TEMPORAL_FILTER;
+			return eTemporalFilterType::BOX_TEMPORAL_FILTER;
 	}
 
 	/// <summary>
@@ -354,16 +359,38 @@ public:
 	{
 		string filter;
 
-		if (filterType == BOX_TEMPORAL_FILTER)
-			filter = "Box";
-		else if (filterType == GAUSSIAN_TEMPORAL_FILTER)
-			filter = "Gaussian";
-		else if (filterType == EXP_TEMPORAL_FILTER)
-			filter = "Exp";
-		else
-			filter = "Box";
+		switch (filterType)
+		{
+			case EmberNs::eTemporalFilterType::BOX_TEMPORAL_FILTER:
+				filter = "Box";
+				break;
+
+			case EmberNs::eTemporalFilterType::GAUSSIAN_TEMPORAL_FILTER:
+				filter = "Gaussian";
+				break;
+
+			case EmberNs::eTemporalFilterType::EXP_TEMPORAL_FILTER:
+				filter = "Exp";
+				break;
+
+			default:
+				filter = "Box";
+				break;
+		}
 
 		return filter;
 	}
 };
+
+/// <summary>
+/// Thin wrapper around TemporalFilterCreator::ToString() to allow << operator on temporal filter type.
+/// </summary>
+/// <param name="stream">The stream to insert into</param>
+/// <param name="t">The type whose string representation will be inserted into the stream</param>
+/// <returns></returns>
+static std::ostream& operator<<(std::ostream& stream, const eTemporalFilterType& t)
+{
+	stream << TemporalFilterCreator<float>::ToString(t);
+	return stream;
+}
 }
