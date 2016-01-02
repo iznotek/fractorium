@@ -1,5 +1,8 @@
 TEMPLATE = subdirs
 CONFIG += ordered
+CONFIG += autobuild
+
+# message(PWD: $$(PWD))
 
 LOCAL_LIB_DIR = $$(PWD)/Builds/lib
 LOCAL_INCLUDE_DIR = $$(PWD)/Builds/include

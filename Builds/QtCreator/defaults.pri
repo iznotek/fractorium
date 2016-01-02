@@ -1,7 +1,6 @@
 VERSION = 0.9.9.2
 
-# When this file is included:
-# - $$(PWD) is the project folder, e.g. ./Builds/QtCreator/Ember/
+message(PWD: $$(PWD))
 
 # TODO: win32 install dirs?
 
@@ -11,7 +10,16 @@ unix|macx {
   SHARE_INSTALL_DIR = /usr/share/fractorium
 }
 
-EMBER_ROOT = ./../../../
+# When loaded by QtCreator
+EMBER_ROOT = $$(PWD)/../../..
+
+# When compiling from project root
+autobuild {
+  EMBER_ROOT = $$(PWD)/../..
+}
+
+message(EMBER_ROOT: $$EMBER_ROOT)
+
 SRC_DIR = $$EMBER_ROOT/Source
 SRC_COMMON_DIR = $$EMBER_ROOT/Source/EmberCommon
 ASSETS_DIR = $$EMBER_ROOT/Data

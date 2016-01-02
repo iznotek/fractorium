@@ -60,7 +60,7 @@ HEADERS += \
     $$PRJ_DIR/Variations05.h \
     $$PRJ_DIR/Variations06.h \
     $$PRJ_DIR/VariationsDC.h \
-	$$PRJ_DIR/VarFuncs.h \
+    $$PRJ_DIR/VarFuncs.h \
     $$PRJ_DIR/Xform.h \
     $$PRJ_DIR/XmlToEmber.h
 
