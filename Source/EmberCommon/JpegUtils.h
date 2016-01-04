@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "EmberCommonPch.h"
 
@@ -73,10 +73,15 @@ static bool WriteJpeg(const char* filename, byte* image, size_t width, size_t he
 		info.image_width = JDIMENSION(width);
 		info.image_height = JDIMENSION(height);
 		jpeg_set_defaults(&info);
-		jpeg_set_quality(&info, quality, TRUE);
+    #ifdef _WIN32
+        jpeg_set_quality(&info, quality, static_cast<boolean>(TRUE));
+		jpeg_start_compress(&info, static_cast<boolean>(TRUE));
+        //Win32:TRUE is defined in MSVC2013\Windows Kits\8.1\Include\shared\minwindef.h:"#define TRUE                1"
+        //cast from int to boolean in External/libjpeg/jmorecfg.h:"typedef enum  { FALSE = 0, TRUE =1  } boolean;"
+    #else
+        jpeg_set_quality(&info, quality, TRUE);
 		jpeg_start_compress(&info, TRUE);
-
-		//Write comments to jpeg.
+    #endif
 		if (enableComments)
 		{
 			jpeg_write_marker(&info, JPEG_COM, reinterpret_cast<byte*>(verString), uint(strlen(verString)));
