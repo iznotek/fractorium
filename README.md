@@ -17,7 +17,7 @@ Mac OS/X (10.9+): TODO
 
 ## Windows
 
-TODO
+[**Building Guide for Fractorium Using MSVC2013 and Qt Creator (64 bit)**](BuildGuideQtCreator.md)
 
 ## Linux
 
