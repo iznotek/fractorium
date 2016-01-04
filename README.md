@@ -16,8 +16,11 @@ Mac OS/X (10.9+): TODO
 # Building from git
 
 ## Windows
+Install Git-GUI and clone `https://github.com/mfeemster/fractorium.git`
 
-[**Building Guide for Fractorium Using MSVC2013 and Qt Creator (64 bit)**](BuildGuideQtCreator.md)
+Then follow:
+
+[**Building Guide for Fractorium Using MSVC2013 and Qt Creator (64 bit)**](Data/BuildGuideQtCreator.md)
 
 ## Linux
 
