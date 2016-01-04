@@ -6,7 +6,7 @@ You need to have MSVC2013 compiler and  Qt for Windows 64-bit (VS 2013) like Qt 
 ##Prerequisites
 Download Prerequisites ( /glm /libjpeg /libpng /libxml2 /tbb /zlib ) according to [mfeemster's wiki](https://github.com/mfeemster/fractorium/wiki/Building).  
 Extract them in the parallel folder of `fractorium` named `External`  
-You can refer to the folder structure below  
+You can refer to the [folder structure](#folder-structure) below  
 Open your `Visual Studio Tools Command Prompt (amd64 2013)` and do the followings in folders below:  
 
 ######\External\libjpeg (jpegsr9a.zip)
@@ -87,8 +87,9 @@ Open your `Visual Studio Tools Command Prompt (amd64 2013)` and do the following
      to this folder `\fractorium\Builds\include\vendor\CL` (overwrite)
 
 **All Done!**  
+<a id="folder-structure"></a>
 
-You shuold have file structure like this:
+You shuold have folder structure like this:
 
 ```
 [YOUR ROOT FOLDER]
