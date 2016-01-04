@@ -10,37 +10,40 @@ You can refer to the folder structure below
 Open your `Visual Studio Tools Command Prompt (amd64 2013)` and do the followings in folders below:  
 
 ######\External\libjpeg (jpegsr9a.zip)
-- ```
-SET Include=%Include%;"C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Include"
-```
-(to include WIN32.mak)  
-(I use `SET Include=%Include%;"B:\MSVC2013\Windows Kits\v7.1A\Include"`)  
-```
-nmake /f makefile.vc  setup-v10
-nmake nodebug=1 /f makefile.vc clean all
-```
-copy `libjpeg.lib` in `External\libjpeg` to `External\libs`
+-   run in prompt  
+    ```
+    SET Include=%Include%;"C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Include"
+    ```  
+    (to include WIN32.mak)  
+    (I use `SET Include=%Include%;"B:\MSVC2013\Windows Kits\v7.1A\Include"`)  
+    ```
+    nmake /f makefile.vc  setup-v10
+    nmake nodebug=1 /f makefile.vc clean all
+    ```  
+    copy `libjpeg.lib` in `External\libjpeg` to `External\libs`
+
 
 ###### \External\zlib (zlib128.zip)
-- ```
-nmake -f win32/Makefile.msc clean all
-```
-copy `zlib.lib` in `External\zlib` to `External\libs`
+- run in prompt  
+    ```
+    nmake -f win32/Makefile.msc clean all
+    ```
+    copy `zlib.lib` in `External\zlib` to `External\libs`
 
 ###### \External\libxml2 (libxml2-2.9.3.zip)
-- cd to `External\libxml2\win32`
-```
-cscript configure.js compiler=msvc iconv=no zlib=yes include=..\..\zlib lib=..\..\zlib
-nmake /f Makefile.msvc clean all
-```
-copy `libxml2.lib` in `External\libxml2\win32\bin.msvc` to `External\libs`
+- cd to `External\libxml2\win32`  
+    ```
+    cscript configure.js compiler=msvc iconv=no zlib=yes include=..\..\zlib lib=..\..\zlib
+    nmake /f Makefile.msvc clean all
+    ```  
+    copy `libxml2.lib` in `External\libxml2\win32\bin.msvc` to `External\libs`
 
 ###### \External\libpng (lpng1620.zip)
-- First, copy `zlib.lib` `zlib.h` and `zconf.h` to `External\libpng\zlib` (create this folder if no exsiting)
-```
-nmake -f  scripts\makefile.vcwin32 clean all
-```
-copy `libpng.lib` in `External\libpng` to `External\libs`
+- First, copy `zlib.lib` `zlib.h` and `zconf.h` to `External\libpng\zlib` (create this folder if no exsiting)  
+    ```
+    nmake -f  scripts\makefile.vcwin32 clean all
+    ```   
+    copy `libpng.lib` in `External\libpng` to `External\libs`
 
 ###### \External\glm (glm-0.9.6.3.zip)
 - noting to do, make sure you extract it correctly.
@@ -51,9 +54,9 @@ copy `libpng.lib` in `External\libpng` to `External\libs`
 ##Collect libs and includes
 ###### \External\libs
 - copy `GlU32.Lib` `WS2_32.Lib` `OpenGL32.Lib` under `MSVC2013\Windows Kits\8.1\Lib\winv6.3\um\x64`
-     to this folder (`\External\libs`)
-install CUDA toolkit and copy `CUDA\v7.5\lib\x64\OpenCL.lib` to this folder (`\External\libs`)  
-- Now you should already have these files in the folder:
+    to this folder (`\External\libs`)  
+    install CUDA toolkit and copy `CUDA\v7.5\lib\x64\OpenCL.lib` to this folder (`\External\libs`)  
+- Now you should already have these files in the folder:  
 ```
 GlU32.Lib
 libjpeg.lib
@@ -69,7 +72,7 @@ zlib.lib
 
 ###### \fractorium\Builds\lib
 - copy anything(they are `*.h`) under `CUDA\v7.5\include\CL`
-     to this folder `\fractorium\Builds\lib` (overwrite)
+     to this folder `\fractorium\Builds\include\vendor\CL` (overwrite)
 
 **All Done!**  
 
